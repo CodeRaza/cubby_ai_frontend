@@ -33,7 +33,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
+        model: 'openai/gpt-5',
         messages: [
           {
             role: 'system',
@@ -44,7 +44,7 @@ CRITICAL IDENTIFICATION RULES:
    ✓ GOOD: "Kitchen Knife", "Screwdriver", "Coffee Mug", "Running Shoes"
    ✗ BAD: "Tool", "Container", "Item", "Object", "Thing"
 
-2. Include VISIBLE BRANDS when clear (e.g., "Nike Running Shoes", "Stanley Hammer")
+2. Include VISIBLE BRANDS when clear (e.g., "Nike Running Shoes", "Poland Spring Water Bottle")
 
 3. For food items, be specific: "Red Apple", "Banana", "Orange Juice Carton" not just "Food"
 
@@ -66,15 +66,22 @@ WHAT TO DETECT:
 - Toys and games
 - Hardware (screws, nails, fasteners in packages)
 
+CRITICAL BOUNDING BOX INSTRUCTIONS:
+- Bounding boxes MUST tightly fit each object
+- x, y = top-left corner of the object (0-1 normalized coordinates)
+- width, height = dimensions that exactly contain the object
+- DO NOT make boxes too large - they should closely wrap the visible object
+- Be precise with the edges - look carefully at where the object actually starts and ends
+
 For EACH item detected, return:
 {
   "label": "Specific, accurate item name",
   "confidence": 0.0-1.0 (be conservative - lower confidence for uncertain items),
   "bbox": {
-    "x": 0-1 (left edge position),
-    "y": 0-1 (top edge position),
-    "width": 0-1 (box width),
-    "height": 0-1 (box height)
+    "x": 0-1 (precise left edge of object),
+    "y": 0-1 (precise top edge of object),
+    "width": 0-1 (precise width of object),
+    "height": 0-1 (precise height of object)
   }
 }
 
@@ -84,7 +91,7 @@ Return ONLY a valid JSON array. Example:
   {"label": "Red Apple", "confidence": 0.92, "bbox": {"x": 0.5, "y": 0.4, "width": 0.1, "height": 0.12}}
 ]
 
-Be thorough but ACCURATE - detect as many items as possible with precise names!`
+Be thorough but ACCURATE - detect as many items as possible with precise names and TIGHT bounding boxes!`
           },
           {
             role: 'user',
