@@ -120,6 +120,39 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_usage: {
+        Row: {
+          bonus_credits: number
+          created_at: string
+          id: string
+          period_end: string
+          period_start: string
+          scans_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bonus_credits?: number
+          created_at?: string
+          id?: string
+          period_end: string
+          period_start: string
+          scans_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bonus_credits?: number
+          created_at?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          scans_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shared_access: {
         Row: {
           granted_at: string
@@ -149,18 +182,69 @@ export type Database = {
           },
         ]
       }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_tier: Database["public"]["Enums"]["subscription_tier"]
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_tier?: Database["public"]["Enums"]["subscription_tier"]
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_tier?: Database["public"]["Enums"]["subscription_tier"]
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_user_scan: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
+      get_scan_limit: {
+        Args: { tier: Database["public"]["Enums"]["subscription_tier"] }
+        Returns: number
+      }
       grant_shared_access: {
         Args: { p_location_id: string; p_share_token: string }
         Returns: boolean
       }
+      increment_scan_usage: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      subscription_tier: "free" | "starter" | "pro" | "power"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -287,6 +371,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_tier: ["free", "starter", "pro", "power"],
+    },
   },
 } as const
