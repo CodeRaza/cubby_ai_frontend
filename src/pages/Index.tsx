@@ -152,13 +152,7 @@ const Index = () => {
                           Paint Brushes
                         </div>
                       </div>
-                      <div className="absolute bottom-1/4 left-1/3 w-1/4 h-1/6 border-2 border-accent rounded-lg animate-pulse" style={{
-                      animationDelay: '0.4s'
-                    }}>
-                        <div className="absolute -top-6 left-0 bg-accent text-accent-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
-                          Screwdrivers
-                        </div>
-                      </div>
+                      
                     </div>
 
                     {/* Detection Results */}
