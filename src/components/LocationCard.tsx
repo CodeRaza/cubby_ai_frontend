@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { QrCode } from "lucide-react";
+import { QrCode, Trash2 } from "lucide-react";
 import { getLocationIcon } from "@/lib/locationTypes";
 
 interface LocationCardProps {
@@ -9,9 +9,10 @@ interface LocationCardProps {
   itemCount: number;
   onClick: () => void;
   onQRClick: (e: React.MouseEvent) => void;
+  onDeleteClick: (e: React.MouseEvent) => void;
 }
 
-export const LocationCard = ({ id, name, itemCount, onClick, onQRClick }: LocationCardProps) => {
+export const LocationCard = ({ id, name, itemCount, onClick, onQRClick, onDeleteClick }: LocationCardProps) => {
   const LocationIcon = getLocationIcon(name);
   
   return (
@@ -30,14 +31,23 @@ export const LocationCard = ({ id, name, itemCount, onClick, onQRClick }: Locati
               {itemCount} {itemCount === 1 ? 'item' : 'items'}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onQRClick}
-            className="shrink-0"
-          >
-            <QrCode className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-1 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onQRClick}
+            >
+              <QrCode className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onDeleteClick}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

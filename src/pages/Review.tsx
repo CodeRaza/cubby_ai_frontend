@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
@@ -79,6 +79,10 @@ const Review = () => {
     setItems(prev => prev.map((item, i) => 
       i === index ? { ...item, [field]: value } : item
     ));
+  };
+
+  const removeItem = (index: number) => {
+    setItems(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
@@ -217,10 +221,20 @@ const Review = () => {
             <Card key={index}>
               <CardContent className="pt-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Item {index + 1}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {Math.round(item.confidence * 100)}% confidence
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Item {index + 1}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {Math.round(item.confidence * 100)}% confidence
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeItem(index)}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
 
                 <div className="space-y-2">

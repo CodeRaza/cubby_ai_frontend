@@ -15,6 +15,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PREDEFINED_LOCATIONS } from "@/lib/locationTypes";
@@ -42,6 +52,8 @@ const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [deleteLocationId, setDeleteLocationId] = useState<string | null>(null);
+  const [deleteLocationName, setDeleteLocationName] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -194,6 +206,30 @@ const Dashboard = () => {
   const handleCustomLocationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleCreateLocation(newLocationName);
+  };
+
+  const handleDeleteLocation = async () => {
+    if (!deleteLocationId) return;
+
+    try {
+      const { error } = await supabase
+        .from("locations")
+        .delete()
+        .eq("id", deleteLocationId);
+
+      if (error) throw error;
+
+      toast({ title: "Location deleted" });
+      setDeleteLocationId(null);
+      setDeleteLocationName("");
+      loadLocations();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting location",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleLogout = async () => {
@@ -413,9 +449,31 @@ const Dashboard = () => {
                     e.stopPropagation();
                     navigate(`/qr-codes/${location.id}`);
                   }}
+                  onDeleteClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteLocationId(location.id);
+                    setDeleteLocationName(location.name);
+                  }}
                 />
               ))}
             </div>
+            
+            <AlertDialog open={!!deleteLocationId} onOpenChange={(open) => !open && setDeleteLocationId(null)}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Location?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete "{deleteLocationName}"? This will also delete all items in this location. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteLocation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         )}
       </main>
