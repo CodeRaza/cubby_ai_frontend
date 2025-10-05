@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { ArrowLeft, Users, Package, MapPin, Activity, TrendingUp, DollarSign } from "lucide-react";
+import { Users, Package, MapPin, Scan, TrendingUp, TrendingDown, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 interface Analytics {
@@ -32,24 +30,22 @@ interface UserStat {
   plan_tier: string;
 }
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
-
 const Admin = () => {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [userStats, setUserStats] = useState<UserStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    checkAdminStatus();
+    checkAdminAccess();
   }, []);
 
-  const checkAdminStatus = async () => {
+  const checkAdminAccess = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Please log in to access admin dashboard");
+        toast.error("Not authenticated");
         navigate("/auth");
         return;
       }
@@ -60,66 +56,60 @@ const Admin = () => {
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "admin")
-        .single();
+        .maybeSingle();
 
       if (error || !roles) {
-        toast.error("Access denied: Admin privileges required");
+        toast.error("Access denied. Admin privileges required.");
         navigate("/dashboard");
         return;
       }
 
       setIsAdmin(true);
-      await loadDashboardData();
+      loadDashboardData();
     } catch (error) {
-      console.error("Error checking admin status:", error);
-      toast.error("Error loading admin dashboard");
+      console.error("Error checking admin access:", error);
       navigate("/dashboard");
-    } finally {
-      setLoading(false);
     }
   };
 
   const loadDashboardData = async () => {
     try {
+      setLoading(true);
+
       // Get analytics
-      const { data: analyticsData, error: analyticsError } = await supabase.rpc("get_admin_analytics");
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .rpc("get_admin_analytics");
+
       if (analyticsError) throw analyticsError;
-      setAnalytics(analyticsData);
+      setAnalytics(analyticsData as unknown as Analytics);
 
       // Get user stats
-      const { data: usersData, error: usersError } = await supabase.rpc("get_user_stats");
+      const { data: usersData, error: usersError } = await supabase
+        .rpc("get_user_stats");
+
       if (usersError) throw usersError;
       setUserStats(usersData || []);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
-      toast.error("Error loading dashboard data");
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading admin dashboard...</p>
-        </div>
-      </div>
-    );
+  if (!isAdmin) {
+    return null;
   }
 
-  if (!isAdmin) return null;
-
-  const funnelData = analytics ? [
-    { name: "Total Users", value: analytics.total_users, percentage: 100 },
-    { name: "Active Today", value: analytics.active_users_today, percentage: Math.round((analytics.active_users_today / analytics.total_users) * 100) },
-    { name: "Created Items", value: Math.min(analytics.total_items, analytics.total_users), percentage: Math.round((Math.min(analytics.total_items, analytics.total_users) / analytics.total_users) * 100) },
-    { name: "Paid Users", value: analytics.paid_users, percentage: Math.round((analytics.paid_users / analytics.total_users) * 100) },
-  ] : [];
-
-  const subscriptionData = analytics ? [
-    { name: "Free", value: analytics.free_users },
-    { name: "Paid", value: analytics.paid_users },
-  ] : [];
+  const getTierColor = (tier: string) => {
+    const colors: Record<string, string> = {
+      free: "bg-gray-500",
+      starter: "bg-blue-500",
+      pro: "bg-purple-500",
+      power: "bg-orange-500"
+    };
+    return colors[tier] || "bg-gray-500";
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -131,161 +121,138 @@ const Admin = () => {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Monitor your platform metrics and user activity</p>
+              <p className="text-muted-foreground">Monitor platform metrics and user activity</p>
             </div>
           </div>
+          <Button onClick={loadDashboardData} disabled={loading}>
+            Refresh Data
+          </Button>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analytics?.total_users || 0}</div>
-              <p className="text-xs text-muted-foreground">+{analytics?.users_this_month || 0} this month</p>
-            </CardContent>
-          </Card>
+        {loading ? (
+          <div className="text-center py-12">Loading dashboard data...</div>
+        ) : (
+          <>
+            {/* Key Metrics Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.total_users || 0}</div>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    {analytics?.users_this_month || 0} this month
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Items</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analytics?.total_items || 0}</div>
-              <p className="text-xs text-muted-foreground">+{analytics?.items_this_month || 0} this month</p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.total_items || 0}</div>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    {analytics?.items_this_month || 0} this month
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Today</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analytics?.active_users_today || 0}</div>
-              <p className="text-xs text-muted-foreground">users created items today</p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Today</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.active_users_today || 0}</div>
+                  <p className="text-xs text-muted-foreground">Users active today</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Scans This Month</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analytics?.scans_this_month || 0}</div>
-              <p className="text-xs text-muted-foreground">AI detection runs</p>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Scans This Month</CardTitle>
+                  <Scan className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.scans_this_month || 0}</div>
+                  <p className="text-xs text-muted-foreground">Items detected</p>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Charts Row */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* User Funnel */}
-          <Card>
-            <CardHeader>
-              <CardTitle>User Funnel</CardTitle>
-              <CardDescription>User engagement and conversion metrics</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  value: { label: "Users", color: "hsl(var(--chart-1))" }
-                }}
-                className="h-[300px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={funnelData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="name" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+            {/* Subscription Metrics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Distribution</CardTitle>
+                <CardDescription>Breakdown of user plans</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium">Free Users</p>
+                      <p className="text-2xl font-bold">{analytics?.free_users || 0}</p>
+                    </div>
+                    <Badge variant="secondary">Free</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium">Paid Users</p>
+                      <p className="text-2xl font-bold">{analytics?.paid_users || 0}</p>
+                    </div>
+                    <Badge>Paid</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Subscription Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscription Distribution</CardTitle>
-              <CardDescription>Free vs Paid users</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  free: { label: "Free", color: "hsl(var(--chart-2))" },
-                  paid: { label: "Paid", color: "hsl(var(--chart-3))" }
-                }}
-                className="h-[300px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={subscriptionData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {subscriptionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* User Stats Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>User Statistics</CardTitle>
-            <CardDescription>Detailed breakdown of user activity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="text-right">Items</TableHead>
-                  <TableHead className="text-right">Locations</TableHead>
-                  <TableHead className="text-right">Scans</TableHead>
-                  <TableHead>Plan</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userStats.map((user) => (
-                  <TableRow key={user.user_id}>
-                    <TableCell className="font-medium">{user.email}</TableCell>
-                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">{user.item_count}</TableCell>
-                    <TableCell className="text-right">{user.location_count}</TableCell>
-                    <TableCell className="text-right">{user.scan_count}</TableCell>
-                    <TableCell>
-                      <Badge variant={user.plan_tier === 'free' ? 'secondary' : 'default'}>
-                        {user.plan_tier}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+            {/* User Stats Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>User Activity</CardTitle>
+                <CardDescription>Detailed user statistics and engagement</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead className="text-right">Items</TableHead>
+                      <TableHead className="text-right">Locations</TableHead>
+                      <TableHead className="text-right">Scans</TableHead>
+                      <TableHead>Joined</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userStats.map((user) => (
+                      <TableRow key={user.user_id}>
+                        <TableCell className="font-medium">{user.email}</TableCell>
+                        <TableCell>
+                          <Badge className={getTierColor(user.plan_tier)}>
+                            {user.plan_tier}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{user.item_count}</TableCell>
+                        <TableCell className="text-right">{user.location_count}</TableCell>
+                        <TableCell className="text-right">{user.scan_count}</TableCell>
+                        <TableCell>
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );
