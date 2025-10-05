@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, QrCode } from "lucide-react";
+import { QrCode } from "lucide-react";
+import { getLocationIcon } from "@/lib/locationTypes";
 
 interface LocationCardProps {
   id: string;
@@ -11,6 +12,8 @@ interface LocationCardProps {
 }
 
 export const LocationCard = ({ id, name, itemCount, onClick, onQRClick }: LocationCardProps) => {
+  const LocationIcon = getLocationIcon(name);
+  
   return (
     <Card 
       className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
@@ -19,7 +22,7 @@ export const LocationCard = ({ id, name, itemCount, onClick, onQRClick }: Locati
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           <div className="p-3 rounded-xl bg-primary/10">
-            <MapPin className="h-6 w-6 text-primary" />
+            <LocationIcon className="h-6 w-6 text-primary" />
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-lg">{name}</h3>

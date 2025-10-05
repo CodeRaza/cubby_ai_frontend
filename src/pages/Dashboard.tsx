@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PREDEFINED_LOCATIONS } from "@/lib/locationTypes";
+import { Card } from "@/components/ui/card";
 
 interface Location {
   id: string;
@@ -39,6 +41,7 @@ const Dashboard = () => {
   const [newLocationName, setNewLocationName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -160,16 +163,15 @@ const Dashboard = () => {
     }
   };
 
-  const handleCreateLocation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newLocationName.trim()) return;
+  const handleCreateLocation = async (locationName: string) => {
+    if (!locationName.trim()) return;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("locations").insert({
-        name: newLocationName,
+        name: locationName,
         user_id: user.id,
       });
 
@@ -178,6 +180,7 @@ const Dashboard = () => {
       toast({ title: "Location created!" });
       setNewLocationName("");
       setDialogOpen(false);
+      setShowCustomInput(false);
       loadLocations();
     } catch (error: any) {
       toast({
@@ -186,6 +189,11 @@ const Dashboard = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleCustomLocationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleCreateLocation(newLocationName);
   };
 
   const handleLogout = async () => {
@@ -299,28 +307,76 @@ const Dashboard = () => {
                 Add Location
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Create Location</DialogTitle>
                 <DialogDescription>
-                  Add a new location to organize your items
+                  Choose a preset location or create a custom one
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleCreateLocation} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="location-name">Location Name</Label>
-                  <Input
-                    id="location-name"
-                    placeholder="e.g., Garage, Pantry, Storage"
-                    value={newLocationName}
-                    onChange={(e) => setNewLocationName(e.target.value)}
-                    required
-                  />
+              
+              {!showCustomInput ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {PREDEFINED_LOCATIONS.map((locationType) => {
+                      const IconComponent = locationType.icon;
+                      return (
+                        <Card
+                          key={locationType.id}
+                          className="cursor-pointer hover:bg-accent transition-colors p-4"
+                          onClick={() => handleCreateLocation(locationType.name)}
+                        >
+                          <div className="flex flex-col items-center gap-2 text-center">
+                            <div className="p-3 rounded-xl bg-primary/10">
+                              <IconComponent className="h-6 w-6 text-primary" />
+                            </div>
+                            <span className="text-sm font-medium">{locationType.name}</span>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setShowCustomInput(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Custom Location
+                  </Button>
                 </div>
-                <Button type="submit" className="w-full">
-                  Create Location
-                </Button>
-              </form>
+              ) : (
+                <form onSubmit={handleCustomLocationSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="location-name">Custom Location Name</Label>
+                    <Input
+                      id="location-name"
+                      placeholder="e.g., My Special Room"
+                      value={newLocationName}
+                      onChange={(e) => setNewLocationName(e.target.value)}
+                      autoFocus
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        setShowCustomInput(false);
+                        setNewLocationName("");
+                      }}
+                    >
+                      Back
+                    </Button>
+                    <Button type="submit" className="flex-1">
+                      Create Location
+                    </Button>
+                  </div>
+                </form>
+              )}
             </DialogContent>
           </Dialog>
         </div>
