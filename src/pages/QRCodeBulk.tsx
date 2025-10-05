@@ -8,6 +8,7 @@ import { QRCodeLabel } from "@/components/QRCodeLabel";
 interface Location {
   id: string;
   name: string;
+  share_token: string | null;
 }
 
 const QRCodeBulk = () => {
@@ -23,7 +24,7 @@ const QRCodeBulk = () => {
     try {
       const { data } = await supabase
         .from("locations")
-        .select("id, name")
+        .select("id, name, share_token")
         .order("name");
 
       if (data) {
@@ -73,6 +74,7 @@ const QRCodeBulk = () => {
                 key={location.id}
                 locationId={location.id}
                 locationName={location.name}
+                shareToken={location.share_token || undefined}
                 compact
               />
             ))}

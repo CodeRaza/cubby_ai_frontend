@@ -4,11 +4,14 @@ import { MapPin } from "lucide-react";
 interface QRCodeLabelProps {
   locationId: string;
   locationName: string;
+  shareToken?: string;
   compact?: boolean;
 }
 
-export const QRCodeLabel = ({ locationId, locationName, compact = false }: QRCodeLabelProps) => {
-  const url = `${window.location.origin}/location/${locationId}`;
+export const QRCodeLabel = ({ locationId, locationName, shareToken, compact = false }: QRCodeLabelProps) => {
+  const url = shareToken 
+    ? `${window.location.origin}/location/${locationId}?token=${shareToken}`
+    : `${window.location.origin}/location/${locationId}`;
 
   if (compact) {
     return (

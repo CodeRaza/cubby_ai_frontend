@@ -19,21 +19,66 @@ const LocationItems = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [locationName, setLocationName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    loadLocationAndItems();
+    checkAuthAndAccess();
   }, [locationId]);
+
+  const checkAuthAndAccess = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // Not authenticated - redirect to auth with return URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const returnUrl = token 
+          ? `/location/${locationId}?token=${token}`
+          : `/location/${locationId}`;
+        navigate(`/auth?redirect=${encodeURIComponent(returnUrl)}`);
+        return;
+      }
+
+      // Check if there's a token to validate
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      
+      if (token) {
+        // Validate and grant access
+        const { data, error } = await supabase.rpc('grant_shared_access', {
+          p_location_id: locationId,
+          p_share_token: token
+        });
+
+        if (error) {
+          console.error('Error granting access:', error);
+        }
+        
+        // Remove token from URL after processing
+        window.history.replaceState({}, '', `/location/${locationId}`);
+      }
+
+      await loadLocationAndItems();
+    } catch (error: any) {
+      console.error('Error checking access:', error);
+      setLoading(false);
+    }
+  };
 
   const loadLocationAndItems = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data: location } = await supabase
         .from("locations")
-        .select("name")
+        .select("name, user_id")
         .eq("id", locationId)
         .single();
 
       if (location) {
         setLocationName(location.name);
+        setIsOwner(user?.id === location.user_id);
       }
 
       const { data: itemsData } = await supabase
@@ -84,13 +129,23 @@ const LocationItems = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6">
+        {!isOwner && (
+          <div className="mb-4 p-4 bg-muted rounded-lg text-center">
+            <p className="text-sm text-muted-foreground">
+              You have view-only access to this location
+            </p>
+          </div>
+        )}
+
         {items.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-4">No items in this location yet</p>
-            <Button onClick={() => navigate("/scan")}>
-              <Camera className="h-4 w-4 mr-2" />
-              Scan Items
-            </Button>
+            {isOwner && (
+              <Button onClick={() => navigate("/scan")}>
+                <Camera className="h-4 w-4 mr-2" />
+                Scan Items
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

@@ -9,6 +9,7 @@ const QRCodeSingle = () => {
   const { locationId } = useParams();
   const navigate = useNavigate();
   const [locationName, setLocationName] = useState("");
+  const [shareToken, setShareToken] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,12 +20,13 @@ const QRCodeSingle = () => {
     try {
       const { data } = await supabase
         .from("locations")
-        .select("name")
+        .select("name, share_token")
         .eq("id", locationId)
         .single();
 
       if (data) {
         setLocationName(data.name);
+        setShareToken(data.share_token || "");
       }
     } finally {
       setLoading(false);
@@ -59,11 +61,15 @@ const QRCodeSingle = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <QRCodeLabel locationId={locationId!} locationName={locationName} />
+        <QRCodeLabel 
+          locationId={locationId!} 
+          locationName={locationName}
+          shareToken={shareToken}
+        />
         
         <div className="mt-8 text-center text-sm text-muted-foreground print:hidden">
           <p>Print this label and attach it to your {locationName.toLowerCase()}</p>
-          <p className="mt-2">Anyone can scan the QR code, but they'll need to log in to view items</p>
+          <p className="mt-2">Anyone who scans will get view-only access after signing up</p>
         </div>
       </main>
     </div>

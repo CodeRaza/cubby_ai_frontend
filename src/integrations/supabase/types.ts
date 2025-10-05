@@ -97,6 +97,7 @@ export type Database = {
           gps_lng: number | null
           id: string
           name: string
+          share_token: string | null
           user_id: string
         }
         Insert: {
@@ -105,6 +106,7 @@ export type Database = {
           gps_lng?: number | null
           id?: string
           name: string
+          share_token?: string | null
           user_id: string
         }
         Update: {
@@ -113,16 +115,49 @@ export type Database = {
           gps_lng?: number | null
           id?: string
           name?: string
+          share_token?: string | null
           user_id?: string
         }
         Relationships: []
+      }
+      shared_access: {
+        Row: {
+          granted_at: string
+          id: string
+          location_id: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          id?: string
+          location_id: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          id?: string
+          location_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_access_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      grant_shared_access: {
+        Args: { p_location_id: string; p_share_token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
