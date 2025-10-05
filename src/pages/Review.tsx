@@ -167,7 +167,25 @@ const Review = () => {
       );
 
       if (incrementError || !incremented) {
-        throw new Error('Item limit reached or error tracking usage');
+        // Check if user has a subscription to provide better error message
+        const { data: subData } = await supabase
+          .from('user_subscriptions')
+          .select('plan_tier')
+          .eq('user_id', user.id)
+          .single();
+        
+        const planName = subData?.plan_tier 
+          ? subData.plan_tier.charAt(0).toUpperCase() + subData.plan_tier.slice(1)
+          : 'Free';
+        
+        toast({
+          title: "Item limit reached",
+          description: `Your ${planName} plan doesn't have enough items remaining for ${items.length} new items. Upgrade or remove existing items to continue.`,
+          variant: "destructive",
+        });
+        setSaving(false);
+        navigate('/subscription');
+        return;
       }
 
       for (const item of items) {

@@ -254,8 +254,11 @@ const Settings = () => {
                   Opens Stripe portal to manage billing, cancel, or change your plan
                 </p>
                 <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-4">
-                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                  <p className="text-xs text-amber-800 dark:text-amber-200 mb-2">
                     <strong>Cancellation Policy:</strong> If you cancel your subscription, your account will be downgraded to the free plan. Your scan data will be retained for 7 days, after which scans exceeding the free tier limit will be automatically deleted.
+                  </p>
+                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                    <strong>Downgrade Policy:</strong> If you downgrade to a lower plan, all existing items remain intact. However, you won't be able to add new items until your total is below the new plan's limit, or you can upgrade again.
                   </p>
                 </div>
               </div>
