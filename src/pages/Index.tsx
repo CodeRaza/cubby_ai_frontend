@@ -9,8 +9,15 @@ import garageScan from "@/assets/garage-scan.jpg";
 const Index = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
+  const [showSearchScreen, setShowSearchScreen] = useState(false);
+  
   useEffect(() => {
     setIsVisible(true);
+    // Transition to search screen after 4 seconds
+    const timer = setTimeout(() => {
+      setShowSearchScreen(true);
+    }, 4000);
+    return () => clearTimeout(timer);
   }, []);
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -74,21 +81,22 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* First Phone - Scan Screen */}
-            <div className={`relative ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{
-            animationDelay: '0.2s'
-          }}>
-              {/* Decorative Background Elements */}
-              <div className="absolute inset-0 -z-10">
-                <div className="absolute top-1/4 -right-8 w-72 h-72 bg-gradient-to-br from-primary/30 to-transparent rounded-full blur-3xl animate-float" />
-                <div className="absolute bottom-1/4 -left-8 w-64 h-64 bg-gradient-to-tr from-secondary/30 to-transparent rounded-full blur-3xl animate-float" style={{
-                animationDelay: '1.5s'
-              }} />
-              </div>
+          <div className={`relative ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{
+          animationDelay: '0.2s'
+        }}>
+            {/* Decorative Background Elements */}
+            <div className="absolute inset-0 -z-10">
+              <div className="absolute top-1/4 -right-8 w-72 h-72 bg-gradient-to-br from-primary/30 to-transparent rounded-full blur-3xl animate-float" />
+              <div className="absolute bottom-1/4 -left-8 w-64 h-64 bg-gradient-to-tr from-secondary/30 to-transparent rounded-full blur-3xl animate-float" style={{
+              animationDelay: '1.5s'
+            }} />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-3xl animate-float" style={{
+              animationDelay: '0.7s'
+            }} />
+            </div>
 
-              {/* Phone Mockup */}
-              <div className="relative mx-auto max-w-sm">
+            {/* Phone Mockup */}
+            <div className="relative mx-auto max-w-sm">
               {/* Phone Frame */}
               <div className="relative bg-foreground rounded-[3rem] p-3 shadow-2xl">
                 {/* Screen */}
@@ -104,20 +112,22 @@ const Index = () => {
                   </div>
 
                   {/* App Content */}
-                  <div className="bg-gradient-to-b from-muted/30 to-background p-6 space-y-4 min-h-[600px]">
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <img src={cubbyLogo} alt="Cubby" className="h-10 w-10 animate-float" />
-                        <div>
-                          <h3 className="font-bold text-lg">Cubby</h3>
-                          <p className="text-xs text-muted-foreground">Scanning garage...</p>
+                  <div className="bg-gradient-to-b from-muted/30 to-background p-6 space-y-4 min-h-[600px] relative">
+                    {/* Scan Screen */}
+                    <div className={`absolute inset-0 p-6 transition-all duration-700 ${showSearchScreen ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}>
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <img src={cubbyLogo} alt="Cubby" className="h-10 w-10 animate-float" />
+                          <div>
+                            <h3 className="font-bold text-lg">Cubby</h3>
+                            <p className="text-xs text-muted-foreground">Scanning garage...</p>
+                          </div>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center shadow-lg animate-pulse">
+                          <Camera className="h-5 w-5 text-white" />
                         </div>
                       </div>
-                      <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center shadow-lg animate-pulse">
-                        <Camera className="h-5 w-5 text-white" />
-                      </div>
-                    </div>
 
                     {/* Camera View Simulation */}
                     <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 aspect-[4/3] shadow-lg border-2 border-primary/20">
@@ -249,56 +259,10 @@ const Index = () => {
                           <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
                         </div>)}
                     </div>
-                  </div>
-                </div>
-
-                {/* Phone Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-7 bg-foreground rounded-b-3xl" />
-              </div>
-
-              {/* Floating Elements */}
-              
-              <div className="absolute -bottom-6 -right-6 bg-card border border-border text-foreground px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float" style={{
-              animationDelay: '0.5s'
-            }}>
-                <Check className="h-4 w-4 inline mr-1 text-green-500" />
-                Instant Results
-              </div>
-            </div>
-            </div>
-
-            {/* Second Phone - Search Screen */}
-            <div className={`relative ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{
-            animationDelay: '0.4s'
-          }}>
-              {/* Decorative Background Elements */}
-              <div className="absolute inset-0 -z-10">
-                <div className="absolute top-1/3 -left-8 w-72 h-72 bg-gradient-to-bl from-accent/30 to-transparent rounded-full blur-3xl animate-float" style={{
-                animationDelay: '1s'
-              }} />
-                <div className="absolute bottom-1/3 -right-8 w-64 h-64 bg-gradient-to-tl from-primary/30 to-transparent rounded-full blur-3xl animate-float" style={{
-                animationDelay: '2s'
-              }} />
-              </div>
-
-              {/* Phone Mockup */}
-              <div className="relative mx-auto max-w-sm">
-                {/* Phone Frame */}
-                <div className="relative bg-foreground rounded-[3rem] p-3 shadow-2xl">
-                  {/* Screen */}
-                  <div className="bg-background rounded-[2.5rem] overflow-hidden">
-                    {/* Status Bar */}
-                    <div className="bg-card px-6 py-2 flex items-center justify-between text-xs">
-                      <span className="font-medium">9:41</span>
-                      <div className="flex items-center gap-1">
-                        <div className="w-4 h-3 border border-foreground/30 rounded-sm relative">
-                          <div className="absolute inset-0.5 bg-foreground/80 rounded-[1px]" />
-                        </div>
-                      </div>
                     </div>
 
-                    {/* App Content */}
-                    <div className="bg-gradient-to-b from-muted/30 to-background p-6 space-y-4 min-h-[600px]">
+                    {/* Search Screen */}
+                    <div className={`absolute inset-0 p-6 transition-all duration-700 ${showSearchScreen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                       {/* Header */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -314,7 +278,7 @@ const Index = () => {
                       </div>
 
                       {/* Search Bar */}
-                      <div className="relative animate-fade-in-up">
+                      <div className="relative mb-4">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <input 
                           type="text" 
@@ -325,17 +289,13 @@ const Index = () => {
                       </div>
 
                       {/* Search Results Header */}
-                      <div className="flex items-center justify-between animate-fade-in-up" style={{
-                      animationDelay: '0.2s'
-                    }}>
+                      <div className="flex items-center justify-between mb-4">
                         <span className="text-sm font-semibold">Found in your inventory</span>
                         <Badge className="bg-green-500 text-white">1 match</Badge>
                       </div>
 
                       {/* Main Result Card */}
-                      <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-4 border-2 border-primary shadow-xl animate-fade-in-up" style={{
-                      animationDelay: '0.3s'
-                    }}>
+                      <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-4 border-2 border-primary shadow-xl mb-4">
                         <div className="flex items-start gap-4 mb-3">
                           <div className="h-16 w-16 rounded-xl bg-primary flex items-center justify-center shadow-lg flex-shrink-0">
                             <Box className="h-8 w-8 text-white" />
@@ -369,9 +329,7 @@ const Index = () => {
                       </div>
 
                       {/* Related Items */}
-                      <div className="space-y-2 animate-fade-in-up" style={{
-                      animationDelay: '0.5s'
-                    }}>
+                      <div className="space-y-2">
                         <span className="text-sm font-semibold block mb-2">Nearby items</span>
                         {[{
                         name: 'Drill Bits Set',
@@ -381,9 +339,7 @@ const Index = () => {
                         name: 'Battery Charger',
                         location: 'Garage - Shelf 2',
                         color: 'bg-accent'
-                      }].map((item, i) => <div key={item.name} className="flex items-center gap-3 p-3 bg-card rounded-xl shadow-sm border border-border/50 hover:shadow-md transition-all" style={{
-                        animationDelay: `${0.6 + i * 0.1}s`
-                      }}>
+                      }].map((item, i) => <div key={item.name} className="flex items-center gap-3 p-3 bg-card rounded-xl shadow-sm border border-border/50 hover:shadow-md transition-all">
                             <div className={`h-10 w-10 rounded-lg ${item.color} flex items-center justify-center shadow-sm`}>
                               <Box className="h-5 w-5 text-white" />
                             </div>
@@ -396,18 +352,24 @@ const Index = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Phone Notch */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-7 bg-foreground rounded-b-3xl" />
                 </div>
 
-                {/* Floating Elements */}
-                <div className="absolute -top-6 -left-6 bg-card border border-border text-foreground px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float" style={{
-                animationDelay: '1s'
-              }}>
-                  <Search className="h-4 w-4 inline mr-1 text-primary" />
-                  Smart Search
-                </div>
+                {/* Phone Notch */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-7 bg-foreground rounded-b-3xl" />
+              </div>
+
+              {/* Floating Elements */}
+              <div className={`absolute -bottom-6 -right-6 bg-card border border-border text-foreground px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float transition-all duration-700 ${showSearchScreen ? 'opacity-0' : 'opacity-100'}`} style={{
+              animationDelay: '0.5s'
+            }}>
+                <Check className="h-4 w-4 inline mr-1 text-green-500" />
+                Instant Results
+              </div>
+              <div className={`absolute -top-6 -left-6 bg-card border border-border text-foreground px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float transition-all duration-700 ${showSearchScreen ? 'opacity-100' : 'opacity-0'}`} style={{
+              animationDelay: '0.5s'
+            }}>
+                <Search className="h-4 w-4 inline mr-1 text-primary" />
+                Smart Search
               </div>
             </div>
           </div>
