@@ -28,8 +28,8 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
       <div className="text-center mb-8 space-y-4">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-primary shadow-xl">
-          <img src={cubbyLogo} alt="Cubby" className="w-12 h-12 object-contain" />
+        <div className="inline-flex items-center justify-center w-32 h-32 rounded-3xl">
+          <img src={cubbyLogo} alt="Cubby" className="w-full h-full object-contain drop-shadow-lg" />
         </div>
         <div>
           <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
