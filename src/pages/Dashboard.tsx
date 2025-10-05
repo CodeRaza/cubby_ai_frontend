@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationCard } from "@/components/LocationCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, Camera, Search, Sparkles, Crown } from "lucide-react";
+import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,7 @@ const Dashboard = () => {
   const [renameLocationId, setRenameLocationId] = useState<string | null>(null);
   const [renameLocationName, setRenameLocationName] = useState("");
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -67,6 +68,7 @@ const Dashboard = () => {
       }
       loadLocations();
       loadSubscription();
+      checkAdminStatus();
     };
 
     checkAuth();
@@ -175,6 +177,24 @@ const Dashboard = () => {
       });
     } catch (error: any) {
       console.error('Error loading subscription:', error);
+    }
+  };
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      setIsAdmin(!!roles);
+    } catch (error) {
+      console.error("Error checking admin status:", error);
     }
   };
 
@@ -310,6 +330,17 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Cubby</h1>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/admin')}
+                className="gap-2"
+              >
+                <Shield className="h-4 w-4" />
+                Admin
+              </Button>
+            )}
             <Button 
               variant="outline" 
               size="sm" 
