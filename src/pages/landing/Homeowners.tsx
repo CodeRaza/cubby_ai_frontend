@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Camera, Search, Sparkles, Home, Package, Utensils } from "lucide-react";
+import homeownersImage from "@/assets/landing-homeowners.jpg";
 
 export default function Homeowners() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function Homeowners() {
           <div className="relative">
             <Card className="p-6 bg-gradient-card shadow-xl rounded-2xl">
               <img 
-                src="/garage-scan.jpg" 
+                src={homeownersImage} 
                 alt="Kitchen organized with Cubby" 
                 className="rounded-lg w-full"
               />

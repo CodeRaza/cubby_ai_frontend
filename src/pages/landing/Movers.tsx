@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Box, Camera, CheckCircle, Home, GraduationCap, Warehouse } from "lucide-react";
+import moversImage from "@/assets/landing-movers.jpg";
 
 export default function Movers() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function Movers() {
           <div className="relative">
             <Card className="p-6 bg-gradient-card shadow-xl rounded-2xl">
               <img 
-                src="/garage-scan.jpg" 
+                src={moversImage} 
                 alt="Moving boxes organized with Cubby" 
                 className="rounded-lg w-full"
               />

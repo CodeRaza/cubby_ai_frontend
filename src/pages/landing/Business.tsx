@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Briefcase, Zap, CheckCircle, Store, Coffee, Package } from "lucide-react";
+import businessImage from "@/assets/landing-business.jpg";
 
 export default function Business() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function Business() {
           <div className="relative">
             <Card className="p-6 bg-gradient-card shadow-xl rounded-2xl">
               <img 
-                src="/garage-scan.jpg" 
+                src={businessImage} 
                 alt="Business inventory organized with Cubby" 
                 className="rounded-lg w-full"
               />

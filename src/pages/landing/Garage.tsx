@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Wrench, Camera, Tag, Search } from "lucide-react";
+import garageImage from "@/assets/landing-garage.jpg";
 
 export default function Garage() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function Garage() {
           <div className="relative">
             <Card className="p-6 bg-gradient-card shadow-xl rounded-2xl">
               <img 
-                src="/garage-scan.jpg" 
+                src={garageImage} 
                 alt="Organized garage with Cubby" 
                 className="rounded-lg w-full"
               />
