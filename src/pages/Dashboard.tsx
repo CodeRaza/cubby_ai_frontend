@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationCard } from "@/components/LocationCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield, Settings as SettingsIcon } from "lucide-react";
+import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield, Settings as SettingsIcon, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -578,7 +578,7 @@ const Dashboard = () => {
             className="flex-col h-auto py-2 px-4 gap-1 active:scale-95 transition-transform" 
             onClick={() => navigate("/dashboard")}
           >
-            <Plus className="h-6 w-6" />
+            <Home className="h-6 w-6" />
             <span className="text-xs font-medium">Home</span>
           </Button>
           <Button
