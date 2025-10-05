@@ -54,6 +54,9 @@ const Dashboard = () => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [deleteLocationId, setDeleteLocationId] = useState<string | null>(null);
   const [deleteLocationName, setDeleteLocationName] = useState("");
+  const [renameLocationId, setRenameLocationId] = useState<string | null>(null);
+  const [renameLocationName, setRenameLocationName] = useState("");
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -208,6 +211,32 @@ const Dashboard = () => {
     handleCreateLocation(newLocationName);
   };
 
+  const handleRenameLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renameLocationId || !renameLocationName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from("locations")
+        .update({ name: renameLocationName })
+        .eq("id", renameLocationId);
+
+      if (error) throw error;
+
+      toast({ title: "Location renamed!" });
+      setRenameLocationId(null);
+      setRenameLocationName("");
+      setRenameDialogOpen(false);
+      loadLocations();
+    } catch (error: any) {
+      toast({
+        title: "Error renaming location",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteLocation = async () => {
     if (!deleteLocationId) return;
 
@@ -345,74 +374,56 @@ const Dashboard = () => {
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Create Location</DialogTitle>
+                <DialogTitle>Add Location</DialogTitle>
                 <DialogDescription>
-                  Choose a preset location or create a custom one
+                  Select a preset or enter your own name
                 </DialogDescription>
               </DialogHeader>
               
-              {!showCustomInput ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quick-location-name">Location Name</Label>
+                  <Input
+                    id="quick-location-name"
+                    placeholder="Type your own or click a preset below"
+                    value={newLocationName}
+                    onChange={(e) => setNewLocationName(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Quick Presets</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {PREDEFINED_LOCATIONS.map((locationType) => {
                       const IconComponent = locationType.icon;
                       return (
-                        <Card
+                        <Button
                           key={locationType.id}
-                          className="cursor-pointer hover:bg-accent transition-colors p-4"
-                          onClick={() => handleCreateLocation(locationType.name)}
+                          variant="outline"
+                          className="h-auto py-3 flex flex-col items-center gap-2"
+                          onClick={() => setNewLocationName(locationType.name)}
+                          type="button"
                         >
-                          <div className="flex flex-col items-center gap-2 text-center">
-                            <div className="p-3 rounded-xl bg-primary/10">
-                              <IconComponent className="h-6 w-6 text-primary" />
-                            </div>
-                            <span className="text-sm font-medium">{locationType.name}</span>
-                          </div>
-                        </Card>
+                          <IconComponent className="h-5 w-5" />
+                          <span className="text-xs">{locationType.name}</span>
+                        </Button>
                       );
                     })}
                   </div>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => setShowCustomInput(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Custom Location
-                  </Button>
                 </div>
-              ) : (
-                <form onSubmit={handleCustomLocationSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="location-name">Custom Location Name</Label>
-                    <Input
-                      id="location-name"
-                      placeholder="e.g., My Special Room"
-                      value={newLocationName}
-                      onChange={(e) => setNewLocationName(e.target.value)}
-                      autoFocus
-                      required
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => {
-                        setShowCustomInput(false);
-                        setNewLocationName("");
-                      }}
-                    >
-                      Back
-                    </Button>
-                    <Button type="submit" className="flex-1">
-                      Create Location
-                    </Button>
-                  </div>
-                </form>
-              )}
+                
+                <Button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleCreateLocation(newLocationName);
+                  }}
+                  className="w-full"
+                  disabled={!newLocationName.trim()}
+                >
+                  Add Location
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
         </div>
@@ -449,6 +460,12 @@ const Dashboard = () => {
                     e.stopPropagation();
                     navigate(`/qr-codes/${location.id}`);
                   }}
+                  onRenameClick={(e) => {
+                    e.stopPropagation();
+                    setRenameLocationId(location.id);
+                    setRenameLocationName(location.name);
+                    setRenameDialogOpen(true);
+                  }}
                   onDeleteClick={(e) => {
                     e.stopPropagation();
                     setDeleteLocationId(location.id);
@@ -457,6 +474,42 @@ const Dashboard = () => {
                 />
               ))}
             </div>
+            
+            <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Rename Location</DialogTitle>
+                  <DialogDescription>
+                    Enter a new name for this location
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleRenameLocation} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rename-location">Location Name</Label>
+                    <Input
+                      id="rename-location"
+                      value={renameLocationName}
+                      onChange={(e) => setRenameLocationName(e.target.value)}
+                      autoFocus
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setRenameDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="flex-1">
+                      Rename
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
             
             <AlertDialog open={!!deleteLocationId} onOpenChange={(open) => !open && setDeleteLocationId(null)}>
               <AlertDialogContent>
