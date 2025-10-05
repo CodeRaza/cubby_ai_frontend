@@ -20,6 +20,11 @@ import Settings from "./pages/Settings";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import NotFound from "./pages/NotFound";
+import Homeowners from "./pages/landing/Homeowners";
+import Garage from "./pages/landing/Garage";
+import Movers from "./pages/landing/Movers";
+import Business from "./pages/landing/Business";
+import Property from "./pages/landing/Property";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +37,14 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          
+          {/* Landing Pages */}
+          <Route path="/for/homeowners" element={<Homeowners />} />
+          <Route path="/for/garage" element={<Garage />} />
+          <Route path="/for/movers" element={<Movers />} />
+          <Route path="/for/business" element={<Business />} />
+          <Route path="/for/property" element={<Property />} />
+          
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/scan" element={<Scan />} />
           <Route path="/review" element={<Review />} />
