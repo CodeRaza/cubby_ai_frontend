@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Camera, Sparkles, Search, Box, Home, Truck, Store, Shield, ArrowRight, Check } from "lucide-react";
 import cubbyLogo from "@/assets/cubby-logo.png";
+import garageScan from "@/assets/garage-scan.jpg";
 const Index = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
@@ -121,7 +122,8 @@ const Index = () => {
 
                     {/* Camera View Simulation */}
                     <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 aspect-[4/3] shadow-lg border-2 border-primary/20">
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent" />
+                      <img src={garageScan} alt="Garage scan" className="absolute inset-0 w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent" />
                       <div className="absolute top-4 left-4 flex items-center gap-2 bg-card/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-md">
                         <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
                         <span className="text-xs font-medium">Live Scan</span>
