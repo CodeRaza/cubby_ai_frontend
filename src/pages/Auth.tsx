@@ -33,6 +33,14 @@ const Auth = () => {
   }, [navigate, searchParams]);
 
   const handleSuccess = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    // If email is not confirmed, send to confirmation page
+    if (session && !session.user.email_confirmed_at) {
+      navigate("/confirm-email");
+      return;
+    }
+    
     // Check if user has any locations (first-time user check)
     const { data: locations } = await supabase
       .from("locations")
