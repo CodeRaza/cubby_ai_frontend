@@ -26,7 +26,7 @@ export default function Garage() {
             <Button 
               size="lg" 
               className="bg-gradient-primary hover:opacity-90 text-lg h-14 px-8"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/auth?mode=signup')}
             >
               Start Scanning
             </Button>
@@ -118,7 +118,7 @@ export default function Garage() {
         <Button 
           size="lg" 
           className="bg-gradient-primary hover:opacity-90 text-lg h-14 px-8"
-          onClick={() => navigate('/auth')}
+          onClick={() => navigate('/auth?mode=signup')}
         >
           Start Scanning Your Garage
         </Button>

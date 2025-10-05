@@ -26,7 +26,7 @@ export default function Property() {
             <Button 
               size="lg" 
               className="bg-gradient-primary hover:opacity-90 text-lg h-14 px-8"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/auth?mode=signup')}
             >
               Start Scanning Your Properties
             </Button>
@@ -161,7 +161,7 @@ export default function Property() {
               <Button 
                 size="lg" 
                 className="w-full bg-gradient-primary hover:opacity-90"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/auth?mode=signup')}
               >
                 Start Scanning Free
               </Button>
@@ -214,7 +214,7 @@ export default function Property() {
         <Button 
           size="lg" 
           className="bg-gradient-primary hover:opacity-90 text-lg h-14 px-8"
-          onClick={() => navigate('/auth')}
+          onClick={() => navigate('/auth?mode=signup')}
         >
           Start Scanning Free
         </Button>

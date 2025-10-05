@@ -22,7 +22,7 @@ export const LandingNav = () => {
         <Button 
           size="lg" 
           className="bg-gradient-primary hover:opacity-90 transition-opacity"
-          onClick={() => navigate('/auth')}
+          onClick={() => navigate('/auth?mode=signup')}
         >
           Start Scanning Free
         </Button>

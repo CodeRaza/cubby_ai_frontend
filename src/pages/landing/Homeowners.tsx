@@ -26,7 +26,7 @@ export default function Homeowners() {
             <Button 
               size="lg" 
               className="bg-gradient-primary hover:opacity-90 text-lg h-14 px-8"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/auth?mode=signup')}
             >
               Start Scanning Free
             </Button>
@@ -102,7 +102,7 @@ export default function Homeowners() {
             size="lg" 
             variant="secondary"
             className="mt-6 h-14 px-8 text-lg"
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate('/auth?mode=signup')}
           >
             Start Scanning Free
           </Button>

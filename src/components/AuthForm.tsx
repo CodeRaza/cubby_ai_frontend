@@ -10,10 +10,11 @@ import { Link } from "react-router-dom";
 
 interface AuthFormProps {
   onSuccess: () => void;
+  defaultMode?: 'login' | 'signup';
 }
 
-export const AuthForm = ({ onSuccess }: AuthFormProps) => {
-  const [isLogin, setIsLogin] = useState(true);
+export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) => {
+  const [isLogin, setIsLogin] = useState(defaultMode === 'login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

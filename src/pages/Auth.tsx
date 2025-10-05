@@ -40,7 +40,10 @@ const Auth = () => {
           </p>
         </div>
       </div>
-      <AuthForm onSuccess={handleSuccess} />
+      <AuthForm 
+        onSuccess={handleSuccess} 
+        defaultMode={searchParams.get('mode') === 'signup' ? 'signup' : 'login'}
+      />
     </div>
   );
 };
