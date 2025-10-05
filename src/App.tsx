@@ -15,6 +15,7 @@ import LocationItems from "./pages/LocationItems";
 import QRCodeSingle from "./pages/QRCodeSingle";
 import QRCodeBulk from "./pages/QRCodeBulk";
 import Subscription from "./pages/Subscription";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/qr-codes/:locationId" element={<QRCodeSingle />} />
           <Route path="/qr-codes/bulk" element={<QRCodeBulk />} />
           <Route path="/subscription" element={<Subscription />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

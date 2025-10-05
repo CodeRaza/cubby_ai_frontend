@@ -271,20 +271,7 @@ export type Database = {
       }
     }
     Views: {
-      admin_analytics: {
-        Row: {
-          active_users_today: number | null
-          free_users: number | null
-          items_this_month: number | null
-          paid_users: number | null
-          scans_this_month: number | null
-          total_items: number | null
-          total_locations: number | null
-          total_users: number | null
-          users_this_month: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_next_reminder_date: {
@@ -298,6 +285,10 @@ export type Database = {
       can_user_add_items: {
         Args: { p_item_count?: number; p_user_id: string }
         Returns: boolean
+      }
+      get_admin_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_item_limit: {
         Args: { tier: Database["public"]["Enums"]["subscription_tier"] }
