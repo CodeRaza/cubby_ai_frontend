@@ -16,6 +16,9 @@ import QRCodeSingle from "./pages/QRCodeSingle";
 import QRCodeBulk from "./pages/QRCodeBulk";
 import Subscription from "./pages/Subscription";
 import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
+import ResetPassword from "./pages/ResetPassword";
+import UpdatePassword from "./pages/UpdatePassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +42,9 @@ const App = () => (
           <Route path="/qr-codes/bulk" element={<QRCodeBulk />} />
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

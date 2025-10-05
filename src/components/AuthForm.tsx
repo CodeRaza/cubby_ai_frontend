@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -109,6 +110,16 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
           >
             {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
           </Button>
+          {isLogin && (
+            <div className="text-center">
+              <Link 
+                to="/reset-password" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>

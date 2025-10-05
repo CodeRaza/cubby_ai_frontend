@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationCard } from "@/components/LocationCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield } from "lucide-react";
+import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield, Settings as SettingsIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -338,7 +338,7 @@ const Dashboard = () => {
                 className="gap-2"
               >
                 <Shield className="h-4 w-4" />
-                Admin
+                <span className="hidden sm:inline">Admin</span>
               </Button>
             )}
             <Button 
@@ -348,7 +348,14 @@ const Dashboard = () => {
               className="gap-2"
             >
               <Crown className="h-4 w-4" />
-              {planName}
+              <span className="hidden sm:inline">{planName}</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate('/settings')}
+            >
+              <SettingsIcon className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
