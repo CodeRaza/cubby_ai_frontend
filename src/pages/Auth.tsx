@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
-import { Scan } from "lucide-react";
+import { Package } from "lucide-react";
+import cubbyLogo from "@/assets/cubby-logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -27,15 +28,15 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
       <div className="text-center mb-8 space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary">
-          <Scan className="h-8 w-8 text-white" />
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-primary shadow-xl">
+          <img src={cubbyLogo} alt="Cubby" className="w-12 h-12 object-contain" />
         </div>
         <div>
           <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Smart Inventory AI
+            Cubby
           </h1>
           <p className="text-muted-foreground mt-2">
-            Catalog everything you own with AI
+            Your smart home inventory
           </p>
         </div>
       </div>

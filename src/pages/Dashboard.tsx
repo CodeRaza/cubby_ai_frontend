@@ -132,7 +132,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-lg border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Smart Inventory</h1>
+          <h1 className="text-xl font-bold">Cubby</h1>
           <Button variant="ghost" size="icon" onClick={handleLogout}>
             <LogOut className="h-5 w-5" />
           </Button>
