@@ -72,7 +72,7 @@ const LocationItems = () => {
       
       const { data: location } = await supabase
         .from("locations")
-        .select("name, user_id")
+        .select("id, name, user_id, created_at")
         .eq("id", locationId)
         .single();
 
