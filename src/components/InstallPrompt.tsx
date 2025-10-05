@@ -2,14 +2,29 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, Download, Share } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const InstallPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
     // Check if already installed
     const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
     setIsStandalone(isInStandaloneMode);
@@ -17,16 +32,6 @@ export const InstallPrompt = () => {
     // Check if iOS
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(iOS);
-
-    // Check if user has dismissed the prompt before
-    const hasSeenPrompt = localStorage.getItem('cubby-install-prompt-dismissed');
-    
-    if (!isInStandaloneMode && !hasSeenPrompt) {
-      // Show prompt after a short delay
-      setTimeout(() => {
-        setShowPrompt(true);
-      }, 3000);
-    }
 
     // Listen for beforeinstallprompt event (Android/Chrome)
     const handleBeforeInstall = (e: Event) => {
@@ -36,10 +41,23 @@ export const InstallPrompt = () => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
 
+    // Check if user has dismissed the prompt before
+    const hasSeenPrompt = localStorage.getItem('cubby-install-prompt-dismissed');
+    
+    if (!isInStandaloneMode && !hasSeenPrompt) {
+      // Show prompt after a short delay, but only if authenticated
+      setTimeout(() => {
+        if (isAuthenticated) {
+          setShowPrompt(true);
+        }
+      }, 3000);
+    }
+
     return () => {
+      subscription.unsubscribe();
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
     };
-  }, []);
+  }, [isAuthenticated]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
@@ -58,7 +76,7 @@ export const InstallPrompt = () => {
     localStorage.setItem('cubby-install-prompt-dismissed', 'true');
   };
 
-  if (!showPrompt || isStandalone) return null;
+  if (!showPrompt || isStandalone || !isAuthenticated) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 animate-fade-in-up md:left-auto md:right-4 md:max-w-md">
