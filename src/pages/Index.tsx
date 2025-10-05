@@ -547,7 +547,7 @@ const Index = () => {
                   Join thousands of organized homes and never lose track of your belongings again
                 </p>
 
-                <Button size="lg" variant="secondary" className="text-lg px-10 py-7 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all text-primary" onClick={() => navigate('/auth?mode=signup')}>
+                <Button size="lg" variant="secondary" className="text-lg px-10 py-7 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all" onClick={() => navigate('/auth?mode=signup')}>
                   <Camera className="mr-2 h-6 w-6" />
                   Start Scanning Free
                 </Button>
