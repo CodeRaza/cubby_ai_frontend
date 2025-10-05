@@ -66,14 +66,26 @@ const Scan = () => {
         .from('item-images')
         .getPublicUrl(fileName);
 
-      // Convert image to base64 for AI
+      // Convert image to base64 for AI with progress feedback
+      console.log('Converting image to base64...');
       const base64 = await fileToBase64(file);
+      console.log('Base64 conversion complete');
 
-      // Call AI detection edge function
+      // Call AI detection edge function with timeout
       console.log('Calling detect-items function...');
-      const { data, error } = await supabase.functions.invoke('detect-items', {
+      
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out after 60 seconds')), 60000)
+      );
+
+      const functionPromise = supabase.functions.invoke('detect-items', {
         body: { image: base64 }
       });
+
+      const { data, error } = await Promise.race([
+        functionPromise,
+        timeoutPromise
+      ]) as any;
 
       console.log('Function response:', { data, error });
 
