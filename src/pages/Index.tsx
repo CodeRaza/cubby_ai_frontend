@@ -141,15 +141,56 @@ const Index = () => {
 
                       {/* Detection Boxes */}
                       <div className="absolute top-1/4 left-1/6 w-1/3 h-1/4 border-2 border-primary rounded-lg animate-pulse mx-[40px] my-[30px]">
-                        <div className="absolute -top-6 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
-                          Power Drill
+                        <div className="absolute -top-8 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                          <div className="flex items-center gap-1">
+                            <span>Power Drill</span>
+                            <span className="opacity-80">98%</span>
+                          </div>
+                          <div className="text-[10px] opacity-70">Power Tools</div>
                         </div>
                       </div>
                       <div className="absolute top-1/2 right-1/4 w-1/4 h-1/5 border-2 border-secondary rounded-lg animate-pulse" style={{
                       animationDelay: '0.2s'
                     }}>
-                        <div className="absolute -top-6 left-0 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
-                          Paint Brushes
+                        <div className="absolute -top-8 left-0 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                          <div className="flex items-center gap-1">
+                            <span>Paint Brushes</span>
+                            <span className="opacity-80">95%</span>
+                          </div>
+                          <div className="text-[10px] opacity-70">Paint Supplies</div>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-1/4 left-1/4 w-1/5 h-1/6 border-2 border-accent rounded-lg animate-pulse" style={{
+                      animationDelay: '0.4s'
+                    }}>
+                        <div className="absolute -top-8 left-0 bg-accent text-accent-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                          <div className="flex items-center gap-1">
+                            <span>Hammer</span>
+                            <span className="opacity-80">97%</span>
+                          </div>
+                          <div className="text-[10px] opacity-70">Hand Tools</div>
+                        </div>
+                      </div>
+                      <div className="absolute top-1/3 right-1/3 w-1/6 h-1/6 border-2 border-primary/70 rounded-lg animate-pulse" style={{
+                      animationDelay: '0.6s'
+                    }}>
+                        <div className="absolute -top-8 left-0 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                          <div className="flex items-center gap-1">
+                            <span>Wrench Set</span>
+                            <span className="opacity-80">93%</span>
+                          </div>
+                          <div className="text-[10px] opacity-70">Hardware</div>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-1/3 right-1/5 w-1/5 h-1/5 border-2 border-secondary/70 rounded-lg animate-pulse" style={{
+                      animationDelay: '0.8s'
+                    }}>
+                        <div className="absolute -top-8 left-0 bg-secondary/90 text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                          <div className="flex items-center gap-1">
+                            <span>Paint Cans</span>
+                            <span className="opacity-80">91%</span>
+                          </div>
+                          <div className="text-[10px] opacity-70">Paint Supplies</div>
                         </div>
                       </div>
                       
@@ -159,21 +200,39 @@ const Index = () => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm mb-3">
                         <span className="font-semibold">Items Detected</span>
-                        <Badge className="bg-primary text-primary-foreground">3 items</Badge>
+                        <Badge className="bg-primary text-primary-foreground">7 items</Badge>
                       </div>
                       
                       {[{
                       name: 'Power Drill',
+                      category: 'Power Tools',
+                      confidence: '98%',
                       location: 'Garage - Shelf 2',
                       color: 'bg-primary'
                     }, {
                       name: 'Paint Brushes',
+                      category: 'Paint Supplies',
+                      confidence: '95%',
                       location: 'Garage - Shelf 2',
                       color: 'bg-secondary'
                     }, {
-                      name: 'Screwdriver Set',
+                      name: 'Hammer',
+                      category: 'Hand Tools',
+                      confidence: '97%',
                       location: 'Garage - Shelf 2',
                       color: 'bg-accent'
+                    }, {
+                      name: 'Wrench Set',
+                      category: 'Hardware',
+                      confidence: '93%',
+                      location: 'Garage - Shelf 2',
+                      color: 'bg-primary/70'
+                    }, {
+                      name: 'Paint Cans',
+                      category: 'Paint Supplies',
+                      confidence: '91%',
+                      location: 'Garage - Shelf 2',
+                      color: 'bg-secondary/70'
                     }].map((item, i) => <div key={item.name} className="flex items-center gap-3 p-3 bg-card rounded-xl shadow-sm border border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{
                       animationDelay: `${0.6 + i * 0.1}s`
                     }}>
@@ -181,7 +240,11 @@ const Index = () => {
                             <Box className="h-5 w-5 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{item.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm truncate">{item.name}</p>
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">{item.confidence}</Badge>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground/80">{item.category}</p>
                             <p className="text-xs text-muted-foreground">{item.location}</p>
                           </div>
                           <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
