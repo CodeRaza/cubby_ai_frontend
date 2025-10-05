@@ -27,7 +27,7 @@ export const ReminderSettings = ({
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-primary" />
           <Label htmlFor="reminder-enabled" className="font-semibold">
-            Set Reminder
+            Reminder Notifications
           </Label>
         </div>
         <Switch
@@ -40,7 +40,7 @@ export const ReminderSettings = ({
       {enabled && (
         <div className="space-y-3 animate-in fade-in-50 duration-200">
           <p className="text-sm text-muted-foreground">
-            Get reminded to check this item regularly
+            Set reminders for expiration dates, replenishment, maintenance checks, or any regular review of this item
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
