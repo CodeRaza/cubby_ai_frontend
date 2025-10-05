@@ -8,6 +8,7 @@ import { ArrowLeft, Check, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
+import { ReminderSettings } from "@/components/ReminderSettings";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,9 @@ interface ReviewItem extends Detection {
   category: string;
   quantity: number;
   expiry_date: string;
+  reminder_enabled: boolean;
+  reminder_interval_value: number;
+  reminder_interval_unit: string;
 }
 
 const Review = () => {
@@ -54,6 +58,9 @@ const Review = () => {
           category: "",
           quantity: 1,
           expiry_date: "",
+          reminder_enabled: false,
+          reminder_interval_value: 1,
+          reminder_interval_unit: "months",
         }))
       );
     }
@@ -75,7 +82,7 @@ const Review = () => {
     }
   };
 
-  const updateItem = (index: number, field: keyof ReviewItem, value: string | number) => {
+  const updateItem = (index: number, field: keyof ReviewItem, value: string | number | boolean) => {
     setItems(prev => prev.map((item, i) => 
       i === index ? { ...item, [field]: value } : item
     ));
@@ -123,6 +130,9 @@ const Review = () => {
             quantity: item.quantity,
             expiry_date: item.expiry_date || null,
             image_url: imageUrl,
+            reminder_enabled: item.reminder_enabled,
+            reminder_interval_value: item.reminder_enabled ? item.reminder_interval_value : null,
+            reminder_interval_unit: item.reminder_enabled ? item.reminder_interval_unit : null,
           })
           .select()
           .single();
@@ -273,6 +283,15 @@ const Review = () => {
                     onChange={(e) => updateItem(index, "expiry_date", e.target.value)}
                   />
                 </div>
+
+                <ReminderSettings
+                  enabled={item.reminder_enabled}
+                  intervalValue={item.reminder_interval_value}
+                  intervalUnit={item.reminder_interval_unit}
+                  onEnabledChange={(enabled) => updateItem(index, "reminder_enabled", enabled)}
+                  onIntervalValueChange={(value) => updateItem(index, "reminder_interval_value", value)}
+                  onIntervalUnitChange={(unit) => updateItem(index, "reminder_interval_unit", unit)}
+                />
               </CardContent>
             </Card>
           ))}

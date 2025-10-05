@@ -3,10 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Calendar, Package, Trash2 } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
+import { ReminderSettings } from "@/components/ReminderSettings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +19,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 interface ItemDetails {
   id: string;
@@ -27,6 +39,10 @@ interface ItemDetails {
   expiry_date: string | null;
   image_url: string | null;
   created_at: string;
+  reminder_enabled: boolean | null;
+  reminder_interval_value: number | null;
+  reminder_interval_unit: string | null;
+  next_reminder_date: string | null;
   location: {
     name: string;
   } | null;
@@ -46,6 +62,14 @@ const ItemDetail = () => {
   const { toast } = useToast();
   const [item, setItem] = useState<ItemDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedCategory, setEditedCategory] = useState("");
+  const [editedQuantity, setEditedQuantity] = useState(1);
+  const [editedExpiryDate, setEditedExpiryDate] = useState("");
+  const [editedReminderEnabled, setEditedReminderEnabled] = useState(false);
+  const [editedReminderValue, setEditedReminderValue] = useState(1);
+  const [editedReminderUnit, setEditedReminderUnit] = useState("months");
 
   useEffect(() => {
     loadItem();
@@ -65,6 +89,13 @@ const ItemDetail = () => {
 
       if (error) throw error;
       setItem(data);
+      setEditedName(data.name);
+      setEditedCategory(data.category || "");
+      setEditedQuantity(data.quantity);
+      setEditedExpiryDate(data.expiry_date || "");
+      setEditedReminderEnabled(data.reminder_enabled || false);
+      setEditedReminderValue(data.reminder_interval_value || 1);
+      setEditedReminderUnit(data.reminder_interval_unit || "months");
     } catch (error: any) {
       toast({
         title: "Error loading item",
@@ -74,6 +105,35 @@ const ItemDetail = () => {
       navigate("/dashboard");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const { error } = await supabase
+        .from("items")
+        .update({
+          name: editedName,
+          category: editedCategory || null,
+          quantity: editedQuantity,
+          expiry_date: editedExpiryDate || null,
+          reminder_enabled: editedReminderEnabled,
+          reminder_interval_value: editedReminderEnabled ? editedReminderValue : null,
+          reminder_interval_unit: editedReminderEnabled ? editedReminderUnit : null,
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({ title: "Item updated!" });
+      setEditDialogOpen(false);
+      loadItem();
+    } catch (error: any) {
+      toast({
+        title: "Error updating item",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -110,26 +170,105 @@ const ItemDetail = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Trash2 className="h-5 w-5 text-destructive" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete item?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this item
-                  from your inventory.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex gap-2">
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Pencil className="h-5 w-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Edit Item</DialogTitle>
+                  <DialogDescription>
+                    Update item details and reminder settings
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-name">Name</Label>
+                    <Input
+                      id="edit-name"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-category">Category</Label>
+                      <Input
+                        id="edit-category"
+                        placeholder="Optional"
+                        value={editedCategory}
+                        onChange={(e) => setEditedCategory(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-quantity">Quantity</Label>
+                      <Input
+                        id="edit-quantity"
+                        type="number"
+                        min="1"
+                        value={editedQuantity}
+                        onChange={(e) => setEditedQuantity(parseInt(e.target.value) || 1)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-expiry">Expiry Date</Label>
+                    <Input
+                      id="edit-expiry"
+                      type="date"
+                      value={editedExpiryDate}
+                      onChange={(e) => setEditedExpiryDate(e.target.value)}
+                    />
+                  </div>
+                  <Separator />
+                  <ReminderSettings
+                    enabled={editedReminderEnabled}
+                    intervalValue={editedReminderValue}
+                    intervalUnit={editedReminderUnit}
+                    onEnabledChange={setEditedReminderEnabled}
+                    onIntervalValueChange={setEditedReminderValue}
+                    onIntervalUnitChange={setEditedReminderUnit}
+                  />
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setEditDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleUpdate} className="flex-1">
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Trash2 className="h-5 w-5 text-destructive" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete item?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete this item
+                    from your inventory.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </header>
 
@@ -191,6 +330,19 @@ const ItemDetail = () => {
                 <Calendar className="h-4 w-4" />
                 <span>Added: {new Date(item.created_at).toLocaleDateString()}</span>
               </div>
+
+              {item.reminder_enabled && item.next_reminder_date && (
+                <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg">
+                  <Bell className="h-5 w-5 text-primary" />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">Reminder Active</p>
+                    <p className="text-xs text-muted-foreground">
+                      Next: {new Date(item.next_reminder_date).toLocaleDateString()} 
+                      {" "}(every {item.reminder_interval_value} {item.reminder_interval_unit})
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
