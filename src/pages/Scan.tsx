@@ -32,6 +32,25 @@ const Scan = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check if user has available scans
+      const { data: canScan, error: checkError } = await supabase.rpc(
+        'can_user_scan',
+        { p_user_id: user.id }
+      );
+
+      if (checkError) throw checkError;
+
+      if (!canScan) {
+        toast({
+          title: "No scans remaining",
+          description: "You've used all your scans for this period. Upgrade your plan or purchase a scan pack!",
+          variant: "destructive",
+        });
+        setUploading(false);
+        navigate('/dashboard');
+        return;
+      }
+
       // Upload image to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
@@ -55,6 +74,16 @@ const Scan = () => {
       });
 
       if (error) throw error;
+
+      // Increment scan usage
+      const { data: incremented, error: incrementError } = await supabase.rpc(
+        'increment_scan_usage',
+        { p_user_id: user.id }
+      );
+
+      if (incrementError || !incremented) {
+        console.error('Failed to increment scan usage:', incrementError);
+      }
 
       // Navigate to review with detection results
       navigate('/review', { 

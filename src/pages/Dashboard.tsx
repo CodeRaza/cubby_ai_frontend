@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationCard } from "@/components/LocationCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, Camera, Search } from "lucide-react";
+import { Plus, LogOut, Camera, Search, Sparkles, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,13 @@ interface Location {
   itemCount: number;
 }
 
+interface SubscriptionStatus {
+  plan_tier: string;
+  scans_used: number;
+  scans_limit: number;
+  bonus_credits: number;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -29,6 +38,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [newLocationName, setNewLocationName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -38,9 +48,29 @@ const Dashboard = () => {
         return;
       }
       loadLocations();
+      loadSubscription();
     };
 
     checkAuth();
+
+    // Handle successful scan pack purchase
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('pack_success') === 'true') {
+      const sessionId = urlParams.get('session_id');
+      if (sessionId) {
+        handleScanPackSuccess(sessionId);
+      }
+      // Clean up URL
+      window.history.replaceState({}, '', '/dashboard');
+    } else if (urlParams.get('success') === 'true') {
+      // Subscription success
+      toast({
+        title: "Subscription activated!",
+        description: "Your subscription is now active. Enjoy your scans!"
+      });
+      loadSubscription();
+      window.history.replaceState({}, '', '/dashboard');
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
@@ -87,6 +117,49 @@ const Dashboard = () => {
     }
   };
 
+  const loadSubscription = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get subscription info
+      const { data: subData, error: subError } = await supabase
+        .from('user_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (subError && subError.code !== 'PGRST116') throw subError;
+
+      // Get usage info
+      const { data: usageData, error: usageError } = await supabase
+        .from('scan_usage')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('period_end', new Date().toISOString())
+        .single();
+
+      if (usageError && usageError.code !== 'PGRST116') throw usageError;
+
+      const planTier = subData?.plan_tier || 'free';
+      const scanLimits: Record<string, number> = {
+        free: 10,
+        starter: 50,
+        pro: 250,
+        power: 1000
+      };
+
+      setSubscription({
+        plan_tier: planTier,
+        scans_used: usageData?.scans_used || 0,
+        scans_limit: scanLimits[planTier],
+        bonus_credits: usageData?.bonus_credits || 0
+      });
+    } catch (error: any) {
+      console.error('Error loading subscription:', error);
+    }
+  };
+
   const handleCreateLocation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLocationName.trim()) return;
@@ -120,6 +193,30 @@ const Dashboard = () => {
     navigate("/auth");
   };
 
+  const handleScanPackSuccess = async (sessionId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('process-payment', {
+        body: { sessionId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Scan pack added!",
+        description: "100 bonus scans have been added to your account."
+      });
+
+      loadSubscription();
+    } catch (error: any) {
+      console.error('Error processing scan pack:', error);
+      toast({
+        title: "Error processing purchase",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -128,16 +225,66 @@ const Dashboard = () => {
     );
   }
 
+  const totalScans = subscription ? subscription.scans_limit + subscription.bonus_credits : 0;
+  const scansUsed = subscription?.scans_used || 0;
+  const scansRemaining = Math.max(0, totalScans - scansUsed);
+  const usagePercent = totalScans > 0 ? (scansUsed / totalScans) * 100 : 0;
+  const planName = subscription?.plan_tier ? subscription.plan_tier.charAt(0).toUpperCase() + subscription.plan_tier.slice(1) : 'Free';
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-lg border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Cubby</h1>
-          <Button variant="ghost" size="icon" onClick={handleLogout}>
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/subscription')}
+              className="gap-2"
+            >
+              <Crown className="h-4 w-4" />
+              {planName}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
+
+      {/* Subscription Status Banner */}
+      {subscription && (
+        <div className="bg-card border-b">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Scans this month</span>
+                {subscription.bonus_credits > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    +{subscription.bonus_credits} bonus
+                  </Badge>
+                )}
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {scansRemaining} of {totalScans} remaining
+              </span>
+            </div>
+            <Progress value={usagePercent} className="h-2" />
+            {scansRemaining <= 5 && scansRemaining > 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                Running low on scans! Consider upgrading or buying a scan pack.
+              </p>
+            )}
+            {scansRemaining === 0 && (
+              <p className="text-xs text-destructive mt-2">
+                Out of scans! Upgrade your plan or purchase a scan pack to continue.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center justify-between">
