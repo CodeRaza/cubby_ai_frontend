@@ -145,25 +145,26 @@ const Scan = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        {imagePreview && (
-          <div className="max-w-md mx-auto">
-            <img 
-              src={imagePreview} 
-              alt="Preview" 
-              className="w-full rounded-xl shadow-lg"
-            />
-          </div>
-        )}
-
         {uploading ? (
-          <div className="text-center space-y-4 py-12">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-            <div>
-              <p className="font-semibold text-lg">Analyzing image...</p>
-              <p className="text-sm text-muted-foreground">
-                AI is detecting items in your photo
-              </p>
+          <div className="space-y-6">
+            <div className="text-center space-y-4 py-8">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+              <div>
+                <p className="font-semibold text-lg">Analyzing image...</p>
+                <p className="text-sm text-muted-foreground">
+                  AI is detecting items in your photo
+                </p>
+              </div>
             </div>
+            {imagePreview && (
+              <div className="max-w-md mx-auto">
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className="w-full max-h-64 md:max-h-96 object-contain rounded-xl shadow-lg"
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="max-w-md mx-auto space-y-6 px-2">
