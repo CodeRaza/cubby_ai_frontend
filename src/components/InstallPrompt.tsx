@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, Download, Share } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const InstallPrompt = () => {
+  const location = useLocation();
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
@@ -76,7 +78,8 @@ export const InstallPrompt = () => {
     localStorage.setItem('cubby-install-prompt-dismissed', 'true');
   };
 
-  if (!showPrompt || isStandalone || !isAuthenticated) return null;
+  // Don't show on onboarding page
+  if (!showPrompt || isStandalone || !isAuthenticated || location.pathname === '/onboarding') return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 animate-fade-in-up md:left-auto md:right-4 md:max-w-md">
