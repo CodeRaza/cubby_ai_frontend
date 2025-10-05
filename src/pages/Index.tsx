@@ -34,11 +34,21 @@ const Index = () => {
               <img src={cubbyLogo} alt="Cubby" className="h-10 w-10" />
               <span className="text-2xl font-bold text-foreground">Cubby</span>
             </div>
-            <Button size="sm" className="sm:size-lg rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-xs sm:text-base px-3 sm:px-6" onClick={() => navigate('/auth')}>
-              <span className="hidden sm:inline">Start Scanning Free</span>
-              <span className="sm:hidden">Start Free</span>
-              <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/auth')}
+                className="text-xs sm:text-sm"
+              >
+                Sign In
+              </Button>
+              <Button size="sm" className="sm:size-lg rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-xs sm:text-base px-3 sm:px-6" onClick={() => navigate('/auth')}>
+                <span className="hidden sm:inline">Start Scanning Free</span>
+                <span className="sm:hidden">Start Free</span>
+                <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
