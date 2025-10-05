@@ -70,13 +70,21 @@ const Scan = () => {
       const base64 = await fileToBase64(file);
 
       // Call AI detection edge function
+      console.log('Calling detect-items function...');
       const { data, error } = await supabase.functions.invoke('detect-items', {
         body: { image: base64 }
       });
 
+      console.log('Function response:', { data, error });
+
       if (error) throw error;
 
+      if (!data || !data.detections) {
+        throw new Error('No detections returned from AI');
+      }
+
       const detectionCount = data.detections?.length || 0;
+      console.log(`Detected ${detectionCount} items`);
       
       // Check if user has available items remaining
       const { data: canAdd, error: checkError } = await supabase.rpc(
