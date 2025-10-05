@@ -26,6 +26,8 @@ import Garage from "./pages/landing/Garage";
 import Movers from "./pages/landing/Movers";
 import Business from "./pages/landing/Business";
 import Property from "./pages/landing/Property";
+import TermsOfService from "./pages/legal/TermsOfService";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          
+          {/* Legal Pages */}
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           
           {/* Landing Pages */}
           <Route path="/for/homeowners" element={<Homeowners />} />
