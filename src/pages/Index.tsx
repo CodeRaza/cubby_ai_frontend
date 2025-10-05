@@ -141,9 +141,9 @@ const Index = () => {
 
                       {/* Detection Boxes */}
                       <div className="absolute top-1/4 left-1/6 w-1/3 h-1/4 border-2 border-primary rounded-lg animate-pulse mx-[40px] my-[30px]">
-                        <div className="absolute -top-8 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                        <div className="absolute -top-8 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <span>Power Drill</span>
+                            <span>DeWalt 20V Cordless Drill</span>
                             <span className="opacity-80">98%</span>
                           </div>
                           <div className="text-[10px] opacity-70">Power Tools</div>
@@ -152,9 +152,9 @@ const Index = () => {
                       <div className="absolute top-1/2 right-1/4 w-1/4 h-1/5 border-2 border-secondary rounded-lg animate-pulse" style={{
                       animationDelay: '0.2s'
                     }}>
-                        <div className="absolute -top-8 left-0 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                        <div className="absolute -top-8 left-0 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <span>Paint Brushes</span>
+                            <span>Purdy Pro-Extra Brushes</span>
                             <span className="opacity-80">95%</span>
                           </div>
                           <div className="text-[10px] opacity-70">Paint Supplies</div>
@@ -163,9 +163,9 @@ const Index = () => {
                       <div className="absolute bottom-1/4 left-1/4 w-1/5 h-1/6 border-2 border-accent rounded-lg animate-pulse" style={{
                       animationDelay: '0.4s'
                     }}>
-                        <div className="absolute -top-8 left-0 bg-accent text-accent-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                        <div className="absolute -top-8 left-0 bg-accent text-accent-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <span>Hammer</span>
+                            <span>Estwing 16oz Claw Hammer</span>
                             <span className="opacity-80">97%</span>
                           </div>
                           <div className="text-[10px] opacity-70">Hand Tools</div>
@@ -174,9 +174,9 @@ const Index = () => {
                       <div className="absolute top-1/3 right-1/3 w-1/6 h-1/6 border-2 border-primary/70 rounded-lg animate-pulse" style={{
                       animationDelay: '0.6s'
                     }}>
-                        <div className="absolute -top-8 left-0 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                        <div className="absolute -top-8 left-0 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <span>Wrench Set</span>
+                            <span>Craftsman Metric Wrench Set</span>
                             <span className="opacity-80">93%</span>
                           </div>
                           <div className="text-[10px] opacity-70">Hardware</div>
@@ -185,9 +185,9 @@ const Index = () => {
                       <div className="absolute bottom-1/3 right-1/5 w-1/5 h-1/5 border-2 border-secondary/70 rounded-lg animate-pulse" style={{
                       animationDelay: '0.8s'
                     }}>
-                        <div className="absolute -top-8 left-0 bg-secondary/90 text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
+                        <div className="absolute -top-8 left-0 bg-secondary/90 text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <span>Paint Cans</span>
+                            <span>Behr Premium Plus Paint</span>
                             <span className="opacity-80">91%</span>
                           </div>
                           <div className="text-[10px] opacity-70">Paint Supplies</div>
@@ -204,31 +204,31 @@ const Index = () => {
                       </div>
                       
                       {[{
-                      name: 'Power Drill',
+                      name: 'DeWalt 20V Cordless Drill',
                       category: 'Power Tools',
                       confidence: '98%',
                       location: 'Garage - Shelf 2',
                       color: 'bg-primary'
                     }, {
-                      name: 'Paint Brushes',
+                      name: 'Purdy Pro-Extra Brushes',
                       category: 'Paint Supplies',
                       confidence: '95%',
                       location: 'Garage - Shelf 2',
                       color: 'bg-secondary'
                     }, {
-                      name: 'Hammer',
+                      name: 'Estwing 16oz Claw Hammer',
                       category: 'Hand Tools',
                       confidence: '97%',
                       location: 'Garage - Shelf 2',
                       color: 'bg-accent'
                     }, {
-                      name: 'Wrench Set',
+                      name: 'Craftsman Metric Wrench Set',
                       category: 'Hardware',
                       confidence: '93%',
                       location: 'Garage - Shelf 2',
                       color: 'bg-primary/70'
                     }, {
-                      name: 'Paint Cans',
+                      name: 'Behr Premium Plus Paint',
                       category: 'Paint Supplies',
                       confidence: '91%',
                       location: 'Garage - Shelf 2',
