@@ -1,0 +1,26 @@
+{
+  "name": "Cubby - Find Anything in Seconds",
+  "short_name": "Cubby",
+  "description": "Snap. Tag. Find. AI-powered home inventory that helps you find anything instantly.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2DD4BF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/cubby-favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/cubby-favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": []
+}
