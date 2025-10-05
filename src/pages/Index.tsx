@@ -140,7 +140,7 @@ const Index = () => {
                       </svg>
 
                       {/* Detection Boxes */}
-                      <div className="absolute top-1/4 left-1/4 w-1/3 h-1/4 border-2 border-primary rounded-lg animate-pulse">
+                      <div className="absolute top-1/4 left-1/6 w-1/3 h-1/4 border-2 border-primary rounded-lg animate-pulse">
                         <div className="absolute -top-6 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
                           Power Drill
                         </div>
