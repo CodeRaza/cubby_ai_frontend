@@ -294,6 +294,18 @@ export type Database = {
         Args: { tier: Database["public"]["Enums"]["subscription_tier"] }
         Returns: number
       }
+      get_location_info: {
+        Args: { p_location_id: string }
+        Returns: {
+          created_at: string
+          gps_lat: number
+          gps_lng: number
+          id: string
+          is_owner: boolean
+          name: string
+          user_id: string
+        }[]
+      }
       get_location_share_url: {
         Args: { p_location_id: string }
         Returns: string
