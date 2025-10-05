@@ -325,6 +325,10 @@ export type Database = {
         Args: { p_item_count?: number; p_user_id: string }
         Returns: boolean
       }
+      user_has_location_access: {
+        Args: { _location_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
