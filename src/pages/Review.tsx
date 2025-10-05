@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Check, Loader2, X } from "lucide-react";
+import { ArrowLeft, Check, Loader2, X, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
@@ -16,6 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Detection {
   label: string;
@@ -48,6 +56,8 @@ const Review = () => {
   const [locations, setLocations] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showNewLocationDialog, setShowNewLocationDialog] = useState(false);
+  const [newLocationName, setNewLocationName] = useState("");
 
   useEffect(() => {
     if (detections.length > 0) {
@@ -90,6 +100,47 @@ const Review = () => {
 
   const removeItem = (index: number) => {
     setItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCreateLocation = async () => {
+    if (!newLocationName.trim()) {
+      toast({
+        title: "Please enter a location name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: newLocation, error } = await supabase
+        .from("locations")
+        .insert({
+          user_id: user.id,
+          name: newLocationName,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setLocations(prev => [newLocation, ...prev]);
+      setSelectedLocation(newLocation.id);
+      setNewLocationName("");
+      setShowNewLocationDialog(false);
+      
+      toast({
+        title: "Location created successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error creating location",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSave = async () => {
@@ -214,7 +265,15 @@ const Review = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 font-normal"
+                    onClick={() => setShowNewLocationDialog(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create New Location
+                  </Button>
                   {locations.map((loc) => (
                     <SelectItem key={loc.id} value={loc.id}>
                       {loc.name}
@@ -297,6 +356,39 @@ const Review = () => {
           ))}
         </div>
       </main>
+
+      <Dialog open={showNewLocationDialog} onOpenChange={setShowNewLocationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Location</DialogTitle>
+            <DialogDescription>
+              Add a new location to organize your items.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="location-name">Location Name</Label>
+            <Input
+              id="location-name"
+              placeholder="e.g., Kitchen, Garage, Bedroom"
+              value={newLocationName}
+              onChange={(e) => setNewLocationName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleCreateLocation();
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewLocationDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateLocation}>
+              Create Location
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
