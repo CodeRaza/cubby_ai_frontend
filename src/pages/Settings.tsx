@@ -18,8 +18,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Mail, Lock, Trash2, LogOut } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, Lock, Trash2, LogOut, Crown, ExternalLink } from "lucide-react";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -33,9 +34,12 @@ const Settings = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [subscription, setSubscription] = useState<any>(null);
+  const [loadingPortal, setLoadingPortal] = useState(false);
 
   useEffect(() => {
     checkUser();
+    loadSubscription();
   }, []);
 
   const checkUser = async () => {
@@ -46,6 +50,44 @@ const Settings = () => {
     }
     setUser(user);
     setEmail(user.email || "");
+  };
+
+  const loadSubscription = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: subData } = await supabase
+        .from('user_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      setSubscription(subData);
+    } catch (error: any) {
+      console.error('Error loading subscription:', error);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to open subscription management",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPortal(false);
+    }
   };
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
@@ -168,6 +210,59 @@ const Settings = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-2xl space-y-6">
+        {/* Subscription Management */}
+        {subscription && subscription.plan_tier !== 'free' && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-primary" />
+                <CardTitle>Subscription</CardTitle>
+              </div>
+              <CardDescription>
+                Manage your subscription, billing, and payment methods
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">Current Plan</p>
+                    <Badge variant="secondary">
+                      {subscription.plan_tier.charAt(0).toUpperCase() + subscription.plan_tier.slice(1)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {subscription.status === 'active' ? 'Active' : subscription.status}
+                    {subscription.current_period_end && ` until ${new Date(subscription.current_period_end).toLocaleDateString()}`}
+                  </p>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-2">
+                <Button 
+                  onClick={handleManageSubscription}
+                  disabled={loadingPortal}
+                  className="w-full"
+                >
+                  {loadingPortal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Manage Subscription
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Opens Stripe portal to manage billing, cancel, or change your plan
+                </p>
+                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-4">
+                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                    <strong>Cancellation Policy:</strong> If you cancel your subscription, your account will be downgraded to the free plan. Your scan data will be retained for 7 days, after which scans exceeding the free tier limit will be automatically deleted.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Email Settings */}
         <Card>
           <CardHeader>
