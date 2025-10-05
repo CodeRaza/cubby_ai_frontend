@@ -29,6 +29,8 @@ import Property from "./pages/landing/Property";
 import TermsOfService from "./pages/legal/TermsOfService";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 
+import Onboarding from "./pages/Onboarding";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -41,6 +43,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           
           {/* Legal Pages */}
           <Route path="/terms-of-service" element={<TermsOfService />} />

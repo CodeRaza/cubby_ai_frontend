@@ -13,16 +13,40 @@ const Auth = () => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        // Check if user has any locations (first-time user check)
+        const { data: locations } = await supabase
+          .from("locations")
+          .select("id")
+          .limit(1);
+        
         const redirect = searchParams.get('redirect');
-        navigate(redirect || "/dashboard");
+        
+        // If new user with no locations, send to onboarding
+        if (!locations || locations.length === 0) {
+          navigate("/onboarding");
+        } else {
+          navigate(redirect || "/dashboard");
+        }
       }
     };
     checkUser();
   }, [navigate, searchParams]);
 
-  const handleSuccess = () => {
+  const handleSuccess = async () => {
+    // Check if user has any locations (first-time user check)
+    const { data: locations } = await supabase
+      .from("locations")
+      .select("id")
+      .limit(1);
+    
     const redirect = searchParams.get('redirect');
-    navigate(redirect || "/dashboard");
+    
+    // If new user with no locations, send to onboarding
+    if (!locations || locations.length === 0) {
+      navigate("/onboarding");
+    } else {
+      navigate(redirect || "/dashboard");
+    }
   };
 
   return (
