@@ -3,35 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Camera, 
-  Sparkles, 
-  Search, 
-  Box, 
-  Home, 
-  Truck, 
-  Store, 
-  Shield,
-  ArrowRight,
-  Check
-} from "lucide-react";
+import { Camera, Sparkles, Search, Box, Home, Truck, Store, Shield, ArrowRight, Check } from "lucide-react";
 import cubbyLogo from "@/assets/cubby-logo.png";
-
 const Index = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
     setIsVisible(true);
   }, []);
-
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
-    element?.scrollIntoView({ behavior: 'smooth' });
+    element?.scrollIntoView({
+      behavior: 'smooth'
+    });
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+  return <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Sticky Navbar */}
       <nav className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-4 py-4">
@@ -40,11 +26,7 @@ const Index = () => {
               <img src={cubbyLogo} alt="Cubby" className="h-10 w-10" />
               <span className="text-2xl font-bold text-foreground">Cubby</span>
             </div>
-            <Button 
-              size="lg" 
-              className="rounded-full font-semibold shadow-lg hover:shadow-xl transition-all"
-              onClick={() => navigate('/auth')}
-            >
+            <Button size="lg" className="rounded-full font-semibold shadow-lg hover:shadow-xl transition-all" onClick={() => navigate('/auth')}>
               Start Scanning Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -74,20 +56,11 @@ const Index = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
-                className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all"
-                onClick={() => navigate('/auth')}
-              >
+              <Button size="lg" className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all" onClick={() => navigate('/auth')}>
                 <Camera className="mr-2 h-5 w-5" />
                 Start Scanning Free
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="text-lg px-8 py-6 rounded-full font-semibold"
-                onClick={() => scrollToSection('how-it-works')}
-              >
+              <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-full font-semibold" onClick={() => scrollToSection('how-it-works')}>
                 See how it works
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -99,12 +72,18 @@ const Index = () => {
             </div>
           </div>
 
-          <div className={`relative ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+          <div className={`relative ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{
+          animationDelay: '0.2s'
+        }}>
             {/* Decorative Background Elements */}
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-1/4 -right-8 w-72 h-72 bg-gradient-to-br from-primary/30 to-transparent rounded-full blur-3xl animate-float" />
-              <div className="absolute bottom-1/4 -left-8 w-64 h-64 bg-gradient-to-tr from-secondary/30 to-transparent rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-3xl animate-float" style={{ animationDelay: '0.7s' }} />
+              <div className="absolute bottom-1/4 -left-8 w-64 h-64 bg-gradient-to-tr from-secondary/30 to-transparent rounded-full blur-3xl animate-float" style={{
+              animationDelay: '1.5s'
+            }} />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-3xl animate-float" style={{
+              animationDelay: '0.7s'
+            }} />
             </div>
 
             {/* Phone Mockup */}
@@ -163,12 +142,16 @@ const Index = () => {
                           Power Drill
                         </div>
                       </div>
-                      <div className="absolute top-1/2 right-1/4 w-1/4 h-1/5 border-2 border-secondary rounded-lg animate-pulse" style={{ animationDelay: '0.2s' }}>
+                      <div className="absolute top-1/2 right-1/4 w-1/4 h-1/5 border-2 border-secondary rounded-lg animate-pulse" style={{
+                      animationDelay: '0.2s'
+                    }}>
                         <div className="absolute -top-6 left-0 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
                           Paint Brushes
                         </div>
                       </div>
-                      <div className="absolute bottom-1/4 left-1/3 w-1/4 h-1/6 border-2 border-accent rounded-lg animate-pulse" style={{ animationDelay: '0.4s' }}>
+                      <div className="absolute bottom-1/4 left-1/3 w-1/4 h-1/6 border-2 border-accent rounded-lg animate-pulse" style={{
+                      animationDelay: '0.4s'
+                    }}>
                         <div className="absolute -top-6 left-0 bg-accent text-accent-foreground text-xs px-2 py-1 rounded font-medium shadow-lg">
                           Screwdrivers
                         </div>
@@ -182,16 +165,21 @@ const Index = () => {
                         <Badge className="bg-primary text-primary-foreground">3 items</Badge>
                       </div>
                       
-                      {[
-                        { name: 'Power Drill', location: 'Garage - Shelf 2', color: 'bg-primary' },
-                        { name: 'Paint Brushes', location: 'Garage - Shelf 2', color: 'bg-secondary' },
-                        { name: 'Screwdriver Set', location: 'Garage - Shelf 2', color: 'bg-accent' }
-                      ].map((item, i) => (
-                        <div 
-                          key={item.name}
-                          className="flex items-center gap-3 p-3 bg-card rounded-xl shadow-sm border border-border/50 animate-fade-in-up hover:shadow-md transition-all"
-                          style={{ animationDelay: `${0.6 + i * 0.1}s` }}
-                        >
+                      {[{
+                      name: 'Power Drill',
+                      location: 'Garage - Shelf 2',
+                      color: 'bg-primary'
+                    }, {
+                      name: 'Paint Brushes',
+                      location: 'Garage - Shelf 2',
+                      color: 'bg-secondary'
+                    }, {
+                      name: 'Screwdriver Set',
+                      location: 'Garage - Shelf 2',
+                      color: 'bg-accent'
+                    }].map((item, i) => <div key={item.name} className="flex items-center gap-3 p-3 bg-card rounded-xl shadow-sm border border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{
+                      animationDelay: `${0.6 + i * 0.1}s`
+                    }}>
                           <div className={`h-10 w-10 rounded-lg ${item.color} flex items-center justify-center shadow-sm`}>
                             <Box className="h-5 w-5 text-white" />
                           </div>
@@ -200,8 +188,7 @@ const Index = () => {
                             <p className="text-xs text-muted-foreground">{item.location}</p>
                           </div>
                           <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
                   </div>
                 </div>
@@ -211,11 +198,10 @@ const Index = () => {
               </div>
 
               {/* Floating Elements */}
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gradient-primary text-white px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float">
-                <Sparkles className="h-4 w-4 inline mr-1" />
-                AI Powered
-              </div>
-              <div className="absolute -bottom-6 -right-6 bg-card border border-border text-foreground px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float" style={{ animationDelay: '0.5s' }}>
+              
+              <div className="absolute -bottom-6 -right-6 bg-card border border-border text-foreground px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float" style={{
+              animationDelay: '0.5s'
+            }}>
                 <Check className="h-4 w-4 inline mr-1 text-green-500" />
                 Instant Results
               </div>
@@ -235,30 +221,22 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {[
-              {
-                icon: Camera,
-                step: "1",
-                title: "Scan or Upload Photos",
-                description: "Take a picture of any shelf, box, or bin. Works with your phone or tablet.",
-              },
-              {
-                icon: Sparkles,
-                step: "2",
-                title: "Cubby Organizes It",
-                description: "AI recognizes and tags each item with its location automatically.",
-              },
-              {
-                icon: Search,
-                step: "3",
-                title: "Find It Instantly",
-                description: "Search 'drill,' 'toilet paper,' or 'holiday lights' — Cubby tells you where it is.",
-              },
-            ].map((item, index) => (
-              <Card 
-                key={index}
-                className="text-center hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50"
-              >
+            {[{
+            icon: Camera,
+            step: "1",
+            title: "Scan or Upload Photos",
+            description: "Take a picture of any shelf, box, or bin. Works with your phone or tablet."
+          }, {
+            icon: Sparkles,
+            step: "2",
+            title: "Cubby Organizes It",
+            description: "AI recognizes and tags each item with its location automatically."
+          }, {
+            icon: Search,
+            step: "3",
+            title: "Find It Instantly",
+            description: "Search 'drill,' 'toilet paper,' or 'holiday lights' — Cubby tells you where it is."
+          }].map((item, index) => <Card key={index} className="text-center hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
                 <CardContent className="pt-8 pb-6">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-primary text-white text-2xl font-bold mb-6 shadow-lg">
                     {item.step}
@@ -271,16 +249,11 @@ const Index = () => {
                     {item.description}
                   </p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
 
           <div className="text-center">
-            <Button 
-              size="lg" 
-              className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl"
-              onClick={() => navigate('/auth')}
-            >
+            <Button size="lg" className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl" onClick={() => navigate('/auth')}>
               Start Organizing Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -301,30 +274,22 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {[
-              {
-                icon: Search,
-                title: "Never lose things again",
-                description: "Find anything in seconds with smart search",
-                color: "text-primary",
-              },
-              {
-                icon: Sparkles,
-                title: "Smart visual memory",
-                description: "Cubby remembers what's in every photo",
-                color: "text-secondary",
-              },
-              {
-                icon: Camera,
-                title: "No manual sorting",
-                description: "Just snap and done — AI handles the rest",
-                color: "text-accent",
-              },
-            ].map((item, index) => (
-              <Card 
-                key={index}
-                className="hover:shadow-xl transition-all duration-300 group"
-              >
+            {[{
+            icon: Search,
+            title: "Never lose things again",
+            description: "Find anything in seconds with smart search",
+            color: "text-primary"
+          }, {
+            icon: Sparkles,
+            title: "Smart visual memory",
+            description: "Cubby remembers what's in every photo",
+            color: "text-secondary"
+          }, {
+            icon: Camera,
+            title: "No manual sorting",
+            description: "Just snap and done — AI handles the rest",
+            color: "text-accent"
+          }].map((item, index) => <Card key={index} className="hover:shadow-xl transition-all duration-300 group">
                 <CardContent className="pt-8 pb-6">
                   <div className={`h-14 w-14 mb-4 ${item.color} group-hover:scale-110 transition-transform`}>
                     <item.icon className="h-full w-full" />
@@ -334,17 +299,11 @@ const Index = () => {
                     {item.description}
                   </p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
 
           <div className="text-center">
-            <Button 
-              variant="outline"
-              size="lg" 
-              className="text-lg px-8 py-6 rounded-full font-semibold"
-              onClick={() => navigate('/auth')}
-            >
+            <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-full font-semibold" onClick={() => navigate('/auth')}>
               Try Cubby Free
             </Button>
           </div>
@@ -359,37 +318,27 @@ const Index = () => {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: Home,
-                title: "Pantry",
-                description: "Know what's running low at a glance",
-                gradient: "from-primary/10 to-primary/5",
-              },
-              {
-                icon: Box,
-                title: "Garage",
-                description: "Find tools without digging through bins",
-                gradient: "from-secondary/10 to-secondary/5",
-              },
-              {
-                icon: Truck,
-                title: "Moving",
-                description: "Label boxes visually, not with tape",
-                gradient: "from-accent/10 to-accent/5",
-              },
-              {
-                icon: Store,
-                title: "Small Business",
-                description: "Track stockrooms and backrooms easily",
-                gradient: "from-primary/10 to-accent/5",
-              },
-            ].map((useCase, index) => (
-              <Card 
-                key={index}
-                className={`bg-gradient-to-br ${useCase.gradient} border-0 hover:shadow-xl transition-all duration-300 group cursor-pointer`}
-                onClick={() => navigate('/auth')}
-              >
+            {[{
+            icon: Home,
+            title: "Pantry",
+            description: "Know what's running low at a glance",
+            gradient: "from-primary/10 to-primary/5"
+          }, {
+            icon: Box,
+            title: "Garage",
+            description: "Find tools without digging through bins",
+            gradient: "from-secondary/10 to-secondary/5"
+          }, {
+            icon: Truck,
+            title: "Moving",
+            description: "Label boxes visually, not with tape",
+            gradient: "from-accent/10 to-accent/5"
+          }, {
+            icon: Store,
+            title: "Small Business",
+            description: "Track stockrooms and backrooms easily",
+            gradient: "from-primary/10 to-accent/5"
+          }].map((useCase, index) => <Card key={index} className={`bg-gradient-to-br ${useCase.gradient} border-0 hover:shadow-xl transition-all duration-300 group cursor-pointer`} onClick={() => navigate('/auth')}>
                 <CardContent className="pt-8 pb-6 text-center">
                   <div className="h-12 w-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform">
                     <useCase.icon className="h-full w-full" />
@@ -399,8 +348,7 @@ const Index = () => {
                     {useCase.description}
                   </p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -422,12 +370,7 @@ const Index = () => {
                   Join thousands of organized homes and never lose track of your belongings again
                 </p>
 
-                <Button 
-                  size="lg"
-                  variant="secondary"
-                  className="text-lg px-10 py-7 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all text-primary"
-                  onClick={() => navigate('/auth')}
-                >
+                <Button size="lg" variant="secondary" className="text-lg px-10 py-7 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all text-primary" onClick={() => navigate('/auth')}>
                   <Camera className="mr-2 h-6 w-6" />
                   Start Scanning Free
                 </Button>
@@ -437,17 +380,10 @@ const Index = () => {
                 </p>
 
                 <div className="flex flex-wrap justify-center gap-6 pt-4">
-                  {[
-                    'Free forever plan',
-                    '10 scans/month',
-                    'AI-powered tagging',
-                    'Multi-device sync',
-                  ].map((feature) => (
-                    <div key={feature} className="flex items-center gap-2 text-white/90">
+                  {['Free forever plan', '10 scans/month', 'AI-powered tagging', 'Multi-device sync'].map(feature => <div key={feature} className="flex items-center gap-2 text-white/90">
                       <Check className="h-5 w-5" />
                       <span>{feature}</span>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </div>
             </CardContent>
@@ -475,8 +411,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
