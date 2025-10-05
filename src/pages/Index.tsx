@@ -25,7 +25,7 @@ const Index = () => {
       behavior: 'smooth'
     });
   };
-  return <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+  return <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden">
       {/* Sticky Navbar */}
       <nav className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-4 py-4">
@@ -54,7 +54,7 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-20 pb-32">
+      <section className="container mx-auto px-4 pt-20 pb-32 overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className={`space-y-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <Badge variant="secondary" className="text-sm px-4 py-2 font-medium">
@@ -95,9 +95,9 @@ const Index = () => {
           animationDelay: '0.2s'
         }}>
             {/* Decorative Background Elements */}
-            <div className="absolute inset-0 -z-10">
-              <div className="absolute top-1/4 -right-8 w-72 h-72 bg-gradient-to-br from-primary/30 to-transparent rounded-full blur-3xl animate-float" />
-              <div className="absolute bottom-1/4 -left-8 w-64 h-64 bg-gradient-to-tr from-secondary/30 to-transparent rounded-full blur-3xl animate-float" style={{
+            <div className="absolute inset-0 -z-10 overflow-hidden">
+              <div className="absolute top-1/4 right-0 w-72 h-72 bg-gradient-to-br from-primary/30 to-transparent rounded-full blur-3xl animate-float" />
+              <div className="absolute bottom-1/4 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/30 to-transparent rounded-full blur-3xl animate-float" style={{
               animationDelay: '1.5s'
             }} />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-3xl animate-float" style={{
