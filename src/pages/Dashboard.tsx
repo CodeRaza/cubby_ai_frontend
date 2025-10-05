@@ -142,18 +142,18 @@ const Dashboard = () => {
       if (usageError && usageError.code !== 'PGRST116') throw usageError;
 
       const planTier = subData?.plan_tier || 'free';
-      const scanLimits: Record<string, number> = {
-        free: 10,
-        starter: 50,
-        pro: 250,
-        power: 1000
+      const itemLimits: Record<string, number> = {
+        free: 50,
+        starter: 250,
+        pro: 1000,
+        power: 5000
       };
 
       setSubscription({
         plan_tier: planTier,
-        scans_used: usageData?.scans_used || 0,
-        scans_limit: scanLimits[planTier],
-        bonus_credits: usageData?.bonus_credits || 0
+        scans_used: usageData?.items_detected || 0,
+        scans_limit: itemLimits[planTier],
+        bonus_credits: usageData?.bonus_items || 0
       });
     } catch (error: any) {
       console.error('Error loading subscription:', error);
@@ -202,8 +202,8 @@ const Dashboard = () => {
       if (error) throw error;
 
       toast({
-        title: "Scan pack added!",
-        description: "100 bonus scans have been added to your account."
+        title: "Item pack added!",
+        description: "100 bonus items have been added to your account."
       });
 
       loadSubscription();
@@ -259,7 +259,7 @@ const Dashboard = () => {
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Scans this month</span>
+                <span className="text-sm font-medium">Items this month</span>
                 {subscription.bonus_credits > 0 && (
                   <Badge variant="secondary" className="text-xs">
                     <Sparkles className="h-3 w-3 mr-1" />
@@ -272,14 +272,14 @@ const Dashboard = () => {
               </span>
             </div>
             <Progress value={usagePercent} className="h-2" />
-            {scansRemaining <= 5 && scansRemaining > 0 && (
+            {scansRemaining <= 10 && scansRemaining > 0 && (
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                Running low on scans! Consider upgrading or buying a scan pack.
+                Running low on items! Consider upgrading or buying an item pack.
               </p>
             )}
             {scansRemaining === 0 && (
               <p className="text-xs text-destructive mt-2">
-                Out of scans! Upgrade your plan or purchase a scan pack to continue.
+                Out of items! Upgrade your plan or purchase an item pack to continue.
               </p>
             )}
           </div>

@@ -16,6 +16,10 @@ export type Database = {
     Tables: {
       detections: {
         Row: {
+          bbox_height: number | null
+          bbox_width: number | null
+          bbox_x: number | null
+          bbox_y: number | null
           confidence: number | null
           created_at: string
           id: string
@@ -23,6 +27,10 @@ export type Database = {
           label: string
         }
         Insert: {
+          bbox_height?: number | null
+          bbox_width?: number | null
+          bbox_x?: number | null
+          bbox_y?: number | null
           confidence?: number | null
           created_at?: string
           id?: string
@@ -30,6 +38,10 @@ export type Database = {
           label: string
         }
         Update: {
+          bbox_height?: number | null
+          bbox_width?: number | null
+          bbox_x?: number | null
+          bbox_y?: number | null
           confidence?: number | null
           created_at?: string
           id?: string
@@ -122,32 +134,32 @@ export type Database = {
       }
       scan_usage: {
         Row: {
-          bonus_credits: number
+          bonus_items: number
           created_at: string
           id: string
+          items_detected: number
           period_end: string
           period_start: string
-          scans_used: number
           updated_at: string
           user_id: string
         }
         Insert: {
-          bonus_credits?: number
+          bonus_items?: number
           created_at?: string
           id?: string
+          items_detected?: number
           period_end: string
           period_start: string
-          scans_used?: number
           updated_at?: string
           user_id: string
         }
         Update: {
-          bonus_credits?: number
+          bonus_items?: number
           created_at?: string
           id?: string
+          items_detected?: number
           period_end?: string
           period_start?: string
-          scans_used?: number
           updated_at?: string
           user_id?: string
         }
@@ -226,11 +238,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_user_scan: {
-        Args: { p_user_id: string }
+      can_user_add_items: {
+        Args: { p_item_count?: number; p_user_id: string }
         Returns: boolean
       }
-      get_scan_limit: {
+      get_item_limit: {
         Args: { tier: Database["public"]["Enums"]["subscription_tier"] }
         Returns: number
       }
@@ -238,8 +250,8 @@ export type Database = {
         Args: { p_location_id: string; p_share_token: string }
         Returns: boolean
       }
-      increment_scan_usage: {
-        Args: { p_user_id: string }
+      increment_item_usage: {
+        Args: { p_item_count?: number; p_user_id: string }
         Returns: boolean
       }
     }

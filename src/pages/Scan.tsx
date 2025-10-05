@@ -52,30 +52,11 @@ const Scan = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Check if user has available scans
-      const { data: canScan, error: checkError } = await supabase.rpc(
-        'can_user_scan',
-        { p_user_id: user.id }
-      );
-
-      if (checkError) throw checkError;
-
-      if (!canScan) {
-        toast({
-          title: "No scans remaining",
-          description: "You've used all your scans for this period. Upgrade your plan or purchase a scan pack!",
-          variant: "destructive",
-        });
-        setUploading(false);
-        navigate('/dashboard');
-        return;
-      }
-
       // Upload image to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
-      const { error: uploadError, data: uploadData } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('item-images')
         .upload(fileName, file);
 
@@ -95,17 +76,31 @@ const Scan = () => {
 
       if (error) throw error;
 
-      // Increment scan usage
-      const { data: incremented, error: incrementError } = await supabase.rpc(
-        'increment_scan_usage',
-        { p_user_id: user.id }
+      const detectionCount = data.detections?.length || 0;
+      
+      // Check if user has available items remaining
+      const { data: canAdd, error: checkError } = await supabase.rpc(
+        'can_user_add_items',
+        { 
+          p_user_id: user.id,
+          p_item_count: detectionCount
+        }
       );
 
-      if (incrementError || !incremented) {
-        console.error('Failed to increment scan usage:', incrementError);
+      if (checkError) throw checkError;
+
+      if (!canAdd) {
+        toast({
+          title: "Item limit reached",
+          description: `You need ${detectionCount} items but don't have enough remaining. Upgrade your plan!`,
+          variant: "destructive",
+        });
+        setUploading(false);
+        navigate('/subscription');
+        return;
       }
 
-      // Navigate to review with detection results
+      // Navigate to review with detection results (usage will be incremented on save)
       navigate('/review', { 
         state: { 
           detections: data.detections || [],

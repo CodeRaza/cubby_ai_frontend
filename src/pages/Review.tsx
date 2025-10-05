@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import {
   Select,
   SelectContent,
@@ -18,6 +19,12 @@ import {
 interface Detection {
   label: string;
   confidence: number;
+  bbox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 interface ReviewItem extends Detection {
@@ -88,6 +95,19 @@ const Review = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Increment item usage
+      const { data: incremented, error: incrementError } = await supabase.rpc(
+        'increment_item_usage',
+        { 
+          p_user_id: user.id,
+          p_item_count: items.length
+        }
+      );
+
+      if (incrementError || !incremented) {
+        throw new Error('Item limit reached or error tracking usage');
+      }
+
       for (const item of items) {
         const { data: insertedItem, error: itemError } = await supabase
           .from("items")
@@ -105,15 +125,20 @@ const Review = () => {
 
         if (itemError) throw itemError;
 
-        // Save detection data
+        // Save detection data with bounding boxes
+        const detection = detections.find(d => d.label === item.label);
         await supabase.from("detections").insert({
           item_id: insertedItem.id,
           label: item.label,
           confidence: item.confidence,
+          bbox_x: detection?.bbox?.x || null,
+          bbox_y: detection?.bbox?.y || null,
+          bbox_width: detection?.bbox?.width || null,
+          bbox_height: detection?.bbox?.height || null,
         });
       }
 
-      toast({ title: "Items saved successfully!" });
+      toast({ title: `${items.length} items saved successfully!` });
       navigate("/dashboard");
     } catch (error: any) {
       toast({
@@ -160,10 +185,10 @@ const Review = () => {
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {imageUrl && (
-          <img 
-            src={imageUrl} 
-            alt="Scanned" 
-            className="w-full max-w-md mx-auto rounded-xl shadow-md"
+          <ImageWithBoundingBoxes 
+            imageUrl={imageUrl} 
+            detections={detections}
+            className="w-full max-w-2xl mx-auto"
           />
         )}
 

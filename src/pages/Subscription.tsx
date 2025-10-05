@@ -15,8 +15,8 @@ interface SubscriptionData {
 }
 
 interface UsageData {
-  scans_used: number;
-  bonus_credits: number;
+  items_detected: number;
+  bonus_items: number;
   period_end: string;
 }
 
@@ -25,32 +25,32 @@ const plans = [
     name: "Free",
     tier: "free",
     price: "$0",
-    scans: 10,
-    features: ["10 scans/month", "1 room", "Basic AI model"],
+    items: 50,
+    features: ["50 items/month", "1 room", "Basic AI detection"],
     priceId: null,
   },
   {
     name: "Starter",
     tier: "starter",
     price: "$1.99",
-    scans: 50,
-    features: ["50 scans/month", "Multi-room", "Standard AI model"],
+    items: 250,
+    features: ["250 items/month", "Multi-room", "Standard AI detection"],
     priceId: "price_1SEkAwDbbgzShd5s8ITsBw0i",
   },
   {
     name: "Pro",
     tier: "pro",
     price: "$4.99",
-    scans: 250,
-    features: ["250 scans/month", "Expiry reminders", "Cloud backup", "CSV export", "Priority AI"],
+    items: 1000,
+    features: ["1000 items/month", "Expiry reminders", "Cloud backup", "CSV export", "Priority AI"],
     priceId: "price_1SEkB7DbbgzShd5swTByxh9O",
   },
   {
     name: "Power",
     tier: "power",
     price: "$9.99",
-    scans: 1000,
-    features: ["1000 scans/month", "Multi-user (up to 3)", "API access", "Advanced export"],
+    items: 5000,
+    features: ["5000 items/month", "Multi-user (up to 3)", "API access", "Advanced export"],
     priceId: "price_1SEkBGDbbgzShd5s4ktj9Yha",
   },
 ];
@@ -181,10 +181,10 @@ const Subscription = () => {
   }
 
   const currentPlan = plans.find(p => p.tier === subscription?.plan_tier) || plans[0];
-  const scanLimit = currentPlan.scans + (usage?.bonus_credits || 0);
-  const scansUsed = usage?.scans_used || 0;
-  const scansRemaining = Math.max(0, scanLimit - scansUsed);
-  const usagePercent = scanLimit > 0 ? (scansUsed / scanLimit) * 100 : 0;
+  const itemLimit = currentPlan.items + (usage?.bonus_items || 0);
+  const itemsUsed = usage?.items_detected || 0;
+  const itemsRemaining = Math.max(0, itemLimit - itemsUsed);
+  const usagePercent = itemLimit > 0 ? (itemsUsed / itemLimit) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -203,19 +203,19 @@ const Subscription = () => {
           <CardHeader>
             <CardTitle>Current Usage</CardTitle>
             <CardDescription>
-              {scansRemaining} of {scanLimit} scans remaining this month
+              {itemsRemaining} of {itemLimit} items remaining this month
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Progress value={usagePercent} className="h-3" />
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{scansUsed} used</span>
-              <span>{scansRemaining} remaining</span>
+              <span>{itemsUsed} used</span>
+              <span>{itemsRemaining} remaining</span>
             </div>
-            {usage?.bonus_credits > 0 && (
+            {usage?.bonus_items && usage.bonus_items > 0 && (
               <Badge variant="secondary" className="mt-2">
                 <Sparkles className="h-3 w-3 mr-1" />
-                {usage.bonus_credits} bonus scans
+                {usage.bonus_items} bonus items
               </Badge>
             )}
           </CardContent>
@@ -292,16 +292,16 @@ const Subscription = () => {
         {/* Scan Pack Add-on */}
         <Card>
           <CardHeader>
-            <CardTitle>Need more scans?</CardTitle>
+            <CardTitle>Need more items?</CardTitle>
             <CardDescription>
-              Purchase additional scans without changing your plan
+              Purchase additional items without changing your plan
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold">Scan Pack</p>
-                <p className="text-sm text-muted-foreground">+100 scans</p>
+                <p className="font-semibold">Item Pack</p>
+                <p className="text-sm text-muted-foreground">+100 items</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold">$1.99</p>
@@ -319,7 +319,7 @@ const Subscription = () => {
               {processingPlan === 'scan-pack' ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : null}
-              Purchase Scan Pack
+              Purchase Item Pack
             </Button>
           </CardFooter>
         </Card>

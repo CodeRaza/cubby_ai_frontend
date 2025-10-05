@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Calendar, Package, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,14 @@ interface ItemDetails {
   location: {
     name: string;
   } | null;
+  detections?: Array<{
+    label: string;
+    confidence: number;
+    bbox_x: number | null;
+    bbox_y: number | null;
+    bbox_width: number | null;
+    bbox_height: number | null;
+  }>;
 }
 
 const ItemDetail = () => {
@@ -48,7 +57,8 @@ const ItemDetail = () => {
         .from("items")
         .select(`
           *,
-          location:locations(name)
+          location:locations(name),
+          detections(label, confidence, bbox_x, bbox_y, bbox_width, bbox_height)
         `)
         .eq("id", id)
         .single();
@@ -124,7 +134,23 @@ const ItemDetail = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {item.image_url && (
+        {item.image_url && item.detections && item.detections.length > 0 && (
+          <ImageWithBoundingBoxes 
+            imageUrl={item.image_url}
+            detections={item.detections.map(d => ({
+              label: d.label,
+              confidence: d.confidence,
+              bbox: d.bbox_x !== null ? {
+                x: d.bbox_x,
+                y: d.bbox_y!,
+                width: d.bbox_width!,
+                height: d.bbox_height!,
+              } : undefined
+            }))}
+            className="w-full max-w-2xl mx-auto"
+          />
+        )}
+        {item.image_url && (!item.detections || item.detections.length === 0) && (
           <img
             src={item.image_url}
             alt={item.name}
