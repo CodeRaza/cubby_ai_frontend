@@ -18,15 +18,27 @@ const QRCodeSingle = () => {
 
   const loadLocation = async () => {
     try {
-      const { data } = await supabase
+      const { data: locationData } = await supabase
         .from("locations")
-        .select("name, share_token")
+        .select("name, user_id")
         .eq("id", locationId)
         .single();
 
-      if (data) {
-        setLocationName(data.name);
-        setShareToken(data.share_token || "");
+      if (locationData) {
+        setLocationName(locationData.name);
+        
+        // Only fetch share URL if user owns the location
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id === locationData.user_id) {
+          const { data: urlData } = await supabase
+            .rpc('get_location_share_url', { p_location_id: locationId });
+          
+          if (urlData) {
+            // Extract just the token from the full URL
+            const url = new URL(urlData);
+            setShareToken(url.searchParams.get('token') || '');
+          }
+        }
       }
     } finally {
       setLoading(false);

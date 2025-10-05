@@ -105,7 +105,7 @@ const Dashboard = () => {
     try {
       const { data: locationsData, error: locError } = await supabase
         .from("locations")
-        .select("*")
+        .select("id, name, user_id, created_at")
         .order("created_at", { ascending: false });
 
       if (locError) throw locError;

@@ -294,6 +294,10 @@ export type Database = {
         Args: { tier: Database["public"]["Enums"]["subscription_tier"] }
         Returns: number
       }
+      get_location_share_url: {
+        Args: { p_location_id: string }
+        Returns: string
+      }
       get_user_stats: {
         Args: Record<PropertyKey, never>
         Returns: {

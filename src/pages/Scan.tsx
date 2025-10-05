@@ -66,13 +66,10 @@ const Scan = () => {
         .from('item-images')
         .getPublicUrl(fileName);
 
-      // Convert image to base64 for AI with progress feedback
-      console.log('Converting image to base64...');
+      // Convert image to base64 for AI
       const base64 = await fileToBase64(file);
-      console.log('Base64 conversion complete');
 
       // Call AI detection edge function with timeout
-      console.log('Calling detect-items function...');
       
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timed out after 60 seconds')), 60000)
@@ -87,8 +84,6 @@ const Scan = () => {
         timeoutPromise
       ]) as any;
 
-      console.log('Function response:', { data, error });
-
       if (error) throw error;
 
       if (!data || !data.detections) {
@@ -96,7 +91,6 @@ const Scan = () => {
       }
 
       const detectionCount = data.detections?.length || 0;
-      console.log(`Detected ${detectionCount} items`);
       
       // Check if user has available items remaining
       const { data: canAdd, error: checkError } = await supabase.rpc(
@@ -129,7 +123,6 @@ const Scan = () => {
       });
 
     } catch (error: any) {
-      console.error('Error processing image:', error);
       toast({
         title: "Error processing image",
         description: error.message,

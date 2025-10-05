@@ -8,7 +8,7 @@ import { QRCodeLabel } from "@/components/QRCodeLabel";
 interface Location {
   id: string;
   name: string;
-  share_token: string | null;
+  share_token?: string;
 }
 
 const QRCodeBulk = () => {
@@ -22,13 +22,38 @@ const QRCodeBulk = () => {
 
   const loadLocations = async () => {
     try {
-      const { data } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data: locationsData } = await supabase
         .from("locations")
-        .select("id, name, share_token")
+        .select("id, name, user_id")
         .order("name");
 
-      if (data) {
-        setLocations(data);
+      if (locationsData && user) {
+        // Fetch share URLs for locations the user owns
+        const locationsWithTokens = await Promise.all(
+          locationsData.map(async (location) => {
+            if (location.user_id === user.id) {
+              const { data: urlData } = await supabase
+                .rpc('get_location_share_url', { p_location_id: location.id });
+              
+              if (urlData) {
+                const url = new URL(urlData);
+                return {
+                  id: location.id,
+                  name: location.name,
+                  share_token: url.searchParams.get('token') || undefined
+                };
+              }
+            }
+            return {
+              id: location.id,
+              name: location.name,
+              share_token: undefined
+            };
+          })
+        );
+        setLocations(locationsWithTokens);
       }
     } finally {
       setLoading(false);
