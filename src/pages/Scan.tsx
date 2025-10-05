@@ -16,6 +16,26 @@ const Scan = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Show preview
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -144,14 +164,14 @@ const Scan = () => {
           <div className="text-center space-y-4 py-12">
             <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
             <div>
-              <p className="font-semibold">Analyzing image...</p>
+              <p className="font-semibold text-lg">Analyzing image...</p>
               <p className="text-sm text-muted-foreground">
                 AI is detecting items in your photo
               </p>
             </div>
           </div>
         ) : (
-          <div className="max-w-md mx-auto space-y-4">
+          <div className="max-w-md mx-auto space-y-6 px-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -163,11 +183,11 @@ const Scan = () => {
             
             <Button
               size="lg"
-              className="w-full h-32 flex-col gap-3"
+              className="w-full h-40 flex-col gap-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all active:scale-95"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Camera className="h-12 w-12" />
-              <span className="text-lg">Take Photo</span>
+              <Camera className="h-16 w-16" />
+              <span>Take Photo</span>
             </Button>
 
             <div className="relative">
@@ -182,7 +202,7 @@ const Scan = () => {
             <Button
               variant="outline"
               size="lg"
-              className="w-full h-24 flex-col gap-3"
+              className="w-full h-28 flex-col gap-3 text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
               onClick={() => {
                 const input = fileInputRef.current;
                 if (input) {
@@ -191,9 +211,14 @@ const Scan = () => {
                 }
               }}
             >
-              <Upload className="h-8 w-8" />
+              <Upload className="h-10 w-10" />
               <span>Upload from Gallery</span>
             </Button>
+
+            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center">
+              <p className="font-medium mb-1">📱 Mobile Tip</p>
+              <p>For best results, take photos in good lighting and include all items you want to catalog.</p>
+            </div>
           </div>
         )}
       </main>

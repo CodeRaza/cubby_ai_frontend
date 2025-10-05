@@ -364,26 +364,30 @@ const Dashboard = () => {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t px-4 py-3">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t px-4 py-3 safe-bottom">
         <div className="container mx-auto flex items-center justify-around max-w-lg">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <div className="flex flex-col items-center gap-1">
-              <Plus className="h-5 w-5" />
-              <span className="text-xs">Home</span>
-            </div>
+          <Button 
+            variant="ghost" 
+            className="flex-col h-auto py-2 px-4 gap-1 active:scale-95 transition-transform" 
+            onClick={() => navigate("/dashboard")}
+          >
+            <Plus className="h-6 w-6" />
+            <span className="text-xs font-medium">Home</span>
           </Button>
           <Button
             size="icon"
-            className="h-14 w-14 rounded-full shadow-lg"
+            className="h-16 w-16 rounded-full shadow-xl hover:shadow-2xl active:scale-90 transition-all"
             onClick={() => navigate("/scan")}
           >
-            <Camera className="h-6 w-6" />
+            <Camera className="h-7 w-7" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => navigate("/search")}>
-            <div className="flex flex-col items-center gap-1">
-              <Search className="h-5 w-5" />
-              <span className="text-xs">Search</span>
-            </div>
+          <Button 
+            variant="ghost" 
+            className="flex-col h-auto py-2 px-4 gap-1 active:scale-95 transition-transform" 
+            onClick={() => navigate("/search")}
+          >
+            <Search className="h-6 w-6" />
+            <span className="text-xs font-medium">Search</span>
           </Button>
         </div>
       </nav>
