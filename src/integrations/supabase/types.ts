@@ -115,6 +115,13 @@ export type Database = {
             referencedRelation: "locations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "items_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       locations: {
@@ -207,6 +214,13 @@ export type Database = {
             referencedRelation: "locations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "shared_access_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -271,7 +285,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      locations_safe: {
+        Row: {
+          created_at: string | null
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string | null
+          name: string | null
+          share_token: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string | null
+          name?: string | null
+          share_token?: never
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string | null
+          name?: string | null
+          share_token?: never
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_next_reminder_date: {
