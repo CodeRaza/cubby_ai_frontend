@@ -410,7 +410,7 @@ const Dashboard = () => {
                 Add Location
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add Location</DialogTitle>
                 <DialogDescription>
@@ -418,7 +418,7 @@ const Dashboard = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4">
+              <div className="space-y-4 pb-2">
                 <div className="space-y-2">
                   <Label htmlFor="quick-location-name">Location Name</Label>
                   <Input
@@ -451,16 +451,18 @@ const Dashboard = () => {
                   </div>
                 </div>
                 
-                <Button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleCreateLocation(newLocationName);
-                  }}
-                  className="w-full"
-                  disabled={!newLocationName.trim()}
-                >
-                  Add Location
-                </Button>
+                <div className="sticky bottom-0 bg-background pt-4 pb-2">
+                  <Button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCreateLocation(newLocationName);
+                    }}
+                    className="w-full"
+                    disabled={!newLocationName.trim()}
+                  >
+                    Add Location
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
