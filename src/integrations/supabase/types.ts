@@ -65,9 +65,14 @@ export type Database = {
           expiry_date: string | null
           id: string
           image_url: string | null
+          last_reminder_sent: string | null
           location_id: string | null
           name: string
+          next_reminder_date: string | null
           quantity: number | null
+          reminder_enabled: boolean | null
+          reminder_interval_unit: string | null
+          reminder_interval_value: number | null
           user_id: string
         }
         Insert: {
@@ -76,9 +81,14 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           image_url?: string | null
+          last_reminder_sent?: string | null
           location_id?: string | null
           name: string
+          next_reminder_date?: string | null
           quantity?: number | null
+          reminder_enabled?: boolean | null
+          reminder_interval_unit?: string | null
+          reminder_interval_value?: number | null
           user_id: string
         }
         Update: {
@@ -87,9 +97,14 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           image_url?: string | null
+          last_reminder_sent?: string | null
           location_id?: string | null
           name?: string
+          next_reminder_date?: string | null
           quantity?: number | null
+          reminder_enabled?: boolean | null
+          reminder_interval_unit?: string | null
+          reminder_interval_value?: number | null
           user_id?: string
         }
         Relationships: [
@@ -238,6 +253,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_next_reminder_date: {
+        Args: {
+          p_interval_unit: string
+          p_interval_value: number
+          p_last_date: string
+        }
+        Returns: string
+      }
       can_user_add_items: {
         Args: { p_item_count?: number; p_user_id: string }
         Returns: boolean
