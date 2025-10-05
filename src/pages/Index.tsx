@@ -43,7 +43,7 @@ const Index = () => {
               >
                 Sign In
               </Button>
-              <Button size="sm" className="sm:size-lg rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-xs sm:text-base px-3 sm:px-6" onClick={() => navigate('/auth')}>
+              <Button size="sm" className="sm:size-lg rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-xs sm:text-base px-3 sm:px-6" onClick={() => navigate('/auth?mode=signup')}>
                 <span className="hidden sm:inline">Start Scanning Free</span>
                 <span className="sm:hidden">Start Free</span>
                 <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -75,7 +75,7 @@ const Index = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all" onClick={() => navigate('/auth')}>
+              <Button size="lg" className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all" onClick={() => navigate('/auth?mode=signup')}>
                 <Camera className="mr-2 h-5 w-5" />
                 Start Scanning Free
               </Button>
@@ -429,7 +429,7 @@ const Index = () => {
           </div>
 
           <div className="text-center">
-            <Button size="lg" className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl" onClick={() => navigate('/auth')}>
+            <Button size="lg" className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl" onClick={() => navigate('/auth?mode=signup')}>
               Start Organizing Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -479,7 +479,7 @@ const Index = () => {
           </div>
 
           <div className="text-center">
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-full font-semibold" onClick={() => navigate('/auth')}>
+            <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-full font-semibold" onClick={() => navigate('/auth?mode=signup')}>
               Try Cubby Free
             </Button>
           </div>
@@ -514,7 +514,7 @@ const Index = () => {
             title: "Small Business",
             description: "Track stockrooms and backrooms easily",
             gradient: "from-primary/10 to-accent/5"
-          }].map((useCase, index) => <Card key={index} className={`bg-gradient-to-br ${useCase.gradient} border-0 hover:shadow-xl transition-all duration-300 group cursor-pointer`} onClick={() => navigate('/auth')}>
+          }].map((useCase, index) => <Card key={index} className={`bg-gradient-to-br ${useCase.gradient} border-0 hover:shadow-xl transition-all duration-300 group cursor-pointer`} onClick={() => navigate('/auth?mode=signup')}>
                 <CardContent className="pt-8 pb-6 text-center">
                   <div className="h-12 w-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform">
                     <useCase.icon className="h-full w-full" />
@@ -546,7 +546,7 @@ const Index = () => {
                   Join thousands of organized homes and never lose track of your belongings again
                 </p>
 
-                <Button size="lg" variant="secondary" className="text-lg px-10 py-7 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all text-primary" onClick={() => navigate('/auth')}>
+                <Button size="lg" variant="secondary" className="text-lg px-10 py-7 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all text-primary" onClick={() => navigate('/auth?mode=signup')}>
                   <Camera className="mr-2 h-6 w-6" />
                   Start Scanning Free
                 </Button>
