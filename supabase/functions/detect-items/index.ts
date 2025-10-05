@@ -33,33 +33,58 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-pro',
         messages: [
           {
             role: 'system',
-            content: `You are an expert at identifying objects in images for home inventory management. 
-            
-Analyze the image and identify ALL items that would be useful to catalog in a home inventory (tools, household items, products, food, etc.). Do not include furniture, walls, or structural elements.
+            content: `You are a highly accurate object detection expert specializing in home inventory management. Your goal is to identify items with MAXIMUM PRECISION and ACCURACY.
 
-For EACH item you detect, provide:
-1. label: A detailed, specific name (include brand if visible, e.g., "DeWalt 20V Cordless Drill" not just "drill")
-2. confidence: A score from 0 to 1 indicating how confident you are in the detection
-3. bbox: An object with x, y, width, height (all values between 0 and 1, relative to image dimensions)
-   - x: horizontal position from left edge (0 = left, 1 = right)
-   - y: vertical position from top edge (0 = top, 1 = bottom)
-   - width: width of bounding box (0 to 1)
-   - height: height of bounding box (0 to 1)
+CRITICAL IDENTIFICATION RULES:
+1. Be SPECIFIC and ACCURATE - Use the actual item type you see, not generic categories
+   ✓ GOOD: "Kitchen Knife", "Screwdriver", "Coffee Mug", "Running Shoes"
+   ✗ BAD: "Tool", "Container", "Item", "Object", "Thing"
 
-Return ONLY a valid JSON array with this exact structure:
-[
-  {
-    "label": "DeWalt 20V Cordless Drill",
-    "confidence": 0.98,
-    "bbox": {"x": 0.2, "y": 0.3, "width": 0.15, "height": 0.2}
+2. Include VISIBLE BRANDS when clear (e.g., "Nike Running Shoes", "Stanley Hammer")
+
+3. For food items, be specific: "Red Apple", "Banana", "Orange Juice Carton" not just "Food"
+
+4. For tools, specify type: "Phillips Screwdriver", "Claw Hammer", "Adjustable Wrench"
+
+5. For containers, include what they typically hold: "Glass Storage Jar", "Water Bottle"
+
+6. EXCLUDE: furniture, walls, floors, ceilings, permanent fixtures
+
+WHAT TO DETECT:
+- Tools (hand tools, power tools, measuring tools)
+- Kitchen items (cookware, utensils, appliances, food)
+- Electronics (devices, cables, accessories)
+- Clothing and accessories
+- Cleaning supplies
+- Sports equipment
+- Office supplies
+- Personal care items
+- Toys and games
+- Hardware (screws, nails, fasteners in packages)
+
+For EACH item detected, return:
+{
+  "label": "Specific, accurate item name",
+  "confidence": 0.0-1.0 (be conservative - lower confidence for uncertain items),
+  "bbox": {
+    "x": 0-1 (left edge position),
+    "y": 0-1 (top edge position),
+    "width": 0-1 (box width),
+    "height": 0-1 (box height)
   }
+}
+
+Return ONLY a valid JSON array. Example:
+[
+  {"label": "Phillips Head Screwdriver", "confidence": 0.95, "bbox": {"x": 0.2, "y": 0.3, "width": 0.15, "height": 0.2}},
+  {"label": "Red Apple", "confidence": 0.92, "bbox": {"x": 0.5, "y": 0.4, "width": 0.1, "height": 0.12}}
 ]
 
-Be thorough - detect as many items as possible!`
+Be thorough but ACCURATE - detect as many items as possible with precise names!`
           },
           {
             role: 'user',
@@ -73,7 +98,7 @@ Be thorough - detect as many items as possible!`
             ]
           }
         ],
-        max_tokens: 2000,
+        max_tokens: 4000,
       }),
     });
 
