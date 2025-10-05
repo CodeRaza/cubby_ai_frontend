@@ -209,6 +209,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           created_at: string
@@ -250,7 +271,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_analytics: {
+        Row: {
+          active_users_today: number | null
+          free_users: number | null
+          items_this_month: number | null
+          paid_users: number | null
+          scans_this_month: number | null
+          total_items: number | null
+          total_locations: number | null
+          total_users: number | null
+          users_this_month: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_next_reminder_date: {
@@ -269,8 +303,27 @@ export type Database = {
         Args: { tier: Database["public"]["Enums"]["subscription_tier"] }
         Returns: number
       }
+      get_user_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          email: string
+          item_count: number
+          location_count: number
+          plan_tier: Database["public"]["Enums"]["subscription_tier"]
+          scan_count: number
+          user_id: string
+        }[]
+      }
       grant_shared_access: {
         Args: { p_location_id: string; p_share_token: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: boolean
       }
       increment_item_usage: {
@@ -279,6 +332,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "user"
       subscription_tier: "free" | "starter" | "pro" | "power"
     }
     CompositeTypes: {
@@ -407,6 +461,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       subscription_tier: ["free", "starter", "pro", "power"],
     },
   },
