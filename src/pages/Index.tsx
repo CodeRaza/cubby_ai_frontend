@@ -211,7 +211,7 @@ const Index = () => {
               </div>
 
               {/* Floating Elements */}
-              <div className="absolute -top-8 -left-8 bg-gradient-primary text-white px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float">
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gradient-primary text-white px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float">
                 <Sparkles className="h-4 w-4 inline mr-1" />
                 AI Powered
               </div>
