@@ -58,20 +58,30 @@ const Dashboard = () => {
   const [renameLocationName, setRenameLocationName] = useState("");
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setAuthChecked(true);
+        
+        if (!session) {
+          navigate("/auth");
+          return;
+        }
+        
+        loadLocations();
+        loadSubscription();
+        checkAdminStatus();
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        setAuthChecked(true);
         navigate("/auth");
-        return;
       }
-      loadLocations();
-      loadSubscription();
-      checkAdminStatus();
     };
 
-    checkAuth();
+    initializeAuth();
 
     // Handle successful scan pack purchase
     const urlParams = new URLSearchParams(window.location.search);
@@ -93,13 +103,14 @@ const Dashboard = () => {
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
+      // Only redirect if auth is already checked and session is definitely gone
+      if (authChecked && !session) {
         navigate("/auth");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, authChecked]);
 
   const loadLocations = async () => {
     try {
@@ -310,7 +321,7 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>

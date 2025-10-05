@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,20 @@ const Onboarding = () => {
   const [step, setStep] = useState(1);
   const [locationName, setLocationName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    // Verify user is authenticated before showing onboarding
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/auth");
+        return;
+      }
+      setChecking(false);
+    };
+    checkAuth();
+  }, [navigate]);
 
   const handleCreateLocation = async () => {
     if (!locationName.trim()) {
@@ -51,9 +65,19 @@ const Onboarding = () => {
     }
   };
 
-  const handleSkipToApp = () => {
-    navigate("/dashboard");
+  const handleSkipToApp = async () => {
+    // Give a moment for any pending operations to complete
+    await new Promise(resolve => setTimeout(resolve, 300));
+    navigate("/dashboard", { replace: true });
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center p-4">
