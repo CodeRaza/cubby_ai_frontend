@@ -33,7 +33,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5',
+        model: 'google/gemini-2.5-pro',
         messages: [
           {
             role: 'system',
@@ -105,7 +105,7 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
             ]
           }
         ],
-        max_completion_tokens: 4000,
+        max_tokens: 4000,
       }),
     });
 
