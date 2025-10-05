@@ -187,16 +187,33 @@ const Dashboard = () => {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {locations.map((location) => (
-              <LocationCard
-                key={location.id}
-                name={location.name}
-                itemCount={location.itemCount}
-                onClick={() => navigate(`/location/${location.id}`)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="flex justify-end mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/qr-codes/bulk")}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Print All QR Codes
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {locations.map((location) => (
+                <LocationCard
+                  key={location.id}
+                  id={location.id}
+                  name={location.name}
+                  itemCount={location.itemCount}
+                  onClick={() => navigate(`/location/${location.id}`)}
+                  onQRClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/qr-codes/${location.id}`);
+                  }}
+                />
+              ))}
+            </div>
+          </>
         )}
       </main>
 

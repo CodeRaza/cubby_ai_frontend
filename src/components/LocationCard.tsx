@@ -1,13 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, QrCode } from "lucide-react";
 
 interface LocationCardProps {
+  id: string;
   name: string;
   itemCount: number;
   onClick: () => void;
+  onQRClick: (e: React.MouseEvent) => void;
 }
 
-export const LocationCard = ({ name, itemCount, onClick }: LocationCardProps) => {
+export const LocationCard = ({ id, name, itemCount, onClick, onQRClick }: LocationCardProps) => {
   return (
     <Card 
       className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
@@ -24,6 +27,14 @@ export const LocationCard = ({ name, itemCount, onClick }: LocationCardProps) =>
               {itemCount} {itemCount === 1 ? 'item' : 'items'}
             </p>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onQRClick}
+            className="shrink-0"
+          >
+            <QrCode className="h-5 w-5" />
+          </Button>
         </div>
       </CardContent>
     </Card>

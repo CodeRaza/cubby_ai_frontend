@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Camera, Home, Search } from "lucide-react";
+import { ArrowLeft, Camera, Home, Search, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Item {
@@ -61,16 +61,25 @@ const LocationItems = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-lg border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">{locationName}</h1>
-            <p className="text-sm text-muted-foreground">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
-            </p>
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-bold">{locationName}</h1>
+              <p className="text-sm text-muted-foreground">
+                {items.length} {items.length === 1 ? 'item' : 'items'}
+              </p>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(`/qr-codes/${locationId}`)}
+          >
+            <QrCode className="h-5 w-5" />
+          </Button>
         </div>
       </header>
 
