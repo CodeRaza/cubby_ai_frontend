@@ -60,7 +60,11 @@ export default {
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
+        'gradient-warm': 'var(--gradient-warm)',
         'gradient-card': 'var(--gradient-card)',
+      },
+      fontFamily: {
+        'poppins': ['Poppins', 'sans-serif'],
       },
       boxShadow: {
         'sm': 'var(--shadow-sm)',
