@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Camera, Sparkles, Search, Box, Home, Truck, Store, Shield, ArrowRight, Check } from "lucide-react";
 import cubbyLogo from "@/assets/cubby-logo.png";
 import garageScan from "@/assets/garage-scan.jpg";
+import { LandingFooter } from "@/components/LandingFooter";
 const Index = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
@@ -568,25 +569,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <img src={cubbyLogo} alt="Cubby" className="h-8 w-8" />
-              <span className="text-xl font-bold">Cubby</span>
-            </div>
-            
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4" />
-              <span>Your photos stay private and secure</span>
-            </div>
-
-            <p className="text-sm text-muted-foreground">
-              © 2025 Cubby. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>;
 };
 export default Index;
