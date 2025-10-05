@@ -105,7 +105,7 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
             ]
           }
         ],
-        max_tokens: 4000,
+        max_completion_tokens: 4000,
       }),
     });
 
