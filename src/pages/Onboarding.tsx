@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, MapPin, QrCode, Search, Sparkles } from "lucide-react";
 import { PREDEFINED_LOCATIONS } from "@/lib/locationTypes";
+import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -51,6 +52,12 @@ const Onboarding = () => {
       });
 
       if (error) throw error;
+
+      // Track onboarding completion as a lead
+      trackMetaPixelEvent(MetaPixelEvents.Lead, {
+        content_name: 'Onboarding Complete',
+        content_category: 'User Milestone'
+      });
 
       toast({ title: "Location created!" });
       setStep(3);

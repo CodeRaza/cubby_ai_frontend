@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
 import { Package } from "lucide-react";
 import cubbyLogo from "@/assets/cubby-logo.png";
+import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -41,8 +42,14 @@ const Auth = () => {
     
     const redirect = searchParams.get('redirect');
     
+    // Track sign-up conversion
+    const isNewUser = !locations || locations.length === 0;
+    if (isNewUser) {
+      trackMetaPixelEvent(MetaPixelEvents.CompleteRegistration);
+    }
+    
     // If new user with no locations, send to onboarding
-    if (!locations || locations.length === 0) {
+    if (isNewUser) {
       navigate("/onboarding");
     } else {
       navigate(redirect || "/dashboard");

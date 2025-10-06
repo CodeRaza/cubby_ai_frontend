@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Check, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 
 interface SubscriptionData {
   plan_tier: string;
@@ -114,6 +115,14 @@ const Subscription = () => {
       if (error) throw error;
 
       if (data?.url) {
+        // Track subscription intent
+        const selectedPlan = plans.find(p => p.priceId === priceId);
+        trackMetaPixelEvent(MetaPixelEvents.Subscribe, {
+          value: parseFloat(selectedPlan?.price.replace('$', '') || '0'),
+          currency: 'USD',
+          predicted_ltv: parseFloat(selectedPlan?.price.replace('$', '') || '0') * 12
+        });
+        
         window.open(data.url, '_blank');
       }
     } catch (error: any) {
@@ -158,6 +167,15 @@ const Subscription = () => {
       if (error) throw error;
 
       if (data?.url) {
+        // Track item pack purchase
+        trackMetaPixelEvent(MetaPixelEvents.Purchase, {
+          value: 1.99,
+          currency: 'USD',
+          content_name: 'Item Pack',
+          content_type: 'product',
+          num_items: 100
+        });
+        
         window.open(data.url, '_blank');
       }
     } catch (error: any) {
