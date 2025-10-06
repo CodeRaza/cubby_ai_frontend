@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Wrench, Camera, Tag, Search } from "lucide-react";
 import garageImage from "@/assets/landing-garage.jpg";
+import garageBefore from "@/assets/garage-before.jpg";
+import garageAfter from "@/assets/garage-after.jpg";
 
 export default function Garage() {
   const navigate = useNavigate();
@@ -58,9 +60,11 @@ export default function Garage() {
               <p className="text-muted-foreground">
                 "Where did I put the paint? Was it behind the saws or near the workbench?"
               </p>
-              <div className="h-48 bg-muted-foreground/10 rounded-lg flex items-center justify-center">
-                <span className="text-muted-foreground">Cluttered, Chaotic Shelves</span>
-              </div>
+              <img 
+                src={garageBefore} 
+                alt="Cluttered disorganized garage shelves" 
+                className="h-48 w-full object-cover rounded-lg"
+              />
             </Card>
             
             <Card className="p-8 space-y-4 border-2 border-primary">
@@ -68,9 +72,11 @@ export default function Garage() {
               <p className="text-muted-foreground">
                 "Let me check Cubby... Paint is on Shelf 2, third bin from the left."
               </p>
-              <div className="h-48 bg-gradient-primary/10 rounded-lg flex items-center justify-center">
-                <span className="text-primary font-semibold">Organized & Tagged</span>
-              </div>
+              <img 
+                src={garageAfter} 
+                alt="Organized garage shelves with labeled bins and QR codes" 
+                className="h-48 w-full object-cover rounded-lg"
+              />
             </Card>
           </div>
         </div>
