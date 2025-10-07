@@ -158,9 +158,9 @@ const Dashboard = () => {
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (subError && subError.code !== 'PGRST116') throw subError;
+      if (subError) throw subError;
 
       // Get usage info
       const { data: usageData, error: usageError } = await supabase
@@ -168,9 +168,9 @@ const Dashboard = () => {
         .select('*')
         .eq('user_id', user.id)
         .gte('period_end', new Date().toISOString())
-        .single();
+        .maybeSingle();
 
-      if (usageError && usageError.code !== 'PGRST116') throw usageError;
+      if (usageError) throw usageError;
 
       const planTier = subData?.plan_tier || 'free';
       const itemLimits: Record<string, number> = {

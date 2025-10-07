@@ -118,7 +118,7 @@ serve(async (req) => {
       });
       
       // Update subscription in database
-      await supabaseClient.from('user_subscriptions').upsert({
+      const { error: upsertError } = await supabaseClient.from('user_subscriptions').upsert({
         user_id: user.id,
         plan_tier: planTier,
         stripe_subscription_id: subscription.id,
@@ -127,17 +127,25 @@ serve(async (req) => {
         current_period_start: new Date(subscription.current_period_start * 1000),
         current_period_end: new Date(subscription.current_period_end * 1000)
       });
+      
+      if (upsertError) {
+        logStep("ERROR upserting subscription", { error: upsertError });
+      }
     } else {
       logStep("No active subscription found");
       
       // Update to free tier
-      await supabaseClient.from('user_subscriptions').upsert({
+      const { error: freeUpsertError } = await supabaseClient.from('user_subscriptions').upsert({
         user_id: user.id,
         plan_tier: 'free',
         status: 'active',
         current_period_start: new Date(),
         current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       });
+      
+      if (freeUpsertError) {
+        logStep("ERROR upserting free tier", { error: freeUpsertError });
+      }
     }
 
     return new Response(JSON.stringify({

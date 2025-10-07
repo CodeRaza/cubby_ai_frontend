@@ -95,9 +95,9 @@ const Subscription = () => {
         .select('*')
         .eq('user_id', user.id)
         .gte('period_end', new Date().toISOString())
-        .single();
+        .maybeSingle();
 
-      if (usageError && usageError.code !== 'PGRST116') {
+      if (usageError) {
         console.error('Usage data error:', usageError);
         throw usageError;
       }
