@@ -106,15 +106,22 @@ const Subscription = () => {
 
   const handleUpgrade = async (priceId: string) => {
     try {
+      console.log('Starting checkout for priceId:', priceId);
       setProcessingPlan(priceId);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId }
       });
 
-      if (error) throw error;
+      console.log('Checkout response:', { data, error });
+
+      if (error) {
+        console.error('Checkout error:', error);
+        throw error;
+      }
 
       if (data?.url) {
+        console.log('Opening checkout URL:', data.url);
         // Track subscription intent
         const selectedPlan = plans.find(p => p.priceId === priceId);
         trackMetaPixelEvent(MetaPixelEvents.Subscribe, {
@@ -124,12 +131,19 @@ const Subscription = () => {
         });
         
         window.open(data.url, '_blank');
+      } else {
+        console.error('No URL in response');
+        toast({
+          title: "Error",
+          description: "No checkout URL received",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error('Error creating checkout:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to create checkout session",
         variant: "destructive",
       });
     } finally {
