@@ -29,6 +29,15 @@ export const ImageWithBoundingBoxes = ({ imageUrl, detections, className = "" }:
 
       const img = imageRef.current;
       
+      console.log('Image dimensions:', {
+        clientWidth: img.clientWidth,
+        clientHeight: img.clientHeight,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+        offsetWidth: img.offsetWidth,
+        offsetHeight: img.offsetHeight
+      });
+      
       // Since the image uses object-contain with only width constraint,
       // the displayed dimensions directly match what we need
       setImageDimensions({
@@ -68,6 +77,19 @@ export const ImageWithBoundingBoxes = ({ imageUrl, detections, className = "" }:
         if (!detection.bbox) return null;
         
         const { x, y, width, height } = detection.bbox;
+        
+        console.log(`Detection ${index}:`, {
+          label: detection.label,
+          bbox: { x, y, width, height },
+          calculated: {
+            left: x * imageDimensions.width,
+            top: y * imageDimensions.height,
+            width: width * imageDimensions.width,
+            height: height * imageDimensions.height
+          },
+          imageDimensions
+        });
+        
         const colors = [
           'border-primary bg-primary/10',
           'border-secondary bg-secondary/10',
