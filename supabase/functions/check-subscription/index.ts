@@ -126,8 +126,6 @@ serve(async (req) => {
         status: 'active',
         current_period_start: new Date(subscription.current_period_start * 1000),
         current_period_end: new Date(subscription.current_period_end * 1000)
-      }, {
-        onConflict: 'user_id'
       });
     } else {
       logStep("No active subscription found");
@@ -139,8 +137,6 @@ serve(async (req) => {
         status: 'active',
         current_period_start: new Date(),
         current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      }, {
-        onConflict: 'user_id'
       });
     }
 

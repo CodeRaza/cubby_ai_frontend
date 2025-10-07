@@ -77,8 +77,16 @@ const Subscription = () => {
       }
 
       // Check subscription status
+      console.log('Calling check-subscription function...');
       const { data: subData, error: subError } = await supabase.functions.invoke('check-subscription');
-      if (subError) throw subError;
+      
+      console.log('check-subscription response:', { data: subData, error: subError });
+      
+      if (subError) {
+        console.error('Subscription check error:', subError);
+        throw new Error(subError.message || 'Failed to check subscription');
+      }
+      
       setSubscription(subData);
 
       // Get usage data
@@ -89,14 +97,18 @@ const Subscription = () => {
         .gte('period_end', new Date().toISOString())
         .single();
 
-      if (usageError && usageError.code !== 'PGRST116') throw usageError;
+      if (usageError && usageError.code !== 'PGRST116') {
+        console.error('Usage data error:', usageError);
+        throw usageError;
+      }
+      
       setUsage(usageData);
 
     } catch (error: any) {
       console.error('Error loading subscription:', error);
       toast({
         title: "Error loading subscription",
-        description: error.message,
+        description: error.message || 'Unknown error occurred',
         variant: "destructive",
       });
     } finally {
