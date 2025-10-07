@@ -93,6 +93,18 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
+      
+      // Validate subscription data
+      if (!subscription.current_period_end || !subscription.current_period_start) {
+        logStep("ERROR: Missing subscription period data", { subscription });
+        throw new Error("Subscription missing period data");
+      }
+      
+      if (!subscription.items?.data?.[0]?.price?.product) {
+        logStep("ERROR: Missing product ID in subscription", { subscription });
+        throw new Error("Subscription missing product data");
+      }
+      
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       productId = subscription.items.data[0].price.product as string;
       
@@ -114,7 +126,8 @@ serve(async (req) => {
       logStep("Active subscription found", {
         subscriptionId: subscription.id,
         endDate: subscriptionEnd,
-        planTier
+        planTier,
+        productId
       });
       
       // Update subscription in database
@@ -124,8 +137,8 @@ serve(async (req) => {
         stripe_subscription_id: subscription.id,
         stripe_customer_id: customerId,
         status: 'active',
-        current_period_start: new Date(subscription.current_period_start * 1000),
-        current_period_end: new Date(subscription.current_period_end * 1000)
+        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
       });
       
       if (upsertError) {
