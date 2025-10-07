@@ -93,20 +93,30 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
+      const subscriptionItem = subscription.items?.data?.[0];
       
       // Validate subscription data
-      if (!subscription.current_period_end || !subscription.current_period_start) {
-        logStep("ERROR: Missing subscription period data", { subscription });
-        throw new Error("Subscription missing period data");
+      if (!subscriptionItem) {
+        logStep("ERROR: No subscription items found", { subscription });
+        throw new Error("Subscription has no items");
       }
       
-      if (!subscription.items?.data?.[0]?.price?.product) {
-        logStep("ERROR: Missing product ID in subscription", { subscription });
+      if (!subscriptionItem.price?.product) {
+        logStep("ERROR: Missing product ID in subscription", { subscriptionItem });
         throw new Error("Subscription missing product data");
       }
       
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      productId = subscription.items.data[0].price.product as string;
+      // Get period dates from subscription item
+      const periodEnd = subscriptionItem.current_period_end || subscription.current_period_end;
+      const periodStart = subscriptionItem.current_period_start || subscription.current_period_start;
+      
+      if (!periodEnd || !periodStart) {
+        logStep("ERROR: Missing period dates", { subscriptionItem, subscription });
+        throw new Error("Missing subscription period dates");
+      }
+      
+      subscriptionEnd = new Date(periodEnd * 1000).toISOString();
+      productId = subscriptionItem.price.product as string;
       
       // Map product ID to tier
       const tierMap: Record<string, string> = {
@@ -137,8 +147,8 @@ serve(async (req) => {
         stripe_subscription_id: subscription.id,
         stripe_customer_id: customerId,
         status: 'active',
-        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+        current_period_start: new Date(periodStart * 1000).toISOString(),
+        current_period_end: new Date(periodEnd * 1000).toISOString()
       });
       
       if (upsertError) {
