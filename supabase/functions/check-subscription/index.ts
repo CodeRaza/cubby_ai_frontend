@@ -144,7 +144,7 @@ serve(async (req) => {
         status: 'active',
         current_period_start: new Date(periodStart * 1000).toISOString(),
         current_period_end: new Date(periodEnd * 1000).toISOString()
-      });
+      }, { onConflict: 'user_id' });
       
       if (upsertError) {
         logStep("ERROR upserting subscription", { error: upsertError });
@@ -159,7 +159,7 @@ serve(async (req) => {
         status: 'active',
         current_period_start: new Date(),
         current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      });
+      }, { onConflict: 'user_id' });
       
       if (freeUpsertError) {
         logStep("ERROR upserting free tier", { error: freeUpsertError });
