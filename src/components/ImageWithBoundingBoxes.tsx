@@ -20,29 +20,54 @@ interface ImageWithBoundingBoxesProps {
 }
 
 export const ImageWithBoundingBoxes = ({ imageUrl, detections, className = "" }: ImageWithBoundingBoxesProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0, offsetX: 0, offsetY: 0 });
 
   useEffect(() => {
     const updateDimensions = () => {
-      if (!imageRef.current) return;
+      if (!imageRef.current || !containerRef.current) return;
 
       const img = imageRef.current;
+      const container = containerRef.current;
       
-      console.log('Image dimensions:', {
-        clientWidth: img.clientWidth,
-        clientHeight: img.clientHeight,
-        naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight,
-        offsetWidth: img.offsetWidth,
-        offsetHeight: img.offsetHeight
+      // Get natural image dimensions
+      const naturalWidth = img.naturalWidth;
+      const naturalHeight = img.naturalHeight;
+      const naturalAspect = naturalWidth / naturalHeight;
+      
+      // Get container dimensions
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      const containerAspect = containerWidth / containerHeight;
+      
+      // Calculate rendered dimensions with object-contain
+      let renderedWidth, renderedHeight, offsetX = 0, offsetY = 0;
+      
+      if (naturalAspect > containerAspect) {
+        // Image is wider - constrained by width
+        renderedWidth = containerWidth;
+        renderedHeight = containerWidth / naturalAspect;
+        offsetY = (containerHeight - renderedHeight) / 2;
+      } else {
+        // Image is taller - constrained by height
+        renderedHeight = containerHeight;
+        renderedWidth = containerHeight * naturalAspect;
+        offsetX = (containerWidth - renderedWidth) / 2;
+      }
+      
+      console.log('Dimension calculation:', {
+        natural: { width: naturalWidth, height: naturalHeight, aspect: naturalAspect },
+        container: { width: containerWidth, height: containerHeight, aspect: containerAspect },
+        rendered: { width: renderedWidth, height: renderedHeight },
+        offset: { x: offsetX, y: offsetY }
       });
       
-      // Since the image uses object-contain with only width constraint,
-      // the displayed dimensions directly match what we need
       setImageDimensions({
-        width: img.clientWidth,
-        height: img.clientHeight
+        width: renderedWidth,
+        height: renderedHeight,
+        offsetX,
+        offsetY
       });
     };
 
@@ -66,28 +91,27 @@ export const ImageWithBoundingBoxes = ({ imageUrl, detections, className = "" }:
   }, [imageUrl]);
 
   return (
-    <div className={`relative inline-block ${className}`}>
+    <div ref={containerRef} className={`relative w-full ${className}`} style={{ minHeight: '400px' }}>
       <img
         ref={imageRef}
         src={imageUrl} 
         alt="Detected items" 
-        className="w-full object-contain rounded-xl"
+        className="w-full h-full object-contain rounded-xl"
       />
       {imageDimensions.width > 0 && detections.map((detection, index) => {
         if (!detection.bbox) return null;
         
         const { x, y, width, height } = detection.bbox;
         
-        console.log(`Detection ${index}:`, {
-          label: detection.label,
+        const left = imageDimensions.offsetX + (x * imageDimensions.width);
+        const top = imageDimensions.offsetY + (y * imageDimensions.height);
+        const boxWidth = width * imageDimensions.width;
+        const boxHeight = height * imageDimensions.height;
+        
+        console.log(`Detection ${index} (${detection.label}):`, {
           bbox: { x, y, width, height },
-          calculated: {
-            left: x * imageDimensions.width,
-            top: y * imageDimensions.height,
-            width: width * imageDimensions.width,
-            height: height * imageDimensions.height
-          },
-          imageDimensions
+          imageDimensions,
+          calculated: { left, top, width: boxWidth, height: boxHeight }
         });
         
         const colors = [
@@ -105,10 +129,10 @@ export const ImageWithBoundingBoxes = ({ imageUrl, detections, className = "" }:
             key={index}
             className={`absolute border-2 rounded-lg ${colorClass} animate-pulse`}
             style={{
-              left: `${x * imageDimensions.width}px`,
-              top: `${y * imageDimensions.height}px`,
-              width: `${width * imageDimensions.width}px`,
-              height: `${height * imageDimensions.height}px`,
+              left: `${left}px`,
+              top: `${top}px`,
+              width: `${boxWidth}px`,
+              height: `${boxHeight}px`,
               animationDelay: `${index * 0.1}s`
             }}
           >
