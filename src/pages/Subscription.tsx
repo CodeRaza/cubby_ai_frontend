@@ -36,7 +36,7 @@ const plans = [
     price: "$1.99",
     items: 250,
     features: ["250 items/month", "Multi-room", "Standard AI detection"],
-    priceId: "price_1SFPP4DbbgzShd5sKL2jNab1",
+    priceId: "price_1SFQhTIkzp5CYjx0zVwvIUGQ",
   },
   {
     name: "Pro",
@@ -44,7 +44,7 @@ const plans = [
     price: "$4.99",
     items: 1000,
     features: ["1000 items/month", "Expiry reminders", "Cloud backup", "CSV export", "Priority AI"],
-    priceId: "price_1SFPPSDbbgzShd5sq0LHAVEy",
+    priceId: "price_1SFQibIkzp5CYjx0c0qy7nTg",
   },
   {
     name: "Power",
@@ -52,7 +52,7 @@ const plans = [
     price: "$9.99",
     items: 5000,
     features: ["5000 items/month", "Multi-user (up to 3)", "API access", "Advanced export"],
-    priceId: "price_1SFPPjDbbgzShd5sxjhWBBYJ",
+    priceId: "price_1SFQjPIkzp5CYjx0oJZlH0DL",
   },
 ];
 

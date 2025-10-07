@@ -120,15 +120,10 @@ serve(async (req) => {
       
       // Map product ID to tier
       const tierMap: Record<string, string> = {
-        // Old products
-        'prod_TB6NoaID68b4EI': 'starter',
-        'prod_TB6NFtjhkVgabz': 'starter',
-        'prod_TB6Nio99D8B8Sm': 'pro',
-        'prod_TB6OrWQpfJVs3T': 'power',
-        // New products with correct descriptions
-        'prod_TBmz3eMeBXeDMn': 'starter',
-        'prod_TBmzGlLbiB4ixd': 'pro',
-        'prod_TBmzUCJCXUsKRW': 'power'
+        // Current live products
+        'prod_TBoKCcrRz4MbeO': 'starter',
+        'prod_TBoLO0sXl4MzwM': 'pro',
+        'prod_TBoMaQ6mp9ejqO': 'power'
       };
       
       planTier = tierMap[productId] || 'free';

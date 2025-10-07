@@ -39,7 +39,7 @@ serve(async (req) => {
     }
 
     // Scan pack price ID
-    const scanPackPriceId = "price_1SEkBSDbbgzShd5szCrwEJxi";
+    const scanPackPriceId = "price_1SFQjZIkzp5CYjx0gxqiougu";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
