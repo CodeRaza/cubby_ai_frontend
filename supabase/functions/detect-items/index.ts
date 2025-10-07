@@ -126,12 +126,18 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
     // Parse the JSON response
     let detections = [];
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      // Remove markdown code blocks if present (```json ... ``` or ``` ... ```)
+      let cleanedContent = content.trim();
+      cleanedContent = cleanedContent.replace(/^```(?:json)?\n?/i, '');
+      cleanedContent = cleanedContent.replace(/\n?```$/, '');
+      cleanedContent = cleanedContent.trim();
+      
+      // Try to extract JSON array from the response
+      const jsonMatch = cleanedContent.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         detections = JSON.parse(jsonMatch[0]);
       } else {
-        detections = JSON.parse(content);
+        detections = JSON.parse(cleanedContent);
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
