@@ -20,49 +20,20 @@ interface ImageWithBoundingBoxesProps {
 }
 
 export const ImageWithBoundingBoxes = ({ imageUrl, detections, className = "" }: ImageWithBoundingBoxesProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0, offsetX: 0, offsetY: 0 });
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     const updateDimensions = () => {
-      if (!imageRef.current || !containerRef.current) return;
+      if (!imageRef.current) return;
 
       const img = imageRef.current;
-      const container = containerRef.current;
       
-      // Get natural image dimensions
-      const naturalWidth = img.naturalWidth;
-      const naturalHeight = img.naturalHeight;
-      
-      // Get displayed dimensions
-      const displayWidth = img.clientWidth;
-      const displayHeight = img.clientHeight;
-      
-      // Calculate aspect ratios
-      const naturalAspect = naturalWidth / naturalHeight;
-      const displayAspect = displayWidth / displayHeight;
-      
-      // Calculate actual rendered image dimensions (accounting for object-contain)
-      let renderedWidth, renderedHeight, offsetX = 0, offsetY = 0;
-      
-      if (naturalAspect > displayAspect) {
-        // Image is wider - limited by width
-        renderedWidth = displayWidth;
-        renderedHeight = displayWidth / naturalAspect;
-        offsetY = (displayHeight - renderedHeight) / 2;
-      } else {
-        // Image is taller - limited by height
-        renderedHeight = displayHeight;
-        renderedWidth = displayHeight * naturalAspect;
-        offsetX = (displayWidth - renderedWidth) / 2;
-      }
-      
+      // Since the image uses object-contain with only width constraint,
+      // the displayed dimensions directly match what we need
       setImageDimensions({
-        width: renderedWidth,
-        height: renderedHeight,
-        offsetX,
-        offsetY
+        width: img.clientWidth,
+        height: img.clientHeight
       });
     };
 
@@ -86,12 +57,12 @@ export const ImageWithBoundingBoxes = ({ imageUrl, detections, className = "" }:
   }, [imageUrl]);
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
-      <img 
+    <div className={`relative inline-block ${className}`}>
+      <img
         ref={imageRef}
         src={imageUrl} 
         alt="Detected items" 
-        className="w-full h-full object-contain rounded-xl"
+        className="w-full object-contain rounded-xl"
       />
       {imageDimensions.width > 0 && detections.map((detection, index) => {
         if (!detection.bbox) return null;
@@ -112,8 +83,8 @@ export const ImageWithBoundingBoxes = ({ imageUrl, detections, className = "" }:
             key={index}
             className={`absolute border-2 rounded-lg ${colorClass} animate-pulse`}
             style={{
-              left: `${imageDimensions.offsetX + (x * imageDimensions.width)}px`,
-              top: `${imageDimensions.offsetY + (y * imageDimensions.height)}px`,
+              left: `${x * imageDimensions.width}px`,
+              top: `${y * imageDimensions.height}px`,
               width: `${width * imageDimensions.width}px`,
               height: `${height * imageDimensions.height}px`,
               animationDelay: `${index * 0.1}s`

@@ -268,11 +268,13 @@ const Review = () => {
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {imageUrl && (
-          <ImageWithBoundingBoxes 
-            imageUrl={imageUrl} 
-            detections={detections}
-            className="w-full max-w-2xl mx-auto"
-          />
+          <div className="flex justify-center">
+            <ImageWithBoundingBoxes 
+              imageUrl={imageUrl} 
+              detections={detections}
+              className="w-full max-w-2xl"
+            />
+          </div>
         )}
 
         <Card>
