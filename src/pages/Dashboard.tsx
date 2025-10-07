@@ -153,7 +153,13 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get subscription info
+      // Check subscription status with Stripe first
+      const { data: checkData, error: checkError } = await supabase.functions.invoke('check-subscription');
+      if (checkError) {
+        console.error('Subscription check error:', checkError);
+      }
+
+      // Get subscription info from database
       const { data: subData, error: subError } = await supabase
         .from('user_subscriptions')
         .select('*')
