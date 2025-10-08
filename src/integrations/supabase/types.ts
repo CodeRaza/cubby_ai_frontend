@@ -310,6 +310,19 @@ export type Database = {
         Args: { p_location_id: string }
         Returns: string
       }
+      get_onboarding_funnel: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_conversion: number
+          active_users: number
+          avg_scans_per_user: number
+          completed_onboarding: number
+          first_scan: number
+          onboarding_conversion: number
+          scan_conversion: number
+          total_signups: number
+        }[]
+      }
       get_user_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
