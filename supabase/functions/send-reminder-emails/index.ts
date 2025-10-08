@@ -55,7 +55,7 @@ const getDay1EmailHtml = (userName?: string) => `
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://getcubby.ai/onboarding"
+                <a href="https://getcubby.ai/dashboard"
                    style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600;">
                   Create Your First Location
                 </a>
