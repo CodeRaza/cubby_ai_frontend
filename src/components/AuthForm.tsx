@@ -43,14 +43,20 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
         });
         if (error) throw error;
         
-        // Send welcome email
-        try {
-          await supabase.functions.invoke('send-welcome-email', {
-            body: { email, name: email.split('@')[0] }
-          });
-        } catch (emailError) {
-          console.error('Failed to send welcome email:', emailError);
-          // Don't fail the signup if email fails
+        // Send welcome email with userId for tracking
+        if (data.user) {
+          try {
+            await supabase.functions.invoke('send-welcome-email', {
+              body: { 
+                email, 
+                name: email.split('@')[0],
+                userId: data.user.id 
+              }
+            });
+          } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+            // Don't fail the signup if email fails
+          }
         }
         
         toast({ 
