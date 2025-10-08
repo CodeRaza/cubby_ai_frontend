@@ -34,26 +34,29 @@ const Auth = () => {
   }, [navigate, searchParams]);
 
   const handleSuccess = async () => {
-    // Check if user has any locations (first-time user check)
-    const { data: locations } = await supabase
-      .from("locations")
-      .select("id")
-      .limit(1);
-    
-    const redirect = searchParams.get('redirect');
-    
-    // Track sign-up conversion
-    const isNewUser = !locations || locations.length === 0;
-    if (isNewUser) {
-      trackMetaPixelEvent(MetaPixelEvents.CompleteRegistration);
-    }
-    
-    // If new user with no locations, send to onboarding
-    if (isNewUser) {
-      navigate("/onboarding");
-    } else {
-      navigate(redirect || "/dashboard");
-    }
+    // Add delay to ensure session is fully established before checking locations
+    setTimeout(async () => {
+      // Check if user has any locations (first-time user check)
+      const { data: locations } = await supabase
+        .from("locations")
+        .select("id")
+        .limit(1);
+      
+      const redirect = searchParams.get('redirect');
+      
+      // Track sign-up conversion
+      const isNewUser = !locations || locations.length === 0;
+      if (isNewUser) {
+        trackMetaPixelEvent(MetaPixelEvents.CompleteRegistration);
+      }
+      
+      // If new user with no locations, send to onboarding
+      if (isNewUser) {
+        navigate("/onboarding");
+      } else {
+        navigate(redirect || "/dashboard");
+      }
+    }, 500);
   };
 
   return (

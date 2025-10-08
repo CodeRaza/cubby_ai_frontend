@@ -71,9 +71,9 @@ const Dashboard = () => {
           return;
         }
         
-        loadLocations();
-        loadSubscription();
-        checkAdminStatus();
+        await loadLocations();
+        await loadSubscription();
+        await checkAdminStatus();
       } catch (error) {
         console.error("Auth initialization error:", error);
         setAuthChecked(true);
@@ -137,6 +137,11 @@ const Dashboard = () => {
       );
 
       setLocations(locationsWithCounts);
+      
+      // Redirect to onboarding if user has no locations (onboarding guard)
+      if (locationsWithCounts.length === 0) {
+        navigate("/onboarding");
+      }
     } catch (error: any) {
       toast({
         title: "Error loading locations",
@@ -486,13 +491,22 @@ const Dashboard = () => {
         </div>
 
         {locations.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No locations yet</p>
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Your First Location
-            </Button>
-          </div>
+          <Card className="border-dashed">
+            <div className="text-center py-12 px-6">
+              <div className="mb-4">
+                <Home className="h-12 w-12 mx-auto text-muted-foreground/50" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No locations yet</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Create your first location to start organizing and scanning items. 
+                Locations help you track where everything is stored.
+              </p>
+              <Button onClick={() => setDialogOpen(true)} size="lg">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Location
+              </Button>
+            </div>
+          </Card>
         ) : (
           <>
             <div className="flex justify-end mb-4">
