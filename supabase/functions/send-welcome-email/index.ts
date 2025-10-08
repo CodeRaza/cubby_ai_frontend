@@ -74,7 +74,7 @@ const getWelcomeEmailHtml = (userName?: string) => `
           <!-- CTA Button -->
           <tr>
             <td align="center" style="padding: 32px 48px;">
-              <a href="https://61a424e3-3a9c-4a1d-afbe-52e032775a21.lovableproject.com/dashboard" style="background-color: #0EA5E9; border-radius: 8px; color: #ffffff; display: inline-block; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 32px;">
+              <a href="https://getcubby.ai/dashboard" style="background-color: #0EA5E9; border-radius: 8px; color: #ffffff; display: inline-block; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 32px;">
                 Get Started with Cubby
               </a>
             </td>
@@ -95,7 +95,7 @@ const getWelcomeEmailHtml = (userName?: string) => `
           <tr>
             <td style="padding: 0 48px 48px;">
               <p style="color: #8898aa; font-size: 14px; line-height: 24px; margin: 8px 0;">
-                Your free tier includes 50 items per month. Need more? <a href="https://61a424e3-3a9c-4a1d-afbe-52e032775a21.lovableproject.com/subscription" style="color: #0EA5E9; text-decoration: underline;">Upgrade anytime</a>
+                Your free tier includes 50 items per month. Need more? <a href="https://getcubby.ai/subscription" style="color: #0EA5E9; text-decoration: underline;">Upgrade anytime</a>
               </p>
               <p style="color: #8898aa; font-size: 14px; line-height: 24px; margin: 8px 0;">
                 Questions? Just reply to this email - we'd love to hear from you!

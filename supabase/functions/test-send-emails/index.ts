@@ -43,7 +43,7 @@ const getWelcomeEmailHtml = (userName?: string) => `
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://ehqdxlqaqmcqnwtlovhw.lovable.app/onboarding" 
+                <a href="https://getcubby.ai/onboarding"
                    style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600;">
                   Get Started Now
                 </a>
@@ -111,7 +111,7 @@ const getDay1EmailHtml = () => `
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://ehqdxlqaqmcqnwtlovhw.lovable.app/onboarding" 
+                <a href="https://getcubby.ai/onboarding"
                    style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600;">
                   Create Your First Location
                 </a>
@@ -174,7 +174,7 @@ const getDay3EmailHtml = () => `
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://ehqdxlqaqmcqnwtlovhw.lovable.app/scan" 
+                <a href="https://getcubby.ai/scan"
                    style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600;">
                   Start Scanning Items
                 </a>
