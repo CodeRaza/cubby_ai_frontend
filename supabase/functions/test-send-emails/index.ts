@@ -219,7 +219,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send Welcome Email
     console.log("Sending welcome email...");
     const welcomeResponse = await resend.emails.send({
-      from: "Cubby <onboarding@resend.dev>",
+      from: "Cubby <hello@getcubby.ai>",
       to: [testEmail],
       subject: "🎉 Welcome to Cubby!",
       html: getWelcomeEmailHtml("Scott"),
@@ -232,7 +232,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send Day 1 Reminder
     console.log("Sending day 1 reminder...");
     const day1Response = await resend.emails.send({
-      from: "Cubby <onboarding@resend.dev>",
+      from: "Cubby <hello@getcubby.ai>",
       to: [testEmail],
       subject: "🏠 Create your first location in Cubby",
       html: getDay1EmailHtml(),
@@ -245,7 +245,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send Day 3 Reminder
     console.log("Sending day 3 reminder...");
     const day3Response = await resend.emails.send({
-      from: "Cubby <onboarding@resend.dev>",
+      from: "Cubby <hello@getcubby.ai>",
       to: [testEmail],
       subject: "📸 Start scanning items in Cubby",
       html: getDay3EmailHtml(),

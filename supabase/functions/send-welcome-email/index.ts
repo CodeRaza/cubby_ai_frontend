@@ -134,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
     const html = getWelcomeEmailHtml(name);
 
     const { error } = await resend.emails.send({
-      from: "Cubby <onboarding@resend.dev>",
+      from: "Cubby <hello@getcubby.ai>",
       to: [email],
       subject: "Welcome to Cubby - Your Smart Home Inventory! 🎉",
       html,

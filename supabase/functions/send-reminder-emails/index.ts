@@ -210,7 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         // Send email via Resend
         const emailResponse = await resend.emails.send({
-          from: "Cubby <onboarding@resend.dev>", // User will update this to their verified domain
+          from: "Cubby <hello@getcubby.ai>",
           to: [user.email],
           subject: subject,
           html: html,
