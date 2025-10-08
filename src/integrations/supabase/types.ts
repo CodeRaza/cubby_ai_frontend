@@ -58,6 +58,30 @@ export type Database = {
           },
         ]
       }
+      email_tracking: {
+        Row: {
+          created_at: string
+          email_type: string
+          id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          id?: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          id?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           category: string | null
@@ -332,6 +356,17 @@ export type Database = {
           location_count: number
           plan_tier: Database["public"]["Enums"]["subscription_tier"]
           scan_count: number
+          user_id: string
+        }[]
+      }
+      get_users_needing_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          days_since_signup: number
+          email: string
+          has_items: boolean
+          has_location: boolean
+          last_email_type: string
           user_id: string
         }[]
       }
