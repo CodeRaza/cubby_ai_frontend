@@ -138,8 +138,10 @@ const Dashboard = () => {
 
       setLocations(locationsWithCounts);
       
-      // Redirect to onboarding if user has no locations (onboarding guard)
-      if (locationsWithCounts.length === 0) {
+      // Only redirect to onboarding if user came from auth and has no locations
+      // Don't redirect if they explicitly skipped onboarding
+      const hasCompletedOnboarding = sessionStorage.getItem('onboarding_completed');
+      if (locationsWithCounts.length === 0 && !hasCompletedOnboarding && !window.location.search.includes('from_onboarding')) {
         navigate("/onboarding");
       }
     } catch (error: any) {

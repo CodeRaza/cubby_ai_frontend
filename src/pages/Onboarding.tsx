@@ -59,6 +59,9 @@ const Onboarding = () => {
         content_category: 'User Milestone'
       });
 
+      // Mark onboarding as completed
+      sessionStorage.setItem('onboarding_completed', 'true');
+      
       toast({ title: "Location created!" });
       setStep(3);
     } catch (error: any) {
@@ -73,9 +76,11 @@ const Onboarding = () => {
   };
 
   const handleSkipToApp = async () => {
+    // Mark onboarding as completed (even if skipped) to prevent loop
+    sessionStorage.setItem('onboarding_completed', 'true');
     // Give a moment for any pending operations to complete
     await new Promise(resolve => setTimeout(resolve, 300));
-    navigate("/dashboard", { replace: true });
+    navigate("/dashboard?from_onboarding=true", { replace: true });
   };
 
   if (checking) {
