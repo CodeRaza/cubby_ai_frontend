@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Package, MapPin, Scan, TrendingUp, TrendingDown, ArrowLeft } from "lucide-react";
+import { Users, Package, MapPin, Scan, TrendingUp, TrendingDown, ArrowLeft, UserCheck, MousePointerClick, Activity } from "lucide-react";
 import { toast } from "sonner";
 
 interface Analytics {
@@ -20,16 +20,6 @@ interface Analytics {
   scans_this_month: number;
 }
 
-interface UserStat {
-  user_id: string;
-  email: string;
-  created_at: string;
-  item_count: number;
-  location_count: number;
-  scan_count: number;
-  plan_tier: string;
-}
-
 interface OnboardingFunnel {
   total_signups: number;
   completed_onboarding: number;
@@ -39,6 +29,16 @@ interface OnboardingFunnel {
   onboarding_conversion: number;
   scan_conversion: number;
   active_conversion: number;
+}
+
+interface UserStat {
+  user_id: string;
+  email: string;
+  created_at: string;
+  item_count: number;
+  location_count: number;
+  scan_count: number;
+  plan_tier: string;
 }
 
 const Admin = () => {
