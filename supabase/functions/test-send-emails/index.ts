@@ -226,6 +226,9 @@ const handler = async (req: Request): Promise<Response> => {
     });
     results.push({ type: "welcome", result: welcomeResponse });
 
+    // Wait 1 second to avoid rate limit
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // Send Day 1 Reminder
     console.log("Sending day 1 reminder...");
     const day1Response = await resend.emails.send({
@@ -235,6 +238,9 @@ const handler = async (req: Request): Promise<Response> => {
       html: getDay1EmailHtml(),
     });
     results.push({ type: "day1_reminder", result: day1Response });
+
+    // Wait 1 second to avoid rate limit
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Send Day 3 Reminder
     console.log("Sending day 3 reminder...");
