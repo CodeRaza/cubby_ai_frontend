@@ -30,10 +30,22 @@ interface UserStat {
   plan_tier: string;
 }
 
+interface OnboardingFunnel {
+  total_signups: number;
+  completed_onboarding: number;
+  first_scan: number;
+  active_users: number;
+  avg_scans_per_user: number;
+  onboarding_conversion: number;
+  scan_conversion: number;
+  active_conversion: number;
+}
+
 const Admin = () => {
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [userStats, setUserStats] = useState<UserStat[]>([]);
+  const [funnelData, setFunnelData] = useState<OnboardingFunnel | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -89,6 +101,14 @@ const Admin = () => {
 
       if (usersError) throw usersError;
       setUserStats(usersData || []);
+
+      // Get onboarding funnel data
+      const { data: funnelData, error: funnelError } = await supabase
+        .rpc("get_onboarding_funnel")
+        .single();
+
+      if (funnelError) throw funnelError;
+      setFunnelData(funnelData as unknown as OnboardingFunnel);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       toast.error("Failed to load dashboard data");
@@ -211,6 +231,95 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Onboarding Funnel */}
+            {funnelData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Onboarding Funnel</CardTitle>
+                  <CardDescription>User progression from signup to active engagement</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Funnel Steps */}
+                    <div className="space-y-4">
+                      {/* Step 1: Signups */}
+                      <div className="relative">
+                        <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg border-2 border-primary">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Total Signups</p>
+                            <p className="text-3xl font-bold">{funnelData.total_signups}</p>
+                          </div>
+                          <Badge className="bg-primary">100%</Badge>
+                        </div>
+                      </div>
+
+                      {/* Step 2: Completed Onboarding */}
+                      <div className="relative pl-4">
+                        <div className="absolute left-1/2 -top-2 w-0.5 h-6 bg-border"></div>
+                        <div className="flex items-center justify-between p-4 bg-blue-500/10 rounded-lg border-2 border-blue-500">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Completed Onboarding</p>
+                            <p className="text-3xl font-bold">{funnelData.completed_onboarding}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Created first location</p>
+                          </div>
+                          <Badge className="bg-blue-500">{funnelData.onboarding_conversion}%</Badge>
+                        </div>
+                      </div>
+
+                      {/* Step 3: First Scan */}
+                      <div className="relative pl-8">
+                        <div className="absolute left-1/2 -top-2 w-0.5 h-6 bg-border"></div>
+                        <div className="flex items-center justify-between p-4 bg-purple-500/10 rounded-lg border-2 border-purple-500">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">First Scan Completed</p>
+                            <p className="text-3xl font-bold">{funnelData.first_scan}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Detected at least 1 item</p>
+                          </div>
+                          <Badge className="bg-purple-500">{funnelData.scan_conversion}%</Badge>
+                        </div>
+                      </div>
+
+                      {/* Step 4: Active Users */}
+                      <div className="relative pl-12">
+                        <div className="absolute left-1/2 -top-2 w-0.5 h-6 bg-border"></div>
+                        <div className="flex items-center justify-between p-4 bg-green-500/10 rounded-lg border-2 border-green-500">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                            <p className="text-3xl font-bold">{funnelData.active_users}</p>
+                            <p className="text-xs text-muted-foreground mt-1">5+ items detected</p>
+                          </div>
+                          <Badge className="bg-green-500">{funnelData.active_conversion}%</Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Key Metrics */}
+                    <div className="grid gap-4 md:grid-cols-2 pt-4 border-t">
+                      <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Avg Scans per User</p>
+                          <p className="text-2xl font-bold">{funnelData.avg_scans_per_user || 0}</p>
+                        </div>
+                        <Scan className="h-8 w-8 text-muted-foreground/50" />
+                      </div>
+                      <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Overall Conversion</p>
+                          <p className="text-2xl font-bold">
+                            {funnelData.total_signups > 0 
+                              ? Math.round((funnelData.active_users / funnelData.total_signups) * 100)
+                              : 0}%
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Signup → Active</p>
+                        </div>
+                        <TrendingUp className="h-8 w-8 text-green-500" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* User Stats Table */}
             <Card>
