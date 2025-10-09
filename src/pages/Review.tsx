@@ -157,6 +157,14 @@ const Review = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check if this is the user's first save
+      const { count: existingItemCount } = await supabase
+        .from('items')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      const isFirstSave = existingItemCount === 0;
+
       // Increment item usage
       const { data: incremented, error: incrementError } = await supabase.rpc(
         'increment_item_usage',
@@ -219,6 +227,23 @@ const Review = () => {
           bbox_width: detection?.bbox?.width || null,
           bbox_height: detection?.bbox?.height || null,
         });
+      }
+
+      // Send first save congratulations email
+      if (isFirstSave) {
+        try {
+          await supabase.functions.invoke('send-first-save-email', {
+            body: { 
+              email: user.email,
+              name: user.email?.split('@')[0],
+              userId: user.id,
+              itemCount: items.length
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send first save email:', emailError);
+          // Don't fail the save if email fails
+        }
       }
 
       toast({ title: `${items.length} items saved successfully!` });
