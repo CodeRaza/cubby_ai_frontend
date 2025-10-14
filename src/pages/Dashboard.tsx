@@ -59,6 +59,8 @@ const Dashboard = () => {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [showFirstScanPrompt, setShowFirstScanPrompt] = useState(false);
+  const [totalItemsScanned, setTotalItemsScanned] = useState(0);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -137,6 +139,10 @@ const Dashboard = () => {
       );
 
       setLocations(locationsWithCounts);
+      
+      // Calculate total items scanned
+      const totalItems = locationsWithCounts.reduce((sum, loc) => sum + loc.itemCount, 0);
+      setTotalItemsScanned(totalItems);
       
       // Only redirect to onboarding if user came from auth and has no locations
       // Don't redirect if they explicitly skipped onboarding
@@ -240,6 +246,12 @@ const Dashboard = () => {
       setNewLocationName("");
       setDialogOpen(false);
       setShowCustomInput(false);
+      
+      // Show first scan prompt if user has no items
+      if (totalItemsScanned === 0) {
+        setShowFirstScanPrompt(true);
+      }
+      
       loadLocations();
     } catch (error: any) {
       toast({
@@ -420,6 +432,104 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Progress Gamification Banner */}
+      {locations.length > 0 && totalItemsScanned < 10 && (
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0">
+                <div className="relative w-12 h-12">
+                  <svg className="w-12 h-12 transform -rotate-90">
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      className="text-muted opacity-20"
+                    />
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray={`${(totalItemsScanned / 10) * 125.6} 125.6`}
+                      className="text-primary transition-all duration-500"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
+                    {totalItemsScanned}
+                  </span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold mb-1">
+                  {totalItemsScanned === 0 && "🎯 Start your inventory journey!"}
+                  {totalItemsScanned > 0 && totalItemsScanned < 5 && "🌟 Great start! Keep going!"}
+                  {totalItemsScanned >= 5 && totalItemsScanned < 10 && "🔥 You're on fire!"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {10 - totalItemsScanned} items away from organizing like a pro
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => navigate("/scan")}
+                className="flex-shrink-0"
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Scan Now
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* First Scan Prompt Dialog */}
+      <Dialog open={showFirstScanPrompt} onOpenChange={setShowFirstScanPrompt}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">🎉 Location Created!</DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Now let's add your first item! Scanning takes just 30 seconds.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <p className="text-sm font-medium">✨ What you can do:</p>
+              <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                <li>Scan multiple items at once with AI</li>
+                <li>Add expiry dates & reminders</li>
+                <li>Search your inventory instantly</li>
+              </ul>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                size="lg"
+                onClick={() => {
+                  setShowFirstScanPrompt(false);
+                  navigate("/scan");
+                }}
+                className="w-full"
+              >
+                <Camera className="h-5 w-5 mr-2" />
+                Start Scanning Now
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFirstScanPrompt(false)}
+              >
+                I'll do this later
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center justify-between">
