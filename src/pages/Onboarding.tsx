@@ -277,9 +277,24 @@ const Onboarding = () => {
                 </div>
               </div>
 
-              <Button onClick={handleSkipToApp} className="w-full" size="lg">
-                Go to Dashboard
-              </Button>
+              <div className="flex flex-col gap-3">
+                <Button 
+                  onClick={() => navigate("/scan")} 
+                  className="w-full" 
+                  size="lg"
+                >
+                  <Camera className="h-5 w-5 mr-2" />
+                  Scan Your First Items Now
+                </Button>
+                <Button 
+                  onClick={handleSkipToApp} 
+                  variant="ghost" 
+                  className="w-full"
+                  size="sm"
+                >
+                  I'll do this later
+                </Button>
+              </div>
 
               <p className="text-xs text-center text-muted-foreground">
                 Free tier includes 50 items per month • Upgrade anytime for more
