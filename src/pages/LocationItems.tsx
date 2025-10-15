@@ -2,8 +2,24 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Camera, Home, Search, QrCode } from "lucide-react";
+import { ArrowLeft, Camera, Home, Search, QrCode, CheckSquare, Square, FolderInput } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Item {
   id: string;
@@ -13,13 +29,24 @@ interface Item {
   image_url: string | null;
 }
 
+interface Location {
+  id: string;
+  name: string;
+}
+
 const LocationItems = () => {
   const { locationId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [items, setItems] = useState<Item[]>([]);
   const [locationName, setLocationName] = useState("");
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+  const [targetLocationId, setTargetLocationId] = useState<string>("");
 
   useEffect(() => {
     checkAuthAndAccess();
@@ -90,8 +117,73 @@ const LocationItems = () => {
       if (itemsData) {
         setItems(itemsData);
       }
+
+      // Load available locations for moving items
+      if (user?.id) {
+        const { data: locations } = await supabase
+          .from("locations")
+          .select("id, name")
+          .eq("user_id", user.id)
+          .neq("id", locationId)
+          .order("name");
+        
+        if (locations) {
+          setAvailableLocations(locations);
+        }
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleItemSelection = (itemId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedItems(new Set(items.map(item => item.id)));
+  };
+
+  const deselectAll = () => {
+    setSelectedItems(new Set());
+  };
+
+  const handleMoveItems = async () => {
+    if (!targetLocationId || selectedItems.size === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from("items")
+        .update({ location_id: targetLocationId })
+        .in("id", Array.from(selectedItems));
+
+      if (error) throw error;
+
+      toast({
+        title: "Items moved!",
+        description: `${selectedItems.size} item(s) moved successfully.`,
+      });
+
+      // Reload items and reset state
+      await loadLocationAndItems();
+      setSelectedItems(new Set());
+      setSelectionMode(false);
+      setMoveDialogOpen(false);
+      setTargetLocationId("");
+    } catch (error: any) {
+      toast({
+        title: "Error moving items",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -114,18 +206,86 @@ const LocationItems = () => {
             <div>
               <h1 className="text-xl font-bold">{locationName}</h1>
               <p className="text-sm text-muted-foreground">
-                {items.length} {items.length === 1 ? 'item' : 'items'}
+                {selectionMode ? `${selectedItems.size} selected` : `${items.length} ${items.length === 1 ? 'item' : 'items'}`}
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(`/qr-codes/${locationId}`)}
-          >
-            <QrCode className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {isOwner && items.length > 0 && (
+              <>
+                {!selectionMode ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectionMode(true)}
+                  >
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Select
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectionMode(false);
+                        setSelectedItems(new Set());
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    {selectedItems.size > 0 && selectedItems.size < items.length && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={selectAll}
+                      >
+                        Select All
+                      </Button>
+                    )}
+                    {selectedItems.size === items.length && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={deselectAll}
+                      >
+                        Deselect All
+                      </Button>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            {!selectionMode && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate(`/qr-codes/${locationId}`)}
+              >
+                <QrCode className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Move items action bar */}
+        {selectionMode && selectedItems.size > 0 && (
+          <div className="border-t bg-card">
+            <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {selectedItems.size} item(s) selected
+              </span>
+              <Button
+                size="sm"
+                onClick={() => setMoveDialogOpen(true)}
+                disabled={availableLocations.length === 0}
+              >
+                <FolderInput className="h-4 w-4 mr-2" />
+                Move to...
+              </Button>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="container mx-auto px-4 py-6">
@@ -150,18 +310,73 @@ const LocationItems = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {items.map((item) => (
-              <ItemCard
-                key={item.id}
-                name={item.name}
-                category={item.category || undefined}
-                quantity={item.quantity}
-                imageUrl={item.image_url || undefined}
-                onClick={() => navigate(`/item/${item.id}`)}
-              />
+              <div key={item.id} className="relative">
+                {selectionMode && (
+                  <div className="absolute top-2 left-2 z-10">
+                    <Checkbox
+                      checked={selectedItems.has(item.id)}
+                      onCheckedChange={() => toggleItemSelection(item.id)}
+                      className="bg-background border-2 shadow-lg"
+                    />
+                  </div>
+                )}
+                <ItemCard
+                  name={item.name}
+                  category={item.category || undefined}
+                  quantity={item.quantity}
+                  imageUrl={item.image_url || undefined}
+                  onClick={() => !selectionMode && navigate(`/item/${item.id}`)}
+                />
+              </div>
             ))}
           </div>
         )}
       </main>
+
+      {/* Move Items Dialog */}
+      <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Move Items</DialogTitle>
+            <DialogDescription>
+              Select a collection to move {selectedItems.size} item(s) to.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Select value={targetLocationId} onValueChange={setTargetLocationId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a collection..." />
+              </SelectTrigger>
+              <SelectContent>
+                {availableLocations.map((location) => (
+                  <SelectItem key={location.id} value={location.id}>
+                    {location.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setMoveDialogOpen(false);
+                  setTargetLocationId("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleMoveItems}
+                disabled={!targetLocationId}
+              >
+                Move Items
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t px-4 py-3">
         <div className="container mx-auto flex items-center justify-around max-w-lg">
