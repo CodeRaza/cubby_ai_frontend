@@ -8,6 +8,7 @@ import { ArrowLeft, Check, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
+import { cn } from "@/lib/utils";
 
 interface SubscriptionData {
   plan_tier: string;
@@ -45,6 +46,7 @@ const plans = [
     scans: 1000,
     features: ["1,000 scans/month", "Portfolio insights", "Price alerts", "CSV export", "Priority support"],
     priceId: "price_1SFQibIkzp5CYjx0c0qy7nTg",
+    recommended: true,
   },
   {
     name: "Investor",
@@ -304,20 +306,31 @@ const Subscription = () => {
               const isProcessing = processingPlan === plan.priceId;
 
               return (
-                <Card key={plan.tier} className={isCurrentPlan ? "ring-2 ring-primary" : ""}>
+                <Card key={plan.tier} className={cn(
+                  "flex flex-col",
+                  isCurrentPlan && "ring-2 ring-primary",
+                  plan.recommended && "ring-2 ring-primary shadow-lg scale-105"
+                )}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle>{plan.name}</CardTitle>
-                      {isCurrentPlan && (
-                        <Badge>Current</Badge>
-                      )}
+                      <div className="flex gap-2">
+                        {plan.recommended && (
+                          <Badge className="bg-primary text-primary-foreground">
+                            Recommended
+                          </Badge>
+                        )}
+                        {isCurrentPlan && (
+                          <Badge variant="outline">Current</Badge>
+                        )}
+                      </div>
                     </div>
                     <CardDescription className="text-2xl font-bold text-foreground">
                       {plan.price}
                       <span className="text-sm font-normal text-muted-foreground">/mo</span>
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex-grow">
                     <ul className="space-y-2">
                       {plan.features.map((feature) => (
                         <li key={feature} className="flex items-start gap-2 text-sm">
@@ -327,7 +340,7 @@ const Subscription = () => {
                       ))}
                     </ul>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="mt-auto">
                     {plan.tier === 'free' ? (
                       <Button variant="outline" className="w-full" disabled>
                         Free Plan
