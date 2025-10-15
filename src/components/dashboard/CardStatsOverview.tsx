@@ -110,11 +110,6 @@ export const CardStatsOverview = ({
   };
   return <div className="bg-card border-b">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Time Range Selector */}
-        <div className="flex justify-center">
-          <TimeRangeSelector selected={timeRange} onChange={setTimeRange} />
-        </div>
-
         {/* Weekly Portfolio Change - Hero Section */}
         <div className="space-y-2 sm:space-y-3 flex flex-col items-center bg-primary/5 -mx-3 sm:-mx-4 px-3 sm:px-4 py-3 sm:py-4 rounded-lg">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
@@ -157,6 +152,11 @@ export const CardStatsOverview = ({
                 </div>
               </div>}
           </div>}
+
+        {/* Time Range Selector */}
+        <div className="flex justify-center">
+          <TimeRangeSelector selected={timeRange} onChange={setTimeRange} />
+        </div>
 
         {/* Main Stats Grid - Balanced and Prominent */}
         <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-1 sm:pt-2">
