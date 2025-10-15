@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { PREDEFINED_LOCATIONS, SPORTS_COLLECTIONS } from "@/lib/locationTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { TopMovers } from "@/components/TopMovers";
 
 interface Location {
   id: string;
@@ -987,6 +988,9 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               )}
+              
+              {/* Top Movers Component */}
+              <TopMovers />
             </div>
 
             {/* Value Distribution Bar Chart */}

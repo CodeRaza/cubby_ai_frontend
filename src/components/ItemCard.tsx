@@ -85,14 +85,24 @@ export const ItemCard = ({
             )}
           </div>
           {/* Price and trend for sports cards */}
-          {cardDetails?.estimated_value && (
+          {cardDetails?.estimated_value ? (
             <div className="flex items-center justify-between">
-              <span className="text-lg font-bold text-primary">
+              <span className={`text-lg font-bold transition-colors ${
+                cardDetails.price_trend_7d && cardDetails.price_trend_7d > 0 
+                  ? 'text-green-600' 
+                  : cardDetails.price_trend_7d && cardDetails.price_trend_7d < 0 
+                  ? 'text-red-600' 
+                  : 'text-foreground'
+              }`}>
                 ${Number(cardDetails.estimated_value).toFixed(2)}
               </span>
               {cardDetails.price_trend_7d !== null && cardDetails.price_trend_7d !== undefined && (
                 <PriceTrend value={cardDetails.price_trend_7d} />
               )}
+            </div>
+          ) : cardDetails && (
+            <div className="text-xs text-muted-foreground">
+              Pricing data pending...
             </div>
           )}
           <div className="flex items-center gap-2 flex-wrap">

@@ -26,24 +26,17 @@ export const formatCardTitle = (name: string, cardDetails?: CardDetails): string
     parts.push(cardDetails.brand);
   }
   
-  // Player Name
-  if (cardDetails.player_name) {
+  // Set name if available
+  if (cardDetails.set_name) {
+    parts.push(`– ${cardDetails.set_name}`);
+  } else if (cardDetails.player_name) {
+    // Only show player if no set
     parts.push(`– ${cardDetails.player_name}`);
   }
   
-  // Card Number
-  if (cardDetails.card_number) {
+  // Card Number (normalize null/undefined)
+  if (cardDetails.card_number && cardDetails.card_number !== 'null' && !cardDetails.card_number.toLowerCase().includes('null')) {
     parts.push(`#${cardDetails.card_number}`);
-  }
-  
-  // Special attributes (Rookie, Insert, etc.)
-  if (cardDetails.special_attributes && cardDetails.special_attributes.length > 0) {
-    const rookieAttr = cardDetails.special_attributes.find(attr => 
-      attr.toLowerCase().includes('rookie')
-    );
-    if (rookieAttr) {
-      parts.push('RC');
-    }
   }
   
   return parts.join(' ');
@@ -54,26 +47,22 @@ export const formatCardSubtitle = (cardDetails?: CardDetails): string => {
 
   const parts: string[] = [];
   
-  // Condition
-  if (cardDetails.condition) {
+  // Player name (if not in title via set_name)
+  if (cardDetails.player_name && !cardDetails.set_name) {
+    parts.push(cardDetails.player_name);
+  }
+  
+  // Grading info or condition
+  if (cardDetails.is_graded && cardDetails.grading_company && cardDetails.grade) {
+    parts.push(`${cardDetails.grading_company} ${cardDetails.grade}`);
+  } else if (cardDetails.condition) {
     parts.push(cardDetails.condition);
   }
   
-  // Grading info
-  if (cardDetails.is_graded && cardDetails.grading_company && cardDetails.grade) {
-    parts.push(`${cardDetails.grading_company} ${cardDetails.grade}`);
-  } else {
-    parts.push('Raw');
-  }
-  
-  // Special attributes (excluding rookie which is in title)
+  // Special attributes
   if (cardDetails.special_attributes && cardDetails.special_attributes.length > 0) {
-    const nonRookieAttrs = cardDetails.special_attributes.filter(attr => 
-      !attr.toLowerCase().includes('rookie')
-    );
-    if (nonRookieAttrs.length > 0) {
-      parts.push(nonRookieAttrs[0]); // Add first special attribute
-    }
+    const displayAttrs = cardDetails.special_attributes.slice(0, 2);
+    parts.push(...displayAttrs);
   }
   
   return parts.join(' • ');

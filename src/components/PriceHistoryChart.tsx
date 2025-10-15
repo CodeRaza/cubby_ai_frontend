@@ -57,25 +57,51 @@ export const PriceHistoryChart = ({ cardId, days = 7 }: PriceHistoryChartProps) 
 
   const chartData = priceHistory.map(item => ({
     date: format(new Date(item.date_of_sale!), 'MMM dd'),
-    price: Number(item.price)
+    fullDate: format(new Date(item.date_of_sale!), 'MMM dd, yyyy'),
+    price: Number(item.price),
+    source: item.source
   }));
+
+  const minPrice = Math.min(...chartData.map(d => d.price));
+  const maxPrice = Math.max(...chartData.map(d => d.price));
+  const avgPrice = chartData.reduce((sum, d) => sum + d.price, 0) / chartData.length;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Price History ({days} days)</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Price History ({days} days)</CardTitle>
+          <div className="text-sm text-muted-foreground">
+            Avg: ${avgPrice.toFixed(2)}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis 
+              dataKey="date"
+              tick={{ fontSize: 12 }}
+              stroke="hsl(var(--muted-foreground))"
+            />
+            <YAxis 
+              domain={[Math.floor(minPrice * 0.9), Math.ceil(maxPrice * 1.1)]}
+              tick={{ fontSize: 12 }}
+              stroke="hsl(var(--muted-foreground))"
+              tickFormatter={(value) => `$${value}`}
+            />
             <Tooltip 
-              formatter={(value: number) => `$${value.toFixed(2)}`}
+              formatter={(value: number) => [`$${value.toFixed(2)}`, 'Price']}
+              labelFormatter={(label) => {
+                const point = chartData.find(d => d.date === label);
+                return point ? `${point.fullDate} • ${point.source}` : label;
+              }}
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))'
+                backgroundColor: 'hsl(var(--popover))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '6px',
+                fontSize: '12px'
               }}
             />
             <Line 
@@ -83,10 +109,25 @@ export const PriceHistoryChart = ({ cardId, days = 7 }: PriceHistoryChartProps) 
               dataKey="price" 
               stroke="hsl(var(--primary))" 
               strokeWidth={2}
-              dot={{ fill: 'hsl(var(--primary))' }}
+              dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+              activeDot={{ r: 6 }}
             />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p className="text-xs text-muted-foreground">Low</p>
+            <p className="font-semibold text-sm">${minPrice.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Average</p>
+            <p className="font-semibold text-sm">${avgPrice.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">High</p>
+            <p className="font-semibold text-sm">${maxPrice.toFixed(2)}</p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

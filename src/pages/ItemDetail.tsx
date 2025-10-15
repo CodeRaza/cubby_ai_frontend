@@ -88,6 +88,7 @@ interface ItemDetails {
     price_trend_30d?: number;
     last_sale_price?: number;
     last_sale_date?: string;
+    last_price_update?: string;
   };
 }
 
@@ -525,50 +526,124 @@ const ItemDetail = () => {
                       <DollarSign className="h-5 w-5" />
                       Market Value
                     </h3>
-                    <PriceAlertDialog cardId={item.card_details.id!} />
+                    <div className="flex items-center gap-2">
+                      {item.card_details.estimated_value && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              const { error } = await supabase.functions.invoke('fetch-card-pricing', {
+                                body: { 
+                                  cardId: item.card_details?.id,
+                                  cardDetails: item.card_details 
+                                }
+                              });
+                              if (error) throw error;
+                              toast({ title: "Pricing refreshed!" });
+                              loadItem();
+                            } catch (error: any) {
+                              toast({
+                                title: "Error refreshing pricing",
+                                description: error.message,
+                                variant: "destructive"
+                              });
+                            }
+                          }}
+                          className="gap-2"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Refresh
+                        </Button>
+                      )}
+                      <PriceAlertDialog cardId={item.card_details.id!} />
+                    </div>
                   </div>
                   
                   {item.card_details.estimated_value ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Card className="bg-muted/30">
-                        <CardContent className="p-4">
-                          <p className="text-sm text-muted-foreground mb-1">Current Value</p>
-                          <p className="text-3xl font-bold text-primary">
-                            ${Number(item.card_details.estimated_value).toFixed(2)}
-                          </p>
-                        </CardContent>
-                      </Card>
-                      
-                      {item.card_details.price_trend_7d !== null && item.card_details.price_trend_7d !== undefined && (
-                        <Card className="bg-muted/30">
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card className={`${
+                          item.card_details.price_trend_7d && item.card_details.price_trend_7d > 0
+                            ? 'bg-green-500/5 border-green-500/20'
+                            : item.card_details.price_trend_7d && item.card_details.price_trend_7d < 0
+                            ? 'bg-red-500/5 border-red-500/20'
+                            : 'bg-muted/30'
+                        }`}>
                           <CardContent className="p-4">
-                            <p className="text-sm text-muted-foreground mb-1">7-Day Trend</p>
-                            <PriceTrend value={item.card_details.price_trend_7d} showIcon className="text-2xl" />
-                          </CardContent>
-                        </Card>
-                      )}
-                      
-                      {item.card_details.last_sale_price && (
-                        <Card className="bg-muted/30">
-                          <CardContent className="p-4">
-                            <p className="text-sm text-muted-foreground mb-1">Last Sale</p>
-                            <p className="text-2xl font-bold">
-                              ${Number(item.card_details.last_sale_price).toFixed(2)}
+                            <p className="text-sm text-muted-foreground mb-1">Estimated Value</p>
+                            <p className={`text-3xl font-bold ${
+                              item.card_details.price_trend_7d && item.card_details.price_trend_7d > 0
+                                ? 'text-green-600'
+                                : item.card_details.price_trend_7d && item.card_details.price_trend_7d < 0
+                                ? 'text-red-600'
+                                : 'text-foreground'
+                            }`}>
+                              ${Number(item.card_details.estimated_value).toFixed(2)}
                             </p>
-                            {item.card_details.last_sale_date && (
+                            {item.card_details.last_price_update && (
                               <p className="text-xs text-muted-foreground mt-1">
-                                {format(new Date(item.card_details.last_sale_date), 'MMM dd, yyyy')}
+                                Updated {format(new Date(item.card_details.last_price_update), 'MMM dd, h:mm a')}
                               </p>
                             )}
                           </CardContent>
                         </Card>
+                        
+                        {item.card_details.price_trend_7d !== null && item.card_details.price_trend_7d !== undefined && (
+                          <Card className="bg-muted/30">
+                            <CardContent className="p-4">
+                              <p className="text-sm text-muted-foreground mb-1">7-Day Trend</p>
+                              <PriceTrend value={item.card_details.price_trend_7d} showIcon className="text-2xl" />
+                            </CardContent>
+                          </Card>
+                        )}
+                        
+                        {item.card_details.last_sale_price && (
+                          <Card className="bg-muted/30">
+                            <CardContent className="p-4">
+                              <p className="text-sm text-muted-foreground mb-1">Last Sale</p>
+                              <p className="text-2xl font-bold">
+                                ${Number(item.card_details.last_sale_price).toFixed(2)}
+                              </p>
+                              {item.card_details.last_sale_date && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {format(new Date(item.card_details.last_sale_date), 'MMM dd, yyyy')}
+                                </p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                      
+                      {/* Average Market Value */}
+                      {item.card_details.last_sale_price && item.card_details.estimated_value && (
+                        <div className="flex items-center justify-center gap-8 p-4 bg-muted/20 rounded-lg">
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Average Market</p>
+                            <p className="text-xl font-semibold">
+                              ${((Number(item.card_details.last_sale_price) + Number(item.card_details.estimated_value)) / 2).toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="h-8 w-px bg-border" />
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Condition</p>
+                            <p className="text-sm font-medium">
+                              {item.card_details.is_graded 
+                                ? `${item.card_details.grading_company} ${item.card_details.grade}`
+                                : item.card_details.condition || 'Raw'}
+                            </p>
+                          </div>
+                        </div>
                       )}
-                    </div>
+                    </>
                   ) : (
-                    <div className="text-center p-6 bg-muted/30 rounded-lg">
-                      <p className="text-muted-foreground mb-3">No pricing data available yet</p>
+                    <div className="text-center p-6 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+                      <p className="text-muted-foreground mb-3">⚠️ Pricing data not available</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        This card hasn't been priced yet. Click below to fetch current market data.
+                      </p>
                       <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
                         onClick={async () => {
                           try {
