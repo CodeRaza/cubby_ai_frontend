@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, TrendingUp, Clock, AlertCircle, RefreshCw, Zap } from "lucide-react";
+import { Activity, TrendingUp, Clock, AlertCircle, RefreshCw, Zap, FileText, Database, TestTube, Calendar, BarChart3, Shield, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface ApiCall {
   id: string;
@@ -246,11 +247,399 @@ export default function ApiUsage() {
         </div>
 
         {/* Tabs for different views */}
-        <Tabs defaultValue="recent" className="space-y-4">
+        <Tabs defaultValue="docs" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="docs">Documentation</TabsTrigger>
             <TabsTrigger value="recent">Recent Calls</TabsTrigger>
             <TabsTrigger value="daily">Daily Stats</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="docs" className="space-y-6">
+            {/* Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  eBay API Integration Overview
+                </CardTitle>
+                <CardDescription>
+                  This application uses the eBay Finding Service v1 API to fetch real-time pricing data for sports cards. 
+                  All API calls are logged and monitored to optimize usage and stay within rate limits.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Use Cases */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold">Current Use Cases</h2>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Use Case 1: Queue-Based Pricing */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <Database className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">Queue-Based Pricing Updates</CardTitle>
+                      </div>
+                      <Badge variant="default">Direct API</Badge>
+                    </div>
+                    <CardDescription className="font-mono text-xs">process-pricing-queue</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Purpose</p>
+                      <p className="text-sm text-muted-foreground">
+                        Processes batched pricing requests from a priority queue system
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Trigger Method</p>
+                      <Badge variant="outline" className="text-xs">Automatic</Badge>
+                      <Badge variant="outline" className="text-xs ml-1">Manual Invoke</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">API Endpoint</p>
+                      <code className="text-xs bg-muted px-2 py-1 rounded">FindingService v1 - findCompletedItems</code>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Rate Limiting</p>
+                      <div className="flex gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs">500ms delay</Badge>
+                        <Badge variant="secondary" className="text-xs">Batch size: 10</Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Priority Logic</p>
+                      <p className="text-xs text-muted-foreground">
+                        Processes high-priority cards first: graded cards, rookies, autographs, high-value cards
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Use Case 2: On-Demand Pricing */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">On-Demand Pricing Fetch</CardTitle>
+                      </div>
+                      <Badge variant="outline">Via Queue</Badge>
+                    </div>
+                    <CardDescription className="font-mono text-xs">fetch-card-pricing</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Purpose</p>
+                      <p className="text-sm text-muted-foreground">
+                        User-initiated pricing lookup with intelligent caching
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Trigger Method</p>
+                      <Badge variant="outline" className="text-xs">User Action</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Cache Duration</p>
+                      <Badge className="text-xs bg-green-500/20 text-green-700 border-green-500/30">7 days (168 hours)</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Optimization</p>
+                      <p className="text-xs text-muted-foreground">
+                        Returns cached data immediately if fresh; queues background job if stale
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Data Flow</p>
+                      <p className="text-xs text-muted-foreground">
+                        Adds job to pricing_queue → Processed by process-pricing-queue → Updates card_pricing_cache
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Use Case 3: Top Cards Refresh */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">Top Cards Refresh</CardTitle>
+                      </div>
+                      <Badge variant="default">Direct API</Badge>
+                    </div>
+                    <CardDescription className="font-mono text-xs">refresh-top-cards</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Purpose</p>
+                      <p className="text-sm text-muted-foreground">
+                        Proactive refresh of high-value and high-demand cards
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Trigger Method</p>
+                      <Badge variant="outline" className="text-xs">Scheduled Background</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Scope</p>
+                      <p className="text-xs text-muted-foreground mb-1">Up to 5,000 top cards based on:</p>
+                      <ul className="text-xs text-muted-foreground list-disc list-inside space-y-0.5">
+                        <li>Estimated value ranking</li>
+                        <li>Queue frequency (demand)</li>
+                        <li>User price alerts (interest)</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Rate Limiting</p>
+                      <div className="flex gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs">2 second delay</Badge>
+                        <Badge variant="secondary" className="text-xs">Batch size: 50</Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Data Usage</p>
+                      <p className="text-xs text-muted-foreground">
+                        Only uses 10 most recent sales for pricing calculation
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Use Case 4: Manual Test */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <TestTube className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">Manual Test/Debug</CardTitle>
+                      </div>
+                      <Badge variant="outline">Via Queue</Badge>
+                    </div>
+                    <CardDescription className="font-mono text-xs">trigger-pricing-update</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Purpose</p>
+                      <p className="text-sm text-muted-foreground">
+                        Admin testing and debugging of pricing updates
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Trigger Method</p>
+                      <Badge variant="outline" className="text-xs">Manual Button Click</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Priority</p>
+                      <Badge className="text-xs">High (100)</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Test Card</p>
+                      <p className="text-xs font-mono text-muted-foreground">
+                        Junior Caminero 2024 Bowman Chrome
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Usage</p>
+                      <p className="text-xs text-muted-foreground">
+                        Use the "Test Pricing Call" button above to trigger a test API call
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Rate Limiting Strategy */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Rate Limiting & Optimization Strategy
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="cache">
+                    <AccordionTrigger>
+                      <div className="flex items-center gap-2">
+                        <Database className="h-4 w-4" />
+                        Caching Strategy
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-2 text-sm">
+                      <p className="text-muted-foreground">
+                        All pricing data is cached in the <code className="bg-muted px-1 rounded">card_pricing_cache</code> table
+                        to minimize redundant API calls.
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                        <li><strong>Cache Duration:</strong> 7 days (168 hours)</li>
+                        <li><strong>Cache Hit:</strong> Returns data instantly without API call</li>
+                        <li><strong>Cache Miss:</strong> Queues pricing job for background processing</li>
+                        <li><strong>Stale Data:</strong> Returns old data immediately, updates in background</li>
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="delays">
+                    <AccordionTrigger>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Request Throttling
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-2 text-sm">
+                      <p className="text-muted-foreground">
+                        Artificial delays are inserted between API calls to prevent rate limit violations.
+                      </p>
+                      <div className="grid gap-2">
+                        <div className="flex justify-between items-center p-2 bg-muted rounded">
+                          <span>Queue Processing</span>
+                          <Badge variant="secondary">500ms delay</Badge>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-muted rounded">
+                          <span>Top Cards Refresh</span>
+                          <Badge variant="secondary">2000ms delay</Badge>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="priority">
+                    <AccordionTrigger>
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" />
+                        Priority Queue System
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-2 text-sm">
+                      <p className="text-muted-foreground">
+                        Cards are scored and prioritized to ensure the most important cards are updated first.
+                      </p>
+                      <div className="space-y-2">
+                        <div className="p-3 bg-muted rounded">
+                          <p className="font-semibold mb-2">Priority Score Calculation:</p>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground text-xs">
+                            <li>Graded cards: +50 points</li>
+                            <li>Rookie cards: +30 points</li>
+                            <li>Autographed cards: +30 points</li>
+                            <li>Value {'>'} $100: +20 points</li>
+                            <li>Value {'>'} $500: +30 points</li>
+                            <li>Value {'>'} $1000: +40 points</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="batching">
+                    <AccordionTrigger>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Batch Processing
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-2 text-sm">
+                      <p className="text-muted-foreground">
+                        API calls are processed in controlled batches to prevent overwhelming the eBay API.
+                      </p>
+                      <div className="grid gap-2">
+                        <div className="flex justify-between items-center p-2 bg-muted rounded">
+                          <span>Queue Processing Batch Size</span>
+                          <Badge variant="secondary">10 cards</Badge>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-muted rounded">
+                          <span>Top Cards Refresh Batch Size</span>
+                          <Badge variant="secondary">50 cards</Badge>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
+
+            {/* Troubleshooting */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Info className="h-5 w-5" />
+                  Troubleshooting Common Issues
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm mb-1">Rate Limit Exceeded</p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Error: "Service call has exceeded the number of times the operation is allowed to be called"
+                        </p>
+                        <p className="text-xs mb-2"><strong>Cause:</strong> eBay API daily or per-minute rate limit hit</p>
+                        <p className="text-xs"><strong>Solution:</strong></p>
+                        <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5 ml-2">
+                          <li>Wait for rate limit to reset (typically 24 hours for daily limit)</li>
+                          <li>Review Recent Calls tab to identify patterns</li>
+                          <li>Consider extending cache duration to reduce API calls</li>
+                          <li>Increase delays between batch processing</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 border border-yellow-500/20 rounded-lg bg-yellow-500/5">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm mb-1">Internal Server Error</p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Error: "eBay API error: Internal Server Error"
+                        </p>
+                        <p className="text-xs mb-2"><strong>Cause:</strong> Temporary eBay API outage or maintenance</p>
+                        <p className="text-xs"><strong>Solution:</strong></p>
+                        <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5 ml-2">
+                          <li>Retry the request after a few minutes</li>
+                          <li>Check eBay API status page</li>
+                          <li>Failed requests are automatically logged for review</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 border border-blue-500/20 rounded-lg bg-blue-500/5">
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm mb-1">Stale Pricing Data</p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Pricing data appears outdated
+                        </p>
+                        <p className="text-xs mb-2"><strong>Cause:</strong> Cache is older than 7 days or recent API failures</p>
+                        <p className="text-xs"><strong>Solution:</strong></p>
+                        <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5 ml-2">
+                          <li>Check Recent Calls tab for recent errors</li>
+                          <li>Manually trigger pricing update for specific cards</li>
+                          <li>Wait for next automatic top cards refresh cycle</li>
+                          <li>Review Daily Stats to see overall API health</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Pro Tip:</strong> Use the tabs above to monitor API health. The "Recent Calls" tab shows
+                      individual requests with error details, while "Daily Stats" provides aggregate metrics to identify trends.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="recent" className="space-y-4">
             <Card>
