@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Camera, Home, Search, QrCode, CheckSquare, Square, FolderInput, Filter } from "lucide-react";
+import { ArrowLeft, Camera, Home, Search, QrCode, CheckSquare, Square, FolderInput, Filter, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -65,6 +75,7 @@ const LocationItems = () => {
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [targetLocationId, setTargetLocationId] = useState<string>("");
   const [isSportsCards, setIsSportsCards] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   // Fetch collection details for sports cards
   const { data: collectionDetails } = useCollectionDetails(locationId, isSportsCards);
@@ -214,6 +225,36 @@ const LocationItems = () => {
     }
   };
 
+  const handleDeleteItems = async () => {
+    if (selectedItems.size === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from("items")
+        .delete()
+        .in("id", Array.from(selectedItems));
+
+      if (error) throw error;
+
+      toast({
+        title: "Items deleted!",
+        description: `${selectedItems.size} item(s) deleted successfully.`,
+      });
+
+      // Reload items and reset state
+      await loadLocationAndItems();
+      setSelectedItems(new Set());
+      setSelectionMode(false);
+      setDeleteDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error deleting items",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -302,14 +343,24 @@ const LocationItems = () => {
               <span className="text-sm font-medium">
                 {selectedItems.size} item(s) selected
               </span>
-              <Button
-                size="sm"
-                onClick={() => setMoveDialogOpen(true)}
-                disabled={availableLocations.length === 0}
-              >
-                <FolderInput className="h-4 w-4 mr-2" />
-                Move to...
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setMoveDialogOpen(true)}
+                  disabled={availableLocations.length === 0}
+                >
+                  <FolderInput className="h-4 w-4 mr-2" />
+                  Move to...
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -439,6 +490,27 @@ const LocationItems = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Items Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Items?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedItems.size} item(s)? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteItems}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t px-4 py-3">
         <div className="container mx-auto flex items-center justify-around max-w-lg">
