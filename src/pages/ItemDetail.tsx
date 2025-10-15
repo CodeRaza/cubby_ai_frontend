@@ -558,7 +558,7 @@ const ItemDetail = () => {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Profit & Loss
+                    Gains
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {item.sold && item.sold_price && item.cost ? (
