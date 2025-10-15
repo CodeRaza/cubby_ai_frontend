@@ -81,7 +81,7 @@ serve(async (req) => {
         console.log('[PROCESS-QUEUE] Processing:', cardDetails?.player_name, cardDetails?.card_year);
 
         // Fetch pricing from eBay
-        const ebayData = await searchEbayListings(cardDetails);
+        const ebayData = await searchEbayListings(cardDetails, job.user_id, job.card_key, supabase);
         const searchResult = ebayData?.findCompletedItemsResponse?.[0];
         const items = searchResult?.searchResult?.[0]?.item || [];
 
@@ -220,7 +220,7 @@ serve(async (req) => {
   }
 });
 
-async function searchEbayListings(cardDetails: any) {
+async function searchEbayListings(cardDetails: any, userId?: string, cardKey?: string, supabaseClient?: any) {
   const searchParts = [
     cardDetails.card_year,
     cardDetails.brand,
@@ -254,16 +254,54 @@ async function searchEbayListings(cardDetails: any) {
     'paginationInput.entriesPerPage': '20', // Fetch 20 to ensure we have 10 valid recent sales
   });
 
-  const response = await fetch(`${findingUrl}?${params}`);
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('[PROCESS-QUEUE] eBay API error:', errorText);
-    throw new Error(`eBay API error: ${response.statusText}`);
-  }
+  const startTime = Date.now();
+  let status = 'success';
+  let errorMessage = null;
 
-  const data = await response.json();
-  return data;
+  try {
+    const response = await fetch(`${findingUrl}?${params}`);
+    
+    if (!response.ok) {
+      status = 'error';
+      const errorText = await response.text();
+      errorMessage = `eBay API error: ${response.statusText}`;
+      console.error('[PROCESS-QUEUE] eBay API error:', errorText);
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+    
+    // Log successful API call
+    const responseTime = Date.now() - startTime;
+    if (supabaseClient) {
+      await supabaseClient.from('ebay_api_usage').insert({
+        endpoint: 'FindingService',
+        operation: 'findCompletedItems',
+        status: 'success',
+        response_time_ms: responseTime,
+        user_id: userId,
+        card_key: cardKey
+      }).catch((err: Error) => console.error('[PROCESS-QUEUE] Error logging API usage:', err));
+    }
+    
+    return data;
+  } catch (error) {
+    // Log failed API call
+    const responseTime = Date.now() - startTime;
+    if (supabaseClient) {
+      await supabaseClient.from('ebay_api_usage').insert({
+        endpoint: 'FindingService',
+        operation: 'findCompletedItems',
+        status: 'error',
+        response_time_ms: responseTime,
+        error_message: errorMessage || (error instanceof Error ? error.message : 'Unknown error'),
+        user_id: userId,
+        card_key: cardKey
+      }).catch((err: Error) => console.error('[PROCESS-QUEUE] Error logging API usage:', err));
+    }
+    
+    throw error;
+  }
 }
 
 function calculateBasePrice(cardDetails: any): number {
