@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Star, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowLeft, Star, TrendingUp, TrendingDown, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MarketFilters } from "@/components/market/MarketFilters";
@@ -109,6 +110,7 @@ const Market = () => {
   const [selectedCard, setSelectedCard] = useState<MarketCard | null>(null);
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(searchParams.get('view') === 'watchlist');
+  const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     sport: "all",
     grading: "all",
@@ -222,6 +224,18 @@ const Market = () => {
     // Filter by watchlist if enabled
     if (showWatchlistOnly && !watchlist.has(card.id)) return false;
     
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        card.player.toLowerCase().includes(query) ||
+        card.name.toLowerCase().includes(query) ||
+        card.brand.toLowerCase().includes(query) ||
+        card.sport.toLowerCase().includes(query);
+      
+      if (!matchesSearch) return false;
+    }
+    
     if (filters.sport !== "all" && card.sport !== filters.sport) return false;
     if (filters.grading === "graded" && !card.isGraded) return false;
     if (filters.grading === "raw" && card.isGraded) return false;
@@ -253,6 +267,18 @@ const Market = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by player, card name, brand, or sport..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
         {/* View Toggle */}
         <div className="flex items-center gap-2 border-b">
           <Button
