@@ -210,7 +210,7 @@ export const CardDetailsForm = ({ details, onChange, isQueued }: CardDetailsForm
       {/* Estimated Value */}
       <div className="space-y-2 pt-2 border-t">
         <div className="flex items-center gap-2">
-          <Label>Estimated Value ($)</Label>
+          <Label htmlFor="estimated_value">Estimated Value ($)</Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -218,39 +218,31 @@ export const CardDetailsForm = ({ details, onChange, isQueued }: CardDetailsForm
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p className="text-sm">
-                  Value calculated from recent eBay sales. Based on average of last 10 sold listings for similar cards. Updates automatically or click Refresh on the detail page.
+                  Auto-calculated from recent eBay sales or enter your own value. Based on average of last 10 sold listings for similar cards.
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-        {isQueued ? (
-          <>
-            <div className="text-lg font-semibold text-primary animate-pulse">
-              Calculating...
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Fetching latest market data from eBay
-            </p>
-          </>
-        ) : details.estimated_value && parseFloat(details.estimated_value) > 0 ? (
-          <>
-            <div className="text-2xl font-bold text-foreground">
-              ${parseFloat(details.estimated_value).toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Based on recent market sales • Read-only field
-            </p>
-          </>
-        ) : (
-          <>
-            <div className="text-lg font-medium text-muted-foreground">
-              Not yet calculated
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Value will be estimated after saving based on recent market sales
-            </p>
-          </>
+        <Input
+          id="estimated_value"
+          type="number"
+          value={details.estimated_value || ''}
+          onChange={(e) => updateField('estimated_value', e.target.value)}
+          placeholder="0.00"
+          min="0"
+          step="0.01"
+          disabled={isQueued}
+        />
+        {isQueued && (
+          <p className="text-xs text-muted-foreground animate-pulse">
+            Fetching latest market data from eBay...
+          </p>
+        )}
+        {!isQueued && (
+          <p className="text-xs text-muted-foreground">
+            Auto-calculated from market sales or enter manually
+          </p>
         )}
       </div>
     </div>
