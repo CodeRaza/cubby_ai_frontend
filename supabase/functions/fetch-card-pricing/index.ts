@@ -43,10 +43,13 @@ async function searchEbayListings(cardDetails: any) {
   const response = await fetch(`${findingUrl}?${params}`);
   
   if (!response.ok) {
-    throw new Error(`eBay API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('[FETCH-PRICING] eBay API error response:', errorText);
+    throw new Error(`eBay API error: ${response.statusText} - ${errorText}`);
   }
 
   const data = await response.json();
+  console.log('[FETCH-PRICING] eBay response:', JSON.stringify(data).substring(0, 500));
   return data;
 }
 
