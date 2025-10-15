@@ -129,10 +129,10 @@ export const CardStatsOverview = ({
           
         </div>
 
-        {/* P&L Section */}
+        {/* Gains Section */}
         {(cardStats.realized_gains !== 0 || cardStats.unrealized_gains !== 0) && <div className="grid grid-cols-2 gap-3 sm:gap-4 bg-muted/30 p-3 sm:p-4 rounded-lg">
             {cardStats.realized_gains !== 0 && <div className="flex flex-col items-center">
-                <p className="text-xs text-muted-foreground mb-1">Realized P&L</p>
+                <p className="text-xs text-muted-foreground mb-1">Realized Gains</p>
                 <div className="flex items-center gap-1 sm:gap-2">
                   {cardStats.realized_gains > 0 ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" /> : <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />}
                   <span className={`text-xl sm:text-2xl font-bold ${cardStats.realized_gains > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -142,7 +142,7 @@ export const CardStatsOverview = ({
                 </div>
               </div>}
             {cardStats.unrealized_gains !== 0 && <div className="flex flex-col items-center">
-                <p className="text-xs text-muted-foreground mb-1">Unrealized P&L</p>
+                <p className="text-xs text-muted-foreground mb-1">Unrealized Gains</p>
                 <div className="flex items-center gap-1 sm:gap-2">
                   {cardStats.unrealized_gains > 0 ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" /> : <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />}
                   <span className={`text-xl sm:text-2xl font-bold ${cardStats.unrealized_gains > 0 ? 'text-blue-600' : 'text-red-600'}`}>
