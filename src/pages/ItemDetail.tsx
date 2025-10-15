@@ -568,7 +568,7 @@ const ItemDetail = () => {
                           : 'bg-red-500/5 border-red-500/20'
                       }`}>
                         <CardContent className="p-4">
-                          <p className="text-sm text-muted-foreground mb-1">Realized Gain/Loss</p>
+                          <p className="text-sm text-muted-foreground mb-1">Realized Gains</p>
                           <div className="flex items-center gap-2">
                             {item.sold_price - item.cost > 0 ? (
                               <TrendingUp className="h-5 w-5 text-green-600" />
@@ -593,7 +593,7 @@ const ItemDetail = () => {
                           : 'bg-red-500/5 border-red-500/20'
                       }`}>
                         <CardContent className="p-4">
-                          <p className="text-sm text-muted-foreground mb-1">Unrealized Gain/Loss</p>
+                          <p className="text-sm text-muted-foreground mb-1">Unrealized Gains</p>
                           <div className="flex items-center gap-2">
                             {item.card_details.estimated_value - item.cost > 0 ? (
                               <TrendingUp className="h-5 w-5 text-blue-600" />
