@@ -120,11 +120,15 @@ serve(async (req) => {
       
       // Map product ID to tier
       const tierMap: Record<string, string> = {
-        // New products (correct pricing)
-        'prod_TEqPkCAjeT00Es': 'starter',  // Starter Plan ($4.99)
-        'prod_TEqQKlQR7l8Zzl': 'pro',      // Pro Plan ($14.99)
-        'prod_TEqQIVobTGZArm': 'investor', // Investor Plan ($29.99)
-        // Legacy products (for existing subscriptions)
+        // Latest products (correct pricing & terminology)
+        'prod_TEqUEJplOMbEYz': 'starter',  // Starter Plan ($4.99)
+        'prod_TEqVkhhPmSir17': 'pro',      // Pro Plan ($14.99)
+        'prod_TEqVvTzUnNV1dt': 'investor', // Investor Plan ($29.99)
+        // Previous products (for existing subscriptions)
+        'prod_TEqPkCAjeT00Es': 'starter',
+        'prod_TEqQKlQR7l8Zzl': 'pro',
+        'prod_TEqQIVobTGZArm': 'investor',
+        // Legacy products
         'prod_TBoKCcrRz4MbeO': 'starter',
         'prod_TBoLO0sXl4MzwM': 'pro',
         'prod_TBoMaQ6mp9ejqO': 'investor'

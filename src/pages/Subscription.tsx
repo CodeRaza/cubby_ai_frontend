@@ -53,7 +53,7 @@ const plans = [{
     text: "Cloud backup",
     available: true
   }],
-  priceId: "price_1SIMizIkzp5CYjx0oAuXFFUr"
+  priceId: "price_1SIMndIkzp5CYjx0zdF7dVPj"
 }, {
   name: "Pro",
   tier: "pro",
@@ -75,7 +75,7 @@ const plans = [{
     text: "Priority support",
     available: true
   }],
-  priceId: "price_1SIMjUIkzp5CYjx0JkRYkHxe",
+  priceId: "price_1SIMoGIkzp5CYjx0gUSVuXgU",
   recommended: true
 }, {
   name: "Investor",
@@ -98,7 +98,7 @@ const plans = [{
     text: "Advanced analytics",
     available: false
   }],
-  priceId: "price_1SIMjfIkzp5CYjx04YefG59z"
+  priceId: "price_1SIMoUIkzp5CYjx0EZ226dGX"
 }];
 const scanPacks = [{
   name: "Starter Pack",
