@@ -2,6 +2,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CardDetails {
   player_name: string;
@@ -206,16 +208,27 @@ export const CardDetailsForm = ({ details, onChange }: CardDetailsFormProps) => 
 
       {/* Estimated Value */}
       <div className="space-y-2 pt-2 border-t">
-        <Label htmlFor="estimated_value">Estimated Value ($)</Label>
-        <Input
-          id="estimated_value"
-          type="number"
-          value={details.estimated_value}
-          onChange={(e) => updateField('estimated_value', e.target.value)}
-          placeholder="e.g., 150.00"
-          min="0"
-          step="0.01"
-        />
+        <div className="flex items-center gap-2">
+          <Label>Estimated Value ($)</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="text-sm">
+                  Value calculated from recent eBay sales. Based on average of last 10 sold listings for similar cards. Updates within 5 minutes after saving.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <div className="text-lg font-semibold text-primary">
+          Calculating...
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Value will be estimated after saving based on recent market sales
+        </p>
       </div>
     </div>
   );
