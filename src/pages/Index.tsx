@@ -557,7 +557,7 @@ const Index = () => {
                 </p>
 
                 <div className="flex flex-wrap justify-center gap-6 pt-4">
-                  {['Free forever plan', '10 scans/month', 'AI-powered tagging', 'Multi-device sync'].map(feature => <div key={feature} className="flex items-center gap-2 text-white/90">
+                  {['Free forever plan', '10 cards total', 'AI-powered tagging', 'Multi-device sync'].map(feature => <div key={feature} className="flex items-center gap-2 text-white/90">
                       <Check className="h-5 w-5" />
                       <span>{feature}</span>
                     </div>)}

@@ -394,8 +394,8 @@ const Onboarding = () => {
 
               <p className="text-xs text-center text-muted-foreground">
                 {source === 'sports-cards' 
-                  ? 'Free tier includes 10 scans total • Upgrade anytime for unlimited'
-                  : 'Free tier includes 10 scans total • Upgrade anytime for more'
+                  ? 'Free tier includes 10 cards total • Upgrade anytime for unlimited'
+                  : 'Free tier includes 10 cards total • Upgrade anytime for more'
                 }
               </p>
             </CardContent>

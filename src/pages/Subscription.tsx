@@ -25,7 +25,7 @@ const plans = [{
   price: "$0",
   scans: 10,
   features: [{
-    text: "10 scans total",
+    text: "10 cards total",
     available: true
   }, {
     text: "1 collection",
@@ -41,7 +41,7 @@ const plans = [{
   price: "$4.99",
   scans: 100,
   features: [{
-    text: "100 scans/month",
+    text: "100 tracked cards",
     available: true
   }, {
     text: "Multi-collection",
@@ -60,7 +60,7 @@ const plans = [{
   price: "$14.99",
   scans: 1000,
   features: [{
-    text: "1,000 scans/month",
+    text: "1,000 tracked cards",
     available: true
   }, {
     text: "Portfolio insights",
@@ -83,7 +83,7 @@ const plans = [{
   price: "$29.99",
   scans: 5000,
   features: [{
-    text: "5,000 scans/month",
+    text: "5,000 tracked cards",
     available: true
   }, {
     text: "Bulk upload",
@@ -303,23 +303,23 @@ const Subscription = () => {
         {/* Current Usage */}
         <Card className="bg-gradient-to-br from-card to-card/50">
           <CardHeader>
-            <CardTitle>Your Scan Usage</CardTitle>
+            <CardTitle>Your Card Limit</CardTitle>
             <CardDescription className="text-base font-medium">
-              You've used {scansUsed}/{scanLimit} scans
+              You're tracking {scansUsed}/{scanLimit} cards
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Progress value={usagePercent} className="h-3" />
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{scansUsed} used</span>
-              <span className="font-medium text-foreground">{scansRemaining} remaining</span>
+              <span className="text-muted-foreground">{scansUsed} tracked</span>
+              <span className="font-medium text-foreground">{scansRemaining} slots remaining</span>
             </div>
             {usage?.bonus_items && usage.bonus_items > 0 && <Badge variant="secondary" className="mt-2">
                 <Sparkles className="h-3 w-3 mr-1" />
-                {usage.bonus_items} bonus scans
+                {usage.bonus_items} bonus cards
               </Badge>}
             {scansRemaining < scanLimit * 0.2 && scansRemaining > 0 && <p className="text-sm text-amber-600 dark:text-amber-500 font-medium mt-2">
-                Running low on scans! Consider upgrading your plan.
+                Running low on card slots! Consider upgrading your plan.
               </p>}
           </CardContent>
         </Card>

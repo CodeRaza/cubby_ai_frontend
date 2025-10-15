@@ -98,7 +98,7 @@ export default function SportsCards() {
                 className="h-14 px-8 text-lg hover-scale shadow-lg"
                 onClick={() => navigate('/auth?mode=signup&source=sports-cards')}
               >
-                Try Free — 10 Scans Included
+                Try Free — 10 Cards Included
               </Button>
             </div>
             <div className="relative">
@@ -294,7 +294,7 @@ export default function SportsCards() {
             <div className="space-y-6">
               <div className="bg-card border border-border rounded-lg p-6 space-y-2">
                 <h3 className="font-bold text-lg">Is Cubby really free?</h3>
-                <p className="text-muted-foreground">Yes! You get 10 free scans (lifetime). Premium features unlock more scans and collections.</p>
+                <p className="text-muted-foreground">Yes! You get 10 free cards (lifetime). Premium features unlock more cards and collections.</p>
               </div>
               <div className="bg-card border border-border rounded-lg p-6 space-y-2">
                 <h3 className="font-bold text-lg">What sports are supported?</h3>
@@ -346,7 +346,7 @@ export default function SportsCards() {
               Start Free Today
             </Button>
             <p className="text-sm opacity-90">
-              No credit card required · 10 free scans
+              No credit card required · 10 free cards
             </p>
             <div className="flex flex-wrap items-center justify-center gap-8 pt-4">
               <div className="flex items-center gap-2 opacity-90">
