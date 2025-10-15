@@ -27,6 +27,7 @@ const Scan = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [currentFactIndex, setCurrentFactIndex] = useState(0);
+  const [captureStep, setCaptureStep] = useState<'front' | 'back' | 'ready'>('front');
 
   // Rotate fun facts while analyzing
   useEffect(() => {
@@ -43,56 +44,72 @@ const Scan = () => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Check for sports cards context
-    const userSource = sessionStorage.getItem('user_source') || '';
-    const isSportsCards = userSource === 'sports-cards';
+    const file = files[0]; // Take only the first file
 
-    // For sports cards, require exactly 2 images (front and back)
-    if (isSportsCards && files.length !== 2) {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
       toast({
-        title: "Two images required",
-        description: "Please select both front and back images of your cards",
+        title: "Invalid file type",
+        description: "Please select an image file only",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate file types
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Invalid file type",
-          description: "Please select image files only",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Validate file size (max 10MB each)
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Each image must be smaller than 10MB",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    // Show previews
-    const previews: string[] = [];
-    for (const file of files) {
-      const preview = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image must be smaller than 10MB",
+        variant: "destructive",
       });
-      previews.push(preview);
+      return;
     }
-    setImagePreviews(previews);
-    setSelectedFiles(files);
 
-    await processImages(files);
+    // Generate preview
+    const preview = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+
+    if (captureStep === 'front') {
+      // Store first image
+      setImagePreviews([preview]);
+      setSelectedFiles([file]);
+      setCaptureStep('back');
+      toast({
+        title: "Front captured! ✓",
+        description: "Now capture the back of your cards in the same order",
+      });
+    } else if (captureStep === 'back') {
+      // Store second image
+      setImagePreviews([...imagePreviews, preview]);
+      setSelectedFiles([...selectedFiles, file]);
+      setCaptureStep('ready');
+      toast({
+        title: "Back captured! ✓",
+        description: "Ready to scan your cards",
+      });
+    }
+  };
+
+  const handleStartScan = async () => {
+    if (selectedFiles.length !== 2) {
+      toast({
+        title: "Two images required",
+        description: "Please capture both front and back images",
+        variant: "destructive",
+      });
+      return;
+    }
+    await processImages(selectedFiles);
+  };
+
+  const handleReset = () => {
+    setImagePreviews([]);
+    setSelectedFiles([]);
+    setCaptureStep('front');
   };
 
   const processImages = async (files: File[]) => {
@@ -346,66 +363,129 @@ const Scan = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              multiple
               capture="environment"
               onChange={handleFileSelect}
               className="hidden"
             />
             
-            <div className="bg-primary/10 border-2 border-primary/20 rounded-lg p-4 text-center space-y-2">
+            {/* Step indicator */}
+            <div className="bg-primary/10 border-2 border-primary/20 rounded-lg p-4 text-center space-y-3">
               <p className="font-semibold text-primary mb-1">📸 Bulk Card Scanning</p>
-              <p className="text-sm text-muted-foreground">
-                Upload <strong>2 photos</strong>:
-              </p>
-              <ol className="text-sm text-left space-y-1 max-w-sm mx-auto">
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-primary">1.</span>
-                  <span>All card <strong>fronts</strong> arranged in order</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-primary">2.</span>
-                  <span>All card <strong>backs</strong> in the same order</span>
-                </li>
-              </ol>
-              <p className="text-xs text-muted-foreground pt-1">
-                💡 Keep cards in the same position/order for accurate matching
-              </p>
+              
+              {/* Progress steps */}
+              <div className="flex items-center justify-center gap-2">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                  captureStep === 'front' ? 'bg-primary text-primary-foreground' : 
+                  'bg-primary/30 text-primary'
+                }`}>
+                  {captureStep === 'front' ? '1' : '✓'}
+                </div>
+                <div className={`h-1 w-12 ${captureStep === 'front' ? 'bg-muted' : 'bg-primary'}`} />
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                  captureStep === 'back' ? 'bg-primary text-primary-foreground' : 
+                  captureStep === 'ready' ? 'bg-primary/30 text-primary' :
+                  'bg-muted text-muted-foreground'
+                }`}>
+                  {captureStep === 'ready' ? '✓' : '2'}
+                </div>
+              </div>
+
+              {captureStep === 'front' && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Step 1:</strong> Capture all card <strong>fronts</strong>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    💡 Arrange cards in a grid and keep them in order
+                  </p>
+                </>
+              )}
+              
+              {captureStep === 'back' && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Step 2:</strong> Capture all card <strong>backs</strong>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    💡 Use the same order as the fronts for accurate matching
+                  </p>
+                </>
+              )}
+
+              {captureStep === 'ready' && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    ✅ Both photos captured! Ready to scan.
+                  </p>
+                </>
+              )}
             </div>
+
+            {/* Show previews */}
+            {imagePreviews.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {imagePreviews.map((preview, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <p className="text-xs text-center text-muted-foreground font-medium">
+                      {idx === 0 ? '✓ Front' : '✓ Back'}
+                    </p>
+                    <img 
+                      src={preview} 
+                      alt={idx === 0 ? 'Front' : 'Back'}
+                      className="w-full aspect-[3/4] object-cover rounded-lg border-2 border-primary/20"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
             
-            <Button
-              size="lg"
-              className="w-full h-40 flex-col gap-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all active:scale-95"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Camera className="h-16 w-16" />
-              <span>Take 2 Photos</span>
-              <span className="text-xs font-normal opacity-80">(All Fronts, Then All Backs)</span>
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+            {captureStep === 'ready' ? (
+              <div className="space-y-3">
+                <Button
+                  size="lg"
+                  className="w-full h-28 flex-col gap-3 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all active:scale-95"
+                  onClick={handleStartScan}
+                >
+                  <Camera className="h-12 w-12" />
+                  <span>Scan Cards Now</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                  onClick={handleReset}
+                >
+                  Start Over
+                </Button>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or</span>
-              </div>
-            </div>
+            ) : (
+              <>
+                <Button
+                  size="lg"
+                  className="w-full h-40 flex-col gap-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all active:scale-95"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="h-16 w-16" />
+                  <span>
+                    {captureStep === 'front' ? 'Take Front Photo' : 'Take Back Photo'}
+                  </span>
+                  <span className="text-xs font-normal opacity-80">
+                    {captureStep === 'front' ? '(All card fronts)' : '(All card backs)'}
+                  </span>
+                </Button>
 
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full h-28 flex-col gap-3 text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
-              onClick={() => {
-                const input = fileInputRef.current;
-                if (input) {
-                  input.removeAttribute('capture');
-                  input.click();
-                }
-              }}
-            >
-              <Upload className="h-10 w-10" />
-              <span>Upload from Gallery</span>
-            </Button>
+                {imagePreviews.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full"
+                    onClick={handleReset}
+                  >
+                    Start Over
+                  </Button>
+                )}
+              </>
+            )}
 
             <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center space-y-2">
               <p className="font-medium mb-1">📱 Best Practices</p>
