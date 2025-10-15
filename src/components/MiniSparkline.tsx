@@ -21,8 +21,17 @@ export const MiniSparkline = ({ data, className = "", isNeutral = false }: MiniS
     return `${x},${y}`;
   }).join(' ');
 
-  const isPositive = data[data.length - 1] >= data[0];
-  const color = isNeutral ? 'hsl(var(--muted-foreground))' : (isPositive ? 'hsl(var(--success))' : 'hsl(var(--danger))');
+  const startValue = data[0];
+  const endValue = data[data.length - 1];
+  const isPositive = endValue > startValue;
+  const changePercent = startValue > 0 ? ((endValue - startValue) / startValue) * 100 : 0;
+  const isSignificantChange = Math.abs(changePercent) > 0.5;
+  
+  const color = !isSignificantChange || isNeutral
+    ? 'hsl(var(--muted-foreground))' 
+    : isPositive 
+    ? 'hsl(var(--success))' 
+    : 'hsl(var(--danger))';
 
   return (
     <svg 

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 
 interface ChartDataPoint {
@@ -16,7 +16,13 @@ export const CollectionPortfolioChart = ({ data }: CollectionPortfolioChartProps
     return null;
   }
 
-  const isPositiveTrend = data.length >= 2 && data[data.length - 1].value >= data[0].value;
+  const startValue = data[0]?.value || 0;
+  const endValue = data[data.length - 1]?.value || 0;
+  const changePercent = startValue > 0 ? ((endValue - startValue) / startValue) * 100 : 0;
+  
+  const isPositiveTrend = changePercent > 0.5;
+  const isNegativeTrend = changePercent < -0.5;
+  const isNeutral = !isPositiveTrend && !isNegativeTrend;
 
   return (
     <Card className="border-border/50">
@@ -53,18 +59,43 @@ export const CollectionPortfolioChart = ({ data }: CollectionPortfolioChartProps
                 }}
               />
               <defs>
-                <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--success))" stopOpacity={0.8} />
-                  <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
+                <linearGradient id="positiveGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="negativeGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--danger))" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="hsl(var(--danger))" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="neutralGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="none"
+                fill={
+                  isPositiveTrend 
+                    ? "url(#positiveGradient)" 
+                    : isNegativeTrend 
+                    ? "url(#negativeGradient)" 
+                    : "url(#neutralGradient)"
+                }
+              />
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke={isPositiveTrend ? "hsl(var(--success))" : "hsl(var(--muted-foreground))"}
+                stroke={
+                  isPositiveTrend 
+                    ? "hsl(var(--success))" 
+                    : isNegativeTrend 
+                    ? "hsl(var(--danger))" 
+                    : "hsl(var(--muted-foreground))"
+                }
                 strokeWidth={3}
                 dot={false}
-                fill="url(#lineGradient)"
               />
             </LineChart>
           </ResponsiveContainer>

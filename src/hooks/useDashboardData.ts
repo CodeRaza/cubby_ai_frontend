@@ -368,6 +368,23 @@ export const useCollectionStats = (enabled: boolean) => {
         };
       }
 
+      // Add dummy data for "Basketball Cards" collection with negative performance
+      const basketballCardsLocation = locations?.find(loc => loc.name === "Basketball Cards");
+      if (basketballCardsLocation && !locationStats[basketballCardsLocation.id]) {
+        locationStats[basketballCardsLocation.id] = {
+          location_id: basketballCardsLocation.id,
+          total_value: 6450,
+          card_count: 24,
+          weekly_change: -185,
+          weekly_change_percent: -2.8,
+          top_mover: {
+            name: "LeBron James Base",
+            change_amount: -95
+          },
+          sparkline_data: generateSparklineData(6450, -2.8)
+        };
+      }
+
       return Object.values(locationStats);
     },
     enabled,
