@@ -10,32 +10,8 @@ const EBAY_APP_ID = Deno.env.get('EBAY_APP_ID');
 const EBAY_CERT_ID = Deno.env.get('EBAY_CERT_ID');
 const EBAY_SANDBOX = false; // Production API enabled
 
-async function getEbayAccessToken() {
-  const credentials = `${EBAY_APP_ID}:${EBAY_CERT_ID}`;
-  const encodedCredentials = btoa(credentials);
-  
-  const tokenUrl = EBAY_SANDBOX 
-    ? 'https://api.sandbox.ebay.com/identity/v1/oauth2/token'
-    : 'https://api.ebay.com/identity/v1/oauth2/token';
-
-  const response = await fetch(tokenUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${encodedCredentials}`,
-    },
-    body: 'grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope',
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to get eBay token: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data.access_token;
-}
-
-async function searchEbayListings(cardDetails: any, accessToken: string) {
+// Note: Finding Service API doesn't use OAuth - it uses App ID directly
+async function searchEbayListings(cardDetails: any) {
   // Build search query from card details
   const searchTerms = [
     cardDetails.player_name,
@@ -93,12 +69,8 @@ serve(async (req) => {
 
     console.log('[FETCH-PRICING] Fetching pricing for card:', cardDetails);
 
-    // Get eBay access token
-    const accessToken = await getEbayAccessToken();
-    console.log('[FETCH-PRICING] eBay token obtained');
-
-    // Search eBay for sold listings
-    const ebayData = await searchEbayListings(cardDetails, accessToken);
+    // Search eBay for sold listings (Finding Service uses App ID, not OAuth)
+    const ebayData = await searchEbayListings(cardDetails);
     
     // Parse eBay response
     const searchResult = ebayData?.findCompletedItemsResponse?.[0];
