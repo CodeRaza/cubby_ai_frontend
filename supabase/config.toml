@@ -1,5 +1,8 @@
 project_id = "ehqdxlqaqmcqnwtlovhw"
 
+[functions.ebay-marketplace-account-deletion]
+verify_jwt = false
+
 [functions.fetch-card-pricing]
 verify_jwt = true
 
