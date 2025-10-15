@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,15 +40,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-
-interface EbayListing {
-  title: string;
-  price: number;
-  condition: string;
-  url: string;
-  imageUrl: string;
-  soldDate: string;
-}
 
 interface ItemDetails {
   id: string;
@@ -100,6 +92,7 @@ const ItemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [item, setItem] = useState<ItemDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -109,7 +102,6 @@ const ItemDetail = () => {
   const [editedAcquiredDate, setEditedAcquiredDate] = useState("");
   const [editedCost, setEditedCost] = useState("");
   const [editedCardDetails, setEditedCardDetails] = useState<any>(null);
-  const [ebayComps, setEbayComps] = useState<EbayListing[]>([]);
   const [sold, setSold] = useState(false);
   const [soldPrice, setSoldPrice] = useState("");
   const [soldDate, setSoldDate] = useState("");
@@ -158,9 +150,6 @@ const ItemDetail = () => {
           estimated_value: data.card_details.estimated_value?.toString() || '',
           special_attributes: data.card_details.special_attributes || []
         });
-        
-        // Fetch mock eBay comps
-        fetchMockEbayComps(data);
       }
     } catch (error: any) {
       toast({
@@ -172,40 +161,6 @@ const ItemDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchMockEbayComps = (itemData: ItemDetails) => {
-    if (!itemData.card_details) return;
-    
-    const cd = itemData.card_details;
-    const mockComps: EbayListing[] = [
-      {
-        title: `${cd.card_year} ${cd.brand} ${cd.player_name} #${cd.card_number} ${cd.condition}`,
-        price: 42.50,
-        condition: "Near Mint",
-        url: "#",
-        imageUrl: itemData.image_url || "",
-        soldDate: "2 days ago"
-      },
-      {
-        title: `${cd.card_year} ${cd.brand} ${cd.player_name} ${cd.set_name}`,
-        price: 38.00,
-        condition: "Excellent",
-        url: "#",
-        imageUrl: itemData.image_url || "",
-        soldDate: "5 days ago"
-      },
-      {
-        title: `${cd.player_name} ${cd.card_year} Rookie Card`,
-        price: 35.99,
-        condition: "Near Mint",
-        url: "#",
-        imageUrl: itemData.image_url || "",
-        soldDate: "1 week ago"
-      }
-    ];
-    
-    setEbayComps(mockComps);
   };
 
   const handleUpdate = async () => {
@@ -690,13 +645,27 @@ const ItemDetail = () => {
                           size="sm"
                           onClick={async () => {
                             try {
+                              toast({
+                                title: "Fetching live market data...",
+                                description: "This may take a few seconds"
+                              });
+                              
                               const { error } = await supabase.functions.invoke('fetch-card-pricing', {
                                 body: { 
                                   cardId: item.card_details?.id,
-                                  cardDetails: item.card_details 
+                                  cardDetails: item.card_details,
+                                  force_refresh: true
                                 }
                               });
                               if (error) throw error;
+                              
+                              toast({
+                                title: "Market data updated",
+                                description: "Latest pricing and sales data loaded"
+                              });
+                              
+                              // Invalidate recent sales query to refresh the component
+                              queryClient.invalidateQueries({ queryKey: ['recent-sales', item.card_details?.id] });
                               
                               loadItem();
                             } catch (error: any) {
@@ -804,13 +773,27 @@ const ItemDetail = () => {
                         size="sm"
                         onClick={async () => {
                           try {
+                            toast({
+                              title: "Fetching market data...",
+                              description: "Getting latest pricing from eBay"
+                            });
+                            
                             const { error } = await supabase.functions.invoke('fetch-card-pricing', {
                               body: { 
                                 cardId: item.card_details?.id,
-                                cardDetails: item.card_details 
+                                cardDetails: item.card_details,
+                                force_refresh: true
                               }
                             });
                             if (error) throw error;
+                            
+                            toast({
+                              title: "Market data loaded",
+                              description: "Latest pricing and sales data available"
+                            });
+                            
+                            // Invalidate recent sales query to refresh the component
+                            queryClient.invalidateQueries({ queryKey: ['recent-sales', item.card_details?.id] });
                             
                             loadItem();
                           } catch (error: any) {
@@ -933,45 +916,6 @@ const ItemDetail = () => {
                   </div>
                 </div>
 
-            {/* eBay Comps Section */}
-            {item.source_context === "sports-cards" && ebayComps.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Recent eBay Sales</h3>
-                  <div className="space-y-3">
-                    {ebayComps.map((comp, index) => (
-                      <div key={index} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                        <img 
-                          src={comp.imageUrl} 
-                          alt={comp.title}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{comp.title}</p>
-                          <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                            <span>{comp.condition}</span>
-                            <span>•</span>
-                            <span>Sold {comp.soldDate}</span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-lg">${comp.price.toFixed(2)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-center p-4 bg-muted/30 rounded-lg">
-                    <p className="text-sm font-medium">
-                      Average Market Value: ${(ebayComps.reduce((sum, comp) => sum + comp.price, 0) / ebayComps.length).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Demo data shown • Connect eBay API for live comps
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
             </CardContent>
           </Card>
         )}

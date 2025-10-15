@@ -64,37 +64,39 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { cardId, cardDetails } = await req.json();
+    const { cardId, cardDetails, force_refresh } = await req.json();
 
     if (!cardId || !cardDetails) {
       throw new Error('Missing required fields');
     }
 
-    console.log('[FETCH-PRICING] Fetching pricing for card:', cardDetails);
+    console.log('[FETCH-PRICING] Fetching pricing for card:', cardDetails, 'force_refresh:', force_refresh);
 
-    // Check if we have recent pricing data (last 24 hours)
-    const { data: existingCard } = await supabase
-      .from('card_details')
-      .select('estimated_value, last_price_update')
-      .eq('id', cardId)
-      .single();
+    // Check if we have recent pricing data (last 24 hours) unless force refresh is requested
+    if (!force_refresh) {
+      const { data: existingCard } = await supabase
+        .from('card_details')
+        .select('estimated_value, last_price_update')
+        .eq('id', cardId)
+        .single();
 
-    if (existingCard?.last_price_update) {
-      const lastUpdate = new Date(existingCard.last_price_update);
-      const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60);
-      
-      if (hoursSinceUpdate < 24 && existingCard.estimated_value) {
-        console.log('[FETCH-PRICING] Using cached price from', hoursSinceUpdate.toFixed(1), 'hours ago');
-        return new Response(
-          JSON.stringify({
-            success: true,
-            currentPrice: existingCard.estimated_value,
-            recentSales: 0,
-            cached: true,
-            cacheAge: hoursSinceUpdate.toFixed(1)
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      if (existingCard?.last_price_update) {
+        const lastUpdate = new Date(existingCard.last_price_update);
+        const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursSinceUpdate < 24 && existingCard.estimated_value) {
+          console.log('[FETCH-PRICING] Using cached price from', hoursSinceUpdate.toFixed(1), 'hours ago');
+          return new Response(
+            JSON.stringify({
+              success: true,
+              currentPrice: existingCard.estimated_value,
+              recentSales: 0,
+              cached: true,
+              cacheAge: hoursSinceUpdate.toFixed(1)
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
     }
 

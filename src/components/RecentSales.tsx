@@ -30,7 +30,7 @@ export const RecentSales = ({ cardId, limit = 5 }: RecentSalesProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Sales</CardTitle>
+          <CardTitle>Recent eBay Sales</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -47,23 +47,33 @@ export const RecentSales = ({ cardId, limit = 5 }: RecentSalesProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Sales</CardTitle>
+          <CardTitle>Recent eBay Sales</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No recent sales data available.</p>
+          <div className="text-center py-8">
+            <p className="text-sm text-muted-foreground mb-2">
+              No recent sales data available yet
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Click "Refresh Pricing" above to fetch live eBay sales data
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
+  // Calculate average price from sales
+  const avgPrice = sales.reduce((sum, sale) => sum + Number(sale.price), 0) / sales.length;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Sales</CardTitle>
+        <CardTitle>Recent eBay Sales</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {sales.map((sale, index) => (
+          {sales.map((sale) => (
             <div 
               key={sale.id} 
               className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
@@ -88,12 +98,21 @@ export const RecentSales = ({ cardId, limit = 5 }: RecentSalesProps) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="View on eBay"
                 >
                   <ExternalLink className="h-4 w-4" />
                 </a>
               )}
             </div>
           ))}
+        </div>
+        <div className="mt-4 pt-4 border-t text-center">
+          <p className="text-sm font-medium">
+            Average Market Value: ${avgPrice.toFixed(2)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Based on {sales.length} recent {sales.length === 1 ? 'sale' : 'sales'}
+          </p>
         </div>
       </CardContent>
     </Card>
