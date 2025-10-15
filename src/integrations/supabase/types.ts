@@ -195,6 +195,30 @@ export type Database = {
           },
         ]
       }
+      email_settings: {
+        Row: {
+          emails_enabled: boolean
+          id: string
+          notes: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          emails_enabled?: boolean
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          emails_enabled?: boolean
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       email_tracking: {
         Row: {
           created_at: string
