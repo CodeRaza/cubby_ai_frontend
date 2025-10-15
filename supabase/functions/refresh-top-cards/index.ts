@@ -25,36 +25,38 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('[REFRESH-TOP-CARDS] Starting top cards refresh');
+    // Parse request body for batch parameters
+    const { startIndex = 0, limit = 4900 } = req.method === 'POST' 
+      ? await req.json().catch(() => ({}))
+      : {};
 
-    // Get top cards based on multiple metrics
-    const topCards = await identifyTopCards(supabase);
-    console.log(`[REFRESH-TOP-CARDS] Identified ${topCards.length} top cards`);
+    console.log(`[REFRESH-TOP-CARDS] Starting batch: startIndex=${startIndex}, limit=${limit}`);
+
+    // Get all top 20k cards, then slice to requested batch
+    const allTopCards = await identifyTopCards(supabase);
+    const topCards = allTopCards.slice(startIndex, startIndex + limit);
+    console.log(`[REFRESH-TOP-CARDS] Processing ${topCards.length} cards (${allTopCards.length} total top cards)`);
 
     let refreshed = 0;
     let failed = 0;
 
-    // Refresh pricing for top cards in smaller batches for rate limiting
-    const batchSize = 25;
-    for (let i = 0; i < topCards.length; i += batchSize) {
-      const batch = topCards.slice(i, i + batchSize);
+    // Process cards with 2-second delay between each call (consistent with other functions)
+    // This ensures we stay within the 5k/day rate limit
+    for (let i = 0; i < topCards.length; i++) {
+      const card = topCards[i];
       
-      await Promise.all(
-        batch.map(async (card) => {
-          try {
-            await refreshCardPricing(supabase, card);
-            refreshed++;
-            console.log(`[REFRESH-TOP-CARDS] Refreshed ${card.card_key}`);
-          } catch (error) {
-            failed++;
-            console.error(`[REFRESH-TOP-CARDS] Failed to refresh ${card.card_key}:`, error);
-          }
-        })
-      );
-
-      // Longer rate limit delay between batches (5 seconds)
-      if (i + batchSize < topCards.length) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
+      try {
+        await refreshCardPricing(supabase, card);
+        refreshed++;
+        console.log(`[REFRESH-TOP-CARDS] Refreshed ${refreshed}/${topCards.length}: ${card.card_key}`);
+      } catch (error) {
+        failed++;
+        console.error(`[REFRESH-TOP-CARDS] Failed to refresh ${card.card_key}:`, error);
+      }
+      
+      // Rate limit: 2 seconds between cards (stay within 5k/day limit)
+      if (i < topCards.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
@@ -65,7 +67,11 @@ Deno.serve(async (req) => {
         success: true, 
         refreshed,
         failed,
-        total: topCards.length 
+        batchInfo: {
+          startIndex,
+          limit,
+          processed: topCards.length
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -155,10 +161,10 @@ async function identifyTopCards(supabase: any): Promise<TopCard[]> {
     }
   }
 
-  // Sort by score and take top 5K
+  // Sort by score and take top 20K (will be batched by caller)
   const topCards = Array.from(cardScores.entries())
     .sort((a, b) => b[1].score - a[1].score)
-    .slice(0, 5000)
+    .slice(0, 20000)
     .map(([card_key, { card, score }]) => ({
       card_key,
       card_year: card.card_year,

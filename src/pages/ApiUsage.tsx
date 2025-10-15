@@ -368,13 +368,13 @@ export default function ApiUsage() {
                   </CardContent>
                 </Card>
 
-                {/* Use Case 3: Top Cards Refresh */}
+                {/* Use Case 3: Top Cards Refresh - Global Cache */}
                 <Card>
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-primary" />
-                        <CardTitle className="text-lg">Top Cards Refresh</CardTitle>
+                        <CardTitle className="text-lg">Global Cache Seeding (Top 20k)</CardTitle>
                       </div>
                       <Badge variant="default">Direct API</Badge>
                     </div>
@@ -384,33 +384,46 @@ export default function ApiUsage() {
                     <div>
                       <p className="text-sm font-semibold mb-1">Purpose</p>
                       <p className="text-sm text-muted-foreground">
-                        Proactive refresh of high-value and high-demand cards
+                        Maintains a global cache of the top 20,000 most valuable and popular cards. Provides instant pricing for 80%+ of user scans.
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold mb-1">Trigger Method</p>
-                      <Badge variant="outline" className="text-xs">Scheduled Background</Badge>
+                    <div className="grid gap-2 p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                      <div className="flex items-start gap-2">
+                        <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-blue-700">Initial Seed (4-Day Process)</p>
+                          <p className="text-xs text-muted-foreground">
+                            Run manually 4 times to seed initial 20k cards while staying within 5k/day limit:
+                          </p>
+                          <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                            <li>Day 1: POST with startIndex=0, limit=4900</li>
+                            <li>Day 2: POST with startIndex=4900, limit=4900</li>
+                            <li>Day 3: POST with startIndex=9800, limit=4900</li>
+                            <li>Day 4: POST with startIndex=14700, limit=4900</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold mb-1">Scope</p>
-                      <p className="text-xs text-muted-foreground mb-1">Up to 5,000 top cards based on:</p>
+                      <p className="text-sm font-semibold mb-1">Selection Criteria (Scored)</p>
                       <ul className="text-xs text-muted-foreground list-disc list-inside space-y-0.5">
-                        <li>Estimated value ranking</li>
-                        <li>Queue frequency (demand)</li>
-                        <li>User price alerts (interest)</li>
+                        <li>Top 2,000 highest value cards (1000 pts base score)</li>
+                        <li>Queue frequency: +10 pts per request</li>
+                        <li>User price alerts: +50 pts</li>
                       </ul>
                     </div>
                     <div>
                       <p className="text-sm font-semibold mb-1">Rate Limiting</p>
                       <div className="flex gap-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs">2 second delay</Badge>
-                        <Badge variant="secondary" className="text-xs">Batch size: 50</Badge>
+                        <Badge variant="secondary" className="text-xs">Max 4,900 cards/run</Badge>
+                        <Badge className="text-xs bg-green-500/20 text-green-700 border-green-500/30">Leaves 100 calls for queue</Badge>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold mb-1">Data Usage</p>
+                      <p className="text-sm font-semibold mb-1">Daily API Impact</p>
                       <p className="text-xs text-muted-foreground">
-                        Only uses 10 most recent sales for pricing calculation
+                        Uses 4,900 of 5,000 daily calls, reserving 100 for queue processing
                       </p>
                     </div>
                   </CardContent>
@@ -563,8 +576,12 @@ export default function ApiUsage() {
                           <Badge variant="secondary">Daily at 3 AM</Badge>
                         </div>
                         <div className="flex justify-between items-center p-2 bg-muted rounded">
-                          <span>Top Cards Refresh Batch Size</span>
-                          <Badge variant="secondary">50 cards</Badge>
+                          <span>Global Cache Refresh Size</span>
+                          <Badge variant="secondary">4,900 cards/run</Badge>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-muted rounded">
+                          <span>Global Cache Total Tracked</span>
+                          <Badge variant="secondary">20,000 cards</Badge>
                         </div>
                       </div>
                     </AccordionContent>
