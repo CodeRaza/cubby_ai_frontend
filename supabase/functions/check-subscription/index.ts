@@ -120,10 +120,14 @@ serve(async (req) => {
       
       // Map product ID to tier
       const tierMap: Record<string, string> = {
-        // Current live products
+        // New products (correct pricing)
+        'prod_TEqPkCAjeT00Es': 'starter',  // Starter Plan ($4.99)
+        'prod_TEqQKlQR7l8Zzl': 'pro',      // Pro Plan ($14.99)
+        'prod_TEqQIVobTGZArm': 'investor', // Investor Plan ($29.99)
+        // Legacy products (for existing subscriptions)
         'prod_TBoKCcrRz4MbeO': 'starter',
         'prod_TBoLO0sXl4MzwM': 'pro',
-        'prod_TBoMaQ6mp9ejqO': 'power'
+        'prod_TBoMaQ6mp9ejqO': 'investor'
       };
       
       planTier = tierMap[productId] || 'free';
