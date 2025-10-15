@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import { CardDetailsForm } from "@/components/CardDetailsForm";
+import { formatCardTitle, formatCardSubtitle, getCardBadges } from "@/lib/cardFormatting";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -438,17 +439,40 @@ const ItemDetail = () => {
         <Card>
           <CardContent className="pt-6 space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{item.name}</h1>
-              {item.category && (
-                <Badge variant="secondary">{item.category}</Badge>
+              {item.card_details ? (
+                <>
+                  <h1 className="text-2xl font-bold mb-2 leading-tight">
+                    {formatCardTitle(item.name, item.card_details)}
+                  </h1>
+                  <p className="text-muted-foreground mb-3">
+                    {formatCardSubtitle(item.card_details)}
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {getCardBadges(item.card_details).map((badge, idx) => (
+                      <Badge key={idx} variant="secondary" className="gap-1">
+                        <span>{badge.icon}</span>
+                        <span>{badge.label}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-3xl font-bold mb-2">{item.name}</h1>
+                  {item.category && (
+                    <Badge variant="secondary">{item.category}</Badge>
+                  )}
+                </>
               )}
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Package className="h-5 w-5" />
-                <span>Quantity: {item.quantity}</span>
-              </div>
+              {item.quantity > 1 && (
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Package className="h-5 w-5" />
+                  <span>Quantity: {item.quantity}</span>
+                </div>
+              )}
 
               {item.location && (
                 <div className="flex items-center gap-3 text-muted-foreground">

@@ -15,6 +15,18 @@ interface Item {
   location: {
     name: string;
   } | null;
+  card_details?: {
+    player_name?: string;
+    card_year?: number;
+    brand?: string;
+    card_number?: string;
+    set_name?: string;
+    condition?: string;
+    is_graded?: boolean;
+    grading_company?: string;
+    grade?: number;
+    special_attributes?: string[];
+  } | null;
 }
 
 const Search = () => {
@@ -48,7 +60,8 @@ const Search = () => {
       .from("items")
       .select(`
         *,
-        location:locations(name)
+        location:locations(name),
+        card_details(*)
       `)
       .order("created_at", { ascending: false });
 
@@ -98,6 +111,7 @@ const Search = () => {
                 imageUrl={item.image_url || undefined}
                 locationName={item.location?.name}
                 onClick={() => navigate(`/item/${item.id}`)}
+                cardDetails={item.card_details || undefined}
               />
             ))}
           </div>

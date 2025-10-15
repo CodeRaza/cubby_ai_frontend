@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Package } from "lucide-react";
+import { formatCardTitle, formatCardSubtitle, getCardBadges } from "@/lib/cardFormatting";
 
 interface ItemCardProps {
   name: string;
@@ -9,6 +10,18 @@ interface ItemCardProps {
   imageUrl?: string;
   locationName?: string;
   onClick: () => void;
+  cardDetails?: {
+    player_name?: string;
+    card_year?: number;
+    brand?: string;
+    card_number?: string;
+    set_name?: string;
+    condition?: string;
+    is_graded?: boolean;
+    grading_company?: string;
+    grade?: number;
+    special_attributes?: string[];
+  };
 }
 
 export const ItemCard = ({ 
@@ -17,8 +30,13 @@ export const ItemCard = ({
   quantity, 
   imageUrl, 
   locationName,
-  onClick 
+  onClick,
+  cardDetails
 }: ItemCardProps) => {
+  const displayTitle = cardDetails ? formatCardTitle(name, cardDetails) : name;
+  const subtitle = cardDetails ? formatCardSubtitle(cardDetails) : null;
+  const badges = cardDetails ? getCardBadges(cardDetails) : [];
+
   return (
     <Card 
       className="cursor-pointer hover:shadow-md transition-all duration-200 overflow-hidden"
@@ -36,19 +54,44 @@ export const ItemCard = ({
             <Package className="h-12 w-12 text-muted-foreground/30" />
           </div>
         )}
+        {/* Badge overlay */}
+        {badges.length > 0 && (
+          <div className="absolute top-2 right-2 flex gap-1">
+            {badges.slice(0, 2).map((badge, idx) => (
+              <span 
+                key={idx}
+                className="text-lg bg-background/90 backdrop-blur-sm rounded-full w-7 h-7 flex items-center justify-center shadow-md"
+                title={badge.label}
+              >
+                {badge.icon}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <CardContent className="p-4">
         <div className="space-y-2">
-          <h3 className="font-semibold truncate">{name}</h3>
+          <div>
+            <h3 className="font-semibold text-sm leading-tight line-clamp-2">
+              {displayTitle}
+            </h3>
+            {subtitle && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {subtitle}
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {category && (
+            {category && !cardDetails && (
               <Badge variant="secondary" className="text-xs">
                 {category}
               </Badge>
             )}
-            <span className="text-xs text-muted-foreground">
-              Qty: {quantity}
-            </span>
+            {quantity > 1 && (
+              <span className="text-xs text-muted-foreground">
+                Qty: {quantity}
+              </span>
+            )}
           </div>
           {locationName && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">

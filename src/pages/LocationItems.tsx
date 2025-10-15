@@ -27,6 +27,18 @@ interface Item {
   category: string | null;
   quantity: number;
   image_url: string | null;
+  card_details?: {
+    player_name?: string;
+    card_year?: number;
+    brand?: string;
+    card_number?: string;
+    set_name?: string;
+    condition?: string;
+    is_graded?: boolean;
+    grading_company?: string;
+    grade?: number;
+    special_attributes?: string[];
+  } | null;
 }
 
 interface Location {
@@ -110,7 +122,10 @@ const LocationItems = () => {
 
       const { data: itemsData } = await supabase
         .from("items")
-        .select("*")
+        .select(`
+          *,
+          card_details(*)
+        `)
         .eq("location_id", locationId)
         .order("created_at", { ascending: false });
 
@@ -326,6 +341,7 @@ const LocationItems = () => {
                   quantity={item.quantity}
                   imageUrl={item.image_url || undefined}
                   onClick={() => !selectionMode && navigate(`/item/${item.id}`)}
+                  cardDetails={item.card_details || undefined}
                 />
               </div>
             ))}
