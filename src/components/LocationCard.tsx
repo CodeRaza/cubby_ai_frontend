@@ -62,44 +62,35 @@ export const LocationCard = ({
               <LocationIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             )}
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-base sm:text-lg mb-1.5 sm:mb-2">{name}</h3>
+          <div className="flex-1 min-w-0 mr-auto">
+            <h3 className="font-semibold text-base sm:text-lg mb-2">{name}</h3>
             {isSportsCards && collectionStats ? (
-              <div className="space-y-1.5 sm:space-y-2">
-                <div className="flex flex-col gap-1">
+              <div className="space-y-2">
+                <div className="flex flex-col gap-1.5">
                   <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-2xl sm:text-3xl font-bold">${collectionStats.total_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                    <span className="text-3xl sm:text-4xl font-bold">${collectionStats.total_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
                     {!isNeutral && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Badge 
-                              variant="outline"
-                              className={`gap-1 text-xs sm:text-sm border-none ${
-                                isPositive 
-                                  ? 'bg-success/15 text-success' 
-                                  : 'bg-danger/15 text-danger'
-                              }`}
-                            >
-                              {isPositive ? <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" /> : <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />}
-                              {isPositive ? '+' : ''}{collectionStats.weekly_change_percent.toFixed(1)}%
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Change over last 7 days</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Badge 
+                        variant="outline"
+                        className={`gap-1 text-xs sm:text-sm border-none ${
+                          isPositive 
+                            ? 'bg-success/15 text-success' 
+                            : 'bg-danger/15 text-danger'
+                        }`}
+                      >
+                        {isPositive ? <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" /> : <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />}
+                        {isPositive ? '+' : ''}{collectionStats.weekly_change_percent.toFixed(1)}%
+                      </Badge>
                     )}
                   </div>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     {collectionStats.card_count} cards • {isPositive ? '+' : ''}{collectionStats.weekly_change >= 0 ? '$' : '-$'}{Math.abs(collectionStats.weekly_change).toLocaleString('en-US', { maximumFractionDigits: 0 })} this week
                   </span>
                 </div>
                 {collectionStats.top_mover && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Top: <span className="font-medium text-foreground">{collectionStats.top_mover.name}</span>
-                    <span className={isPositive ? 'text-success' : 'text-danger'}>
+                    <span className={isPositive ? 'text-success font-medium' : 'text-danger font-medium'}>
                       {' '}{isPositive ? '↑' : '↓'} ${Math.abs(collectionStats.top_mover.change_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                     </span>
                   </p>
@@ -111,7 +102,7 @@ export const LocationCard = ({
               </p>
             )}
           </div>
-          <div className="flex gap-0.5 sm:gap-1 shrink-0">
+          <div className="flex gap-0.5 sm:gap-1 shrink-0 self-start">
             <Button
               variant="ghost"
               size="icon"
@@ -141,7 +132,7 @@ export const LocationCard = ({
         
         {/* Sparkline for sports cards */}
         {isSportsCards && collectionStats && collectionStats.sparkline_data.length > 0 && (
-          <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/50">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/50">
             <MiniSparkline data={collectionStats.sparkline_data} isNeutral={isNeutral} />
           </div>
         )}

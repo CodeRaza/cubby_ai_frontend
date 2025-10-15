@@ -86,7 +86,7 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
   };
 
   return (
-    <div className="bg-gradient-success border-b">
+    <div className="bg-card border-b">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Weekly Portfolio Change - Hero Section */}
         <div className="space-y-2 sm:space-y-3 flex flex-col items-center">
