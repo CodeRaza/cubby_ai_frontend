@@ -72,32 +72,44 @@ serve(async (req) => {
 
     console.log('[FETCH-PRICING] Fetching pricing for card:', cardDetails);
 
-    // Search eBay for sold listings (Finding Service uses App ID, not OAuth)
-    const ebayData = await searchEbayListings(cardDetails);
-    
-    // Parse eBay response
-    const searchResult = ebayData?.findCompletedItemsResponse?.[0];
-    const items = searchResult?.searchResult?.[0]?.item || [];
-    
-    console.log('[FETCH-PRICING] Found', items.length, 'eBay listings');
-
-    const recentSales = [];
+    let recentSales = [];
     let totalPrice = 0;
-    
-    for (const item of items.slice(0, 10)) {
-      const sellingStatus = item.sellingStatus?.[0];
-      const price = parseFloat(sellingStatus?.currentPrice?.[0]?.__value__ || '0');
+    let isRateLimited = false;
+
+    try {
+      // Search eBay for sold listings (Finding Service uses App ID, not OAuth)
+      const ebayData = await searchEbayListings(cardDetails);
       
-      if (price > 0) {
-        recentSales.push({
-          card_id: cardId,
-          price: Number(price.toFixed(2)),
-          source: 'ebay',
-          condition: cardDetails.condition || 'raw',
-          date_of_sale: item.listingInfo?.[0]?.endTime?.[0] || new Date().toISOString(),
-          sale_url: item.viewItemURL?.[0] || null
-        });
-        totalPrice += price;
+      // Parse eBay response
+      const searchResult = ebayData?.findCompletedItemsResponse?.[0];
+      const items = searchResult?.searchResult?.[0]?.item || [];
+      
+      console.log('[FETCH-PRICING] Found', items.length, 'eBay listings');
+
+      for (const item of items.slice(0, 10)) {
+        const sellingStatus = item.sellingStatus?.[0];
+        const price = parseFloat(sellingStatus?.currentPrice?.[0]?.__value__ || '0');
+        
+        if (price > 0) {
+          recentSales.push({
+            card_id: cardId,
+            price: Number(price.toFixed(2)),
+            source: 'ebay',
+            condition: cardDetails.condition || 'raw',
+            date_of_sale: item.listingInfo?.[0]?.endTime?.[0] || new Date().toISOString(),
+            sale_url: item.viewItemURL?.[0] || null
+          });
+          totalPrice += price;
+        }
+      }
+    } catch (ebayError) {
+      // Check if it's a rate limit error
+      if (ebayError instanceof Error && ebayError.message.includes('exceeded the number of times')) {
+        console.log('[FETCH-PRICING] eBay rate limit reached, using base price calculation');
+        isRateLimited = true;
+      } else {
+        // Re-throw non-rate-limit errors
+        throw ebayError;
       }
     }
 
@@ -106,16 +118,18 @@ serve(async (req) => {
       ? totalPrice / recentSales.length 
       : calculateBasePrice(cardDetails);
 
-    console.log('[FETCH-PRICING] Calculated average price:', currentPrice);
+    console.log('[FETCH-PRICING] Calculated price:', currentPrice, isRateLimited ? '(base price - rate limited)' : '(from eBay)');
 
-    // Insert price history
-    const { error: historyError } = await supabase
-      .from('price_history')
-      .insert(recentSales);
+    // Insert price history only if we got eBay data
+    if (recentSales.length > 0) {
+      const { error: historyError } = await supabase
+        .from('price_history')
+        .insert(recentSales);
 
-    if (historyError) {
-      console.error('[FETCH-PRICING] Error inserting price history:', historyError);
-      throw historyError;
+      if (historyError) {
+        console.error('[FETCH-PRICING] Error inserting price history:', historyError);
+        // Don't throw - continue with price update
+      }
     }
 
     // Update card details with latest pricing
@@ -138,7 +152,9 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         currentPrice: Number(currentPrice.toFixed(2)),
-        recentSales: recentSales.length
+        recentSales: recentSales.length,
+        isEstimated: isRateLimited,
+        message: isRateLimited ? 'eBay rate limit reached. Price estimated based on card attributes.' : undefined
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
