@@ -27,6 +27,7 @@ import Garage from "./pages/landing/Garage";
 import Movers from "./pages/landing/Movers";
 import Business from "./pages/landing/Business";
 import Property from "./pages/landing/Property";
+import SportsCards from "./pages/landing/SportsCards";
 import TermsOfService from "./pages/legal/TermsOfService";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 
@@ -57,6 +58,7 @@ const App = () => (
           <Route path="/for/movers" element={<Movers />} />
           <Route path="/for/business" element={<Business />} />
           <Route path="/for/property" element={<Property />} />
+          <Route path="/for/sports-cards" element={<SportsCards />} />
           
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/scan" element={<Scan />} />

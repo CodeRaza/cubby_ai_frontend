@@ -17,6 +17,7 @@ const Onboarding = () => {
   const [locationName, setLocationName] = useState("");
   const [creating, setCreating] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [source, setSource] = useState("");
 
   useEffect(() => {
     // Verify user is authenticated before showing onboarding
@@ -29,6 +30,10 @@ const Onboarding = () => {
       setChecking(false);
     };
     checkAuth();
+
+    // Get source from sessionStorage
+    const userSource = sessionStorage.getItem('user_source') || '';
+    setSource(userSource);
   }, [navigate]);
 
   const handleCreateLocation = async () => {
@@ -109,9 +114,14 @@ const Onboarding = () => {
         {step === 1 && (
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl">Welcome to Cubby! 🎉</CardTitle>
+              <CardTitle className="text-3xl">
+                {source === 'sports-cards' ? 'Welcome, Collector! 🏆' : 'Welcome to Cubby! 🎉'}
+              </CardTitle>
               <CardDescription className="text-lg">
-                Let's get you set up in just a few steps
+                {source === 'sports-cards' 
+                  ? "Let's set up your card collection in 3 steps"
+                  : "Let's get you set up in just a few steps"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -119,9 +129,14 @@ const Onboarding = () => {
                 <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                   <MapPin className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="font-semibold mb-1">Organize by Location</h3>
+                    <h3 className="font-semibold mb-1">
+                      {source === 'sports-cards' ? 'Organize by Collection' : 'Organize by Location'}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Create locations like "Garage", "Kitchen", or "Storage Unit" to organize your items
+                      {source === 'sports-cards' 
+                        ? 'Create collections like "Baseball Cards", "Rookie Cards", or "Graded Cards"'
+                        : 'Create locations like "Garage", "Kitchen", or "Storage Unit" to organize your items'
+                      }
                     </p>
                   </div>
                 </div>
@@ -129,29 +144,51 @@ const Onboarding = () => {
                 <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                   <Camera className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="font-semibold mb-1">AI-Powered Scanning</h3>
+                    <h3 className="font-semibold mb-1">
+                      {source === 'sports-cards' ? 'AI Detection of Players & Cards' : 'AI-Powered Scanning'}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Take a photo and our AI automatically detects and catalogs all your items
+                      {source === 'sports-cards' 
+                        ? 'Our AI identifies players, years, brands, and grades automatically'
+                        : 'Take a photo and our AI automatically detects and catalogs all your items'
+                      }
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-                  <QrCode className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-1">QR Code Labels</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Generate and print QR codes for quick access to your inventory from anywhere
-                    </p>
+                {source === 'sports-cards' ? (
+                  <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+                    <Sparkles className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                    <div>
+                      <h3 className="font-semibold mb-1">Track Condition & Values</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Record card conditions, grading info, and estimated values
+                      </p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+                    <QrCode className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                    <div>
+                      <h3 className="font-semibold mb-1">QR Code Labels</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Generate and print QR codes for quick access to your inventory from anywhere
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                   <Search className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="font-semibold mb-1">Instant Search</h3>
+                    <h3 className="font-semibold mb-1">
+                      {source === 'sports-cards' ? 'Search by Player, Year, or Set' : 'Instant Search'}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Find any item in seconds across all your locations
+                      {source === 'sports-cards' 
+                        ? 'Find any card instantly by player, team, year, or brand'
+                        : 'Find any item in seconds across all your locations'
+                      }
                     </p>
                   </div>
                 </div>
@@ -167,17 +204,27 @@ const Onboarding = () => {
         {step === 2 && (
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Create Your First Location</CardTitle>
+              <CardTitle className="text-2xl">
+                {source === 'sports-cards' ? 'Create Your First Collection' : 'Create Your First Location'}
+              </CardTitle>
               <CardDescription>
-                Start by creating a location where you'll store items
+                {source === 'sports-cards' 
+                  ? 'Start by creating a collection to organize your cards'
+                  : 'Start by creating a location where you\'ll store items'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="location-name">Location Name</Label>
+                <Label htmlFor="location-name">
+                  {source === 'sports-cards' ? 'Collection Name' : 'Location Name'}
+                </Label>
                 <Input
                   id="location-name"
-                  placeholder="e.g., Garage, Kitchen, Storage Unit..."
+                  placeholder={source === 'sports-cards' 
+                    ? 'e.g., Baseball Cards, Rookie Cards, Graded Cards...'
+                    : 'e.g., Garage, Kitchen, Storage Unit...'
+                  }
                   value={locationName}
                   onChange={(e) => setLocationName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateLocation()}
@@ -188,7 +235,17 @@ const Onboarding = () => {
               <div className="space-y-2">
                 <Label className="text-sm text-muted-foreground">Quick Presets</Label>
                 <div className="grid grid-cols-3 gap-2">
-                  {PREDEFINED_LOCATIONS.slice(0, 6).map((locationType) => {
+                  {(source === 'sports-cards' 
+                    ? [
+                        { id: 'baseball', name: 'Baseball Cards', icon: MapPin },
+                        { id: 'basketball', name: 'Basketball Cards', icon: MapPin },
+                        { id: 'football', name: 'Football Cards', icon: MapPin },
+                        { id: 'hockey', name: 'Hockey Cards', icon: MapPin },
+                        { id: 'rookie', name: 'Rookie Cards', icon: MapPin },
+                        { id: 'graded', name: 'Graded Cards', icon: MapPin },
+                      ]
+                    : PREDEFINED_LOCATIONS.slice(0, 6)
+                  ).map((locationType) => {
                     const IconComponent = locationType.icon;
                     return (
                       <Button
@@ -218,7 +275,7 @@ const Onboarding = () => {
                   disabled={!locationName.trim() || creating}
                   className="flex-1"
                 >
-                  {creating ? "Creating..." : "Create Location"}
+                  {creating ? "Creating..." : `Create ${source === 'sports-cards' ? 'Collection' : 'Location'}`}
                 </Button>
               </div>
             </CardContent>

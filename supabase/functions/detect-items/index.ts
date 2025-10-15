@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { image } = await req.json();
+    const { image, context } = await req.json();
     
     if (!image) {
       throw new Error('No image provided');
@@ -23,21 +23,35 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    console.log('Analyzing image with AI...');
+    const isSportsCards = context === 'sports-cards';
+    console.log('Analyzing image with AI...', isSportsCards ? '(Sports Cards mode)' : '');
 
-    // Call Lovable AI with vision capabilities
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a highly accurate object detection expert specializing in home inventory management. Your goal is to identify items with MAXIMUM PRECISION and ACCURACY.
+    // Build system prompt based on context
+    const systemPrompt = isSportsCards 
+      ? `You are a sports memorabilia expert specialized in trading card identification.
+
+CRITICAL SPORTS CARD DETECTION RULES:
+1. Identify SPECIFIC players and athletes (e.g., "Michael Jordan Basketball Card", "Derek Jeter Baseball Card")
+2. Extract visible years when possible (e.g., "1989 Upper Deck Ken Griffey Jr.")
+3. Identify card brands/sets when visible (Topps, Panini, Upper Deck, Bowman, etc.)
+4. For graded cards, note grading companies (PSA, BGS, CGC) and grades if visible
+5. Specify sport: Baseball Card, Basketball Card, Football Card, Hockey Card
+6. Include jersey/rookie/autograph when visible (e.g., "Kobe Bryant Rookie Card")
+
+EXAMPLES:
+✓ "1986 Fleer Michael Jordan Rookie Card"
+✓ "2020 Panini Prizm Tom Brady"
+✓ "PSA 10 Mickey Mantle 1952 Topps"
+✓ "Mike Trout Autographed Card"
+✗ "Card" (too generic)
+✗ "Sports Item" (too vague)
+
+For non-card items in frame:
+- Card sleeves, top loaders, binders
+- Grading slabs
+- Card storage boxes`
+      : `You are a highly accurate object detection expert specializing in home inventory management. Your goal is to identify items with MAXIMUM PRECISION and ACCURACY.
+
 
 CRITICAL IDENTIFICATION RULES:
 1. Be SPECIFIC and ACCURATE - Use the actual item type you see, not generic categories
@@ -91,7 +105,21 @@ Return ONLY a valid JSON array. Example:
   {"label": "Red Apple", "confidence": 0.92, "bbox": {"x": 0.5, "y": 0.4, "width": 0.1, "height": 0.12}}
 ]
 
-Be thorough but ACCURATE - detect as many items as possible with precise names and TIGHT bounding boxes!`
+Be thorough but ACCURATE - detect as many items as possible with precise names and TIGHT bounding boxes!`;
+
+    // Call Lovable AI with vision capabilities
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
           },
           {
             role: 'user',

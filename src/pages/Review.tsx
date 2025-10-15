@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import { ReminderSettings } from "@/components/ReminderSettings";
+import { CardDetailsForm } from "@/components/CardDetailsForm";
 import {
   Select,
   SelectContent,
@@ -44,6 +45,19 @@ interface ReviewItem extends Detection {
   reminder_enabled: boolean;
   reminder_interval_value: number;
   reminder_interval_unit: string;
+  cardDetails?: {
+    player_name: string;
+    card_year: string;
+    set_brand: string;
+    sport: string;
+    card_number: string;
+    condition: string;
+    is_graded: boolean;
+    grading_company: string;
+    grade: string;
+    estimated_value: string;
+    special_attributes: string[];
+  };
 }
 
 const Review = () => {
@@ -58,8 +72,12 @@ const Review = () => {
   const [saving, setSaving] = useState(false);
   const [showNewLocationDialog, setShowNewLocationDialog] = useState(false);
   const [newLocationName, setNewLocationName] = useState("");
+  const [source, setSource] = useState("");
 
   useEffect(() => {
+    const userSource = sessionStorage.getItem('user_source') || '';
+    setSource(userSource);
+
     if (detections.length > 0) {
       setItems(
         detections.map((d: Detection) => ({
@@ -71,6 +89,21 @@ const Review = () => {
           reminder_enabled: false,
           reminder_interval_value: 1,
           reminder_interval_unit: "months",
+          ...(userSource === 'sports-cards' && {
+            cardDetails: {
+              player_name: d.label.includes('Card') ? d.label.replace(/Card$/i, '').trim() : '',
+              card_year: '',
+              set_brand: '',
+              sport: '',
+              card_number: '',
+              condition: '',
+              is_graded: false,
+              grading_company: '',
+              grade: '',
+              estimated_value: '',
+              special_attributes: [],
+            }
+          })
         }))
       );
     }
@@ -92,7 +125,7 @@ const Review = () => {
     }
   };
 
-  const updateItem = (index: number, field: keyof ReviewItem, value: string | number | boolean) => {
+  const updateItem = (index: number, field: keyof ReviewItem, value: any) => {
     setItems(prev => prev.map((item, i) => 
       i === index ? { ...item, [field]: value } : item
     ));
@@ -215,6 +248,24 @@ const Review = () => {
           .single();
 
         if (itemError) throw itemError;
+
+        // Save card details if this is a sports card
+        if (item.cardDetails && source === 'sports-cards') {
+          await supabase.from("card_details").insert({
+            item_id: insertedItem.id,
+            player_name: item.cardDetails.player_name || null,
+            card_year: item.cardDetails.card_year ? parseInt(item.cardDetails.card_year) : null,
+            set_brand: item.cardDetails.set_brand || null,
+            sport: item.cardDetails.sport || null,
+            card_number: item.cardDetails.card_number || null,
+            condition: item.cardDetails.condition || null,
+            is_graded: item.cardDetails.is_graded,
+            grading_company: item.cardDetails.is_graded ? item.cardDetails.grading_company : null,
+            grade: item.cardDetails.is_graded && item.cardDetails.grade ? parseFloat(item.cardDetails.grade) : null,
+            estimated_value: item.cardDetails.estimated_value ? parseFloat(item.cardDetails.estimated_value) : null,
+            special_attributes: item.cardDetails.special_attributes,
+          });
+        }
 
         // Save detection data with bounding boxes
         const detection = detections.find(d => d.label === item.label);
@@ -396,6 +447,13 @@ const Review = () => {
                   onIntervalValueChange={(value) => updateItem(index, "reminder_interval_value", value)}
                   onIntervalUnitChange={(unit) => updateItem(index, "reminder_interval_unit", unit)}
                 />
+
+                {source === 'sports-cards' && item.cardDetails && (
+                  <CardDetailsForm
+                    details={item.cardDetails}
+                    onChange={(details) => updateItem(index, 'cardDetails', details)}
+                  />
+                )}
               </CardContent>
             </Card>
           ))}

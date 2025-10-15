@@ -75,8 +75,14 @@ const Scan = () => {
         setTimeout(() => reject(new Error('Request timed out after 60 seconds')), 60000)
       );
 
+      // Get source from sessionStorage to pass to AI
+      const userSource = sessionStorage.getItem('user_source') || '';
+      
       const functionPromise = supabase.functions.invoke('detect-items', {
-        body: { image: base64 }
+        body: { 
+          image: base64,
+          context: userSource
+        }
       });
 
       const { data, error } = await Promise.race([
