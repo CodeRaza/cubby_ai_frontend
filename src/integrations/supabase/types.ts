@@ -464,6 +464,36 @@ export type Database = {
         }
         Relationships: []
       }
+      watchlist: {
+        Row: {
+          card_id: string
+          card_name: string | null
+          created_at: string
+          id: string
+          player: string | null
+          sport: string | null
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          card_name?: string | null
+          created_at?: string
+          id?: string
+          player?: string | null
+          sport?: string | null
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          card_name?: string | null
+          created_at?: string
+          id?: string
+          player?: string | null
+          sport?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

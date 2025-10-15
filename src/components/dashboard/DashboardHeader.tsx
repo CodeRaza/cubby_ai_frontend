@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Crown, Shield, Settings as SettingsIcon, LogOut, TrendingUp } from "lucide-react";
+import { Crown, Shield, Settings as SettingsIcon, LogOut, TrendingUp, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 
 interface DashboardHeaderProps {
   source: string;
@@ -11,6 +12,25 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ source, isAdmin, planName }: DashboardHeaderProps) => {
   const navigate = useNavigate();
+  const [watchlistCount, setWatchlistCount] = useState(0);
+
+  useEffect(() => {
+    if (source === 'sports-cards') {
+      loadWatchlistCount();
+    }
+  }, [source]);
+
+  const loadWatchlistCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { count } = await supabase
+      .from('watchlist')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    setWatchlistCount(count || 0);
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -34,15 +54,31 @@ export const DashboardHeader = ({ source, isAdmin, planName }: DashboardHeaderPr
             </Button>
           )}
           {source === 'sports-cards' && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/market')}
-              className="gap-1.5 h-8 sm:h-9 px-2 sm:px-3 bg-[#00C46C]/10 hover:bg-[#00C46C]/20 border-[#00C46C]/30"
-            >
-              <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00C46C]" />
-              <span className="hidden sm:inline text-xs sm:text-sm text-[#00C46C]">Market</span>
-            </Button>
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/market')}
+                className="gap-1.5 h-8 sm:h-9 px-2 sm:px-3 bg-[#00C46C]/10 hover:bg-[#00C46C]/20 border-[#00C46C]/30"
+              >
+                <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00C46C]" />
+                <span className="hidden sm:inline text-xs sm:text-sm text-[#00C46C]">Market</span>
+              </Button>
+              {watchlistCount > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/market?view=watchlist')}
+                  className="gap-1.5 h-8 sm:h-9 px-2 sm:px-3 relative"
+                >
+                  <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="hidden sm:inline text-xs sm:text-sm">Watchlist</span>
+                  <span className="absolute -top-1 -right-1 bg-[#00C46C] text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                    {watchlistCount}
+                  </span>
+                </Button>
+              )}
+            </>
           )}
           <Button 
             variant="outline" 

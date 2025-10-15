@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Star, TrendingUp, TrendingDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MarketFilters } from "@/components/market/MarketFilters";
@@ -102,8 +104,11 @@ const sampleTrendingCards: MarketCard[] = [
 
 const Market = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
   const [selectedCard, setSelectedCard] = useState<MarketCard | null>(null);
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
+  const [showWatchlistOnly, setShowWatchlistOnly] = useState(searchParams.get('view') === 'watchlist');
   const [filters, setFilters] = useState({
     sport: "all",
     grading: "all",
@@ -111,19 +116,112 @@ const Market = () => {
     yearTo: ""
   });
 
-  const toggleWatchlist = (cardId: string) => {
-    setWatchlist(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(cardId)) {
-        newSet.delete(cardId);
-      } else {
-        newSet.add(cardId);
+  // Load watchlist from database
+  useEffect(() => {
+    loadWatchlist();
+  }, []);
+
+  // Update URL when watchlist view changes
+  useEffect(() => {
+    if (showWatchlistOnly) {
+      setSearchParams({ view: 'watchlist' });
+    } else {
+      setSearchParams({});
+    }
+  }, [showWatchlistOnly, setSearchParams]);
+
+  const loadWatchlist = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('watchlist')
+      .select('card_id')
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error loading watchlist:', error);
+      return;
+    }
+
+    setWatchlist(new Set(data?.map(w => w.card_id) || []));
+  };
+
+  const toggleWatchlist = async (cardId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please log in to add cards to your watchlist",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const isWatchlisted = watchlist.has(cardId);
+    const card = sampleTrendingCards.find(c => c.id === cardId);
+
+    if (isWatchlisted) {
+      // Remove from watchlist
+      const { error } = await supabase
+        .from('watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('card_id', cardId);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to remove from watchlist",
+          variant: "destructive"
+        });
+        return;
       }
-      return newSet;
-    });
+
+      setWatchlist(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(cardId);
+        return newSet;
+      });
+
+      toast({
+        title: "Removed from watchlist",
+        description: `${card?.player} removed from your watchlist`
+      });
+    } else {
+      // Add to watchlist
+      const { error } = await supabase
+        .from('watchlist')
+        .insert({
+          user_id: user.id,
+          card_id: cardId,
+          player: card?.player,
+          card_name: card?.name,
+          sport: card?.sport
+        });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to add to watchlist",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setWatchlist(prev => new Set([...prev, cardId]));
+
+      toast({
+        title: "Added to watchlist",
+        description: `${card?.player} added to your watchlist`
+      });
+    }
   };
 
   const filteredCards = sampleTrendingCards.filter(card => {
+    // Filter by watchlist if enabled
+    if (showWatchlistOnly && !watchlist.has(card.id)) return false;
+    
     if (filters.sport !== "all" && card.sport !== filters.sport) return false;
     if (filters.grading === "graded" && !card.isGraded) return false;
     if (filters.grading === "raw" && card.isGraded) return false;
@@ -155,6 +253,25 @@ const Market = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* View Toggle */}
+        <div className="flex items-center gap-2 border-b">
+          <Button
+            variant={!showWatchlistOnly ? "default" : "ghost"}
+            onClick={() => setShowWatchlistOnly(false)}
+            className="rounded-b-none"
+          >
+            All Cards
+          </Button>
+          <Button
+            variant={showWatchlistOnly ? "default" : "ghost"}
+            onClick={() => setShowWatchlistOnly(true)}
+            className="rounded-b-none"
+          >
+            <Star className="h-4 w-4 mr-2" />
+            Watchlist ({watchlist.size})
+          </Button>
+        </div>
+
         {/* Filters */}
         <MarketFilters filters={filters} onFilterChange={setFilters} />
 
