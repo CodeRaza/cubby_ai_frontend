@@ -75,6 +75,14 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
 
   if (!cardStats || cardStats.total_cards === 0) return null;
 
+  // Debug logging
+  console.log('CardStatsOverview - cardStats:', {
+    realized_gains: cardStats.realized_gains,
+    unrealized_gains: cardStats.unrealized_gains,
+    total_cost: cardStats.total_cost,
+    total_value: cardStats.total_value
+  });
+
   // Use actual data if available, otherwise show sample data for demo
   const weeklyChange = cardStats.weekly_change !== undefined && cardStats.weekly_change !== 0 
     ? cardStats.weekly_change 

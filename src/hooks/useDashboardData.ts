@@ -234,15 +234,26 @@ export const useCardStats = (enabled: boolean) => {
 
           // Calculate P&L
           const cost = Number(item.cost) || 0;
+          console.log('Processing item:', {
+            name: item.name,
+            cost,
+            value,
+            sold: item.sold,
+            sold_price: item.sold_price
+          });
+
           if (cost > 0) {
             total_cost += cost;
             
             if (item.sold && item.sold_price) {
               // Realized gains from sold items
-              realized_gains += Number(item.sold_price) - cost;
+              const soldPrice = Number(item.sold_price);
+              realized_gains += soldPrice - cost;
+              console.log('Realized gain:', soldPrice - cost);
             } else if (value > 0) {
               // Unrealized gains from unsold items with estimated value
               unrealized_gains += value - cost;
+              console.log('Unrealized gain:', value - cost);
             }
           }
 
@@ -279,7 +290,14 @@ export const useCardStats = (enabled: boolean) => {
         .sort((a, b) => b.value - a.value)
         .slice(0, 5);
 
-      return { 
+      console.log('Final P&L calculations:', {
+        realized_gains,
+        unrealized_gains,
+        total_cost,
+        total_value
+      });
+
+      return {
         total_cards, 
         total_value, 
         graded_count,
