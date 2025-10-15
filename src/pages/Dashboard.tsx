@@ -569,117 +569,6 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Card Charts & Analytics for Sports Cards Users */}
-      {source === 'sports-cards' && cardStats && cardStats.total_cards > 0 && (
-        <div className="container mx-auto px-4 py-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Sports Breakdown Pie Chart */}
-            {Object.keys(cardStats.sports_breakdown).length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-primary" />
-                    Collection Breakdown
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={Object.entries(cardStats.sports_breakdown).map(([sport, count]) => ({
-                          name: sport,
-                          value: count
-                        }))}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="hsl(var(--primary))"
-                        dataKey="value"
-                      >
-                        {Object.entries(cardStats.sports_breakdown).map((_, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={`hsl(var(--primary) / ${1 - (index * 0.15)})`}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Top Cards by Value */}
-            {cardStats.top_cards.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-primary" />
-                    Top Valuable Cards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {cardStats.top_cards.map((card, index) => (
-                    <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-sm">
-                        {index + 1}
-                      </div>
-                      {card.image_url && (
-                        <img 
-                          src={card.image_url} 
-                          alt={card.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{card.name}</p>
-                      </div>
-                      <div className="flex items-center gap-1 text-primary font-semibold">
-                        <DollarSign className="h-4 w-4" />
-                        {card.value.toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Value Distribution Bar Chart */}
-          {cardStats.top_cards.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  Value Distribution
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={cardStats.top_cards}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                    <XAxis 
-                      dataKey="name" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={100}
-                      tick={{ fontSize: 12 }}
-                    />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-
       {/* Progress Gamification Banner for non-sports-cards users */}
       {source !== 'sports-cards' && locations.length > 0 && totalItemsScanned < 10 && (
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
@@ -990,6 +879,117 @@ const Dashboard = () => {
               </AlertDialogContent>
             </AlertDialog>
           </>
+        )}
+
+        {/* Card Charts & Analytics for Sports Cards Users */}
+        {source === 'sports-cards' && cardStats && cardStats.total_cards > 0 && (
+          <div className="space-y-6 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Sports Breakdown Pie Chart */}
+              {Object.keys(cardStats.sports_breakdown).length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5 text-primary" />
+                      Collection Breakdown
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={Object.entries(cardStats.sports_breakdown).map(([sport, count]) => ({
+                            name: sport,
+                            value: count
+                          }))}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="hsl(var(--primary))"
+                          dataKey="value"
+                        >
+                          {Object.entries(cardStats.sports_breakdown).map((_, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={`hsl(var(--primary) / ${1 - (index * 0.15)})`}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Top Cards by Value */}
+              {cardStats.top_cards.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Star className="h-5 w-5 text-primary" />
+                      Top Valuable Cards
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {cardStats.top_cards.map((card, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-sm">
+                          {index + 1}
+                        </div>
+                        {card.image_url && (
+                          <img 
+                            src={card.image_url} 
+                            alt={card.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{card.name}</p>
+                        </div>
+                        <div className="flex items-center gap-1 text-primary font-semibold">
+                          <DollarSign className="h-4 w-4" />
+                          {card.value.toFixed(2)}
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Value Distribution Bar Chart */}
+            {cardStats.top_cards.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    Value Distribution
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={cardStats.top_cards}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
       </main>
 
