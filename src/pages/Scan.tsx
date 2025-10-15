@@ -111,6 +111,11 @@ const Scan = () => {
     setImagePreviews(newPreviews);
     setSelectedFiles(newFiles);
     
+    // Reset file input to allow re-uploading
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
     // Update capture step based on remaining photos
     if (newPreviews.length === 0) {
       setCaptureStep('front');
