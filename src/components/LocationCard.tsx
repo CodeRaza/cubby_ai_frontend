@@ -54,7 +54,7 @@ export const LocationCard = ({
       onClick={onClick}
     >
       <CardContent className="p-4 sm:p-6">
-        <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+        <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
           <div className="p-2.5 sm:p-3 rounded-2xl bg-secondary flex items-center justify-center flex-shrink-0">
             {emoji ? (
               <span className="text-2xl sm:text-3xl">{emoji}</span>
@@ -62,7 +62,7 @@ export const LocationCard = ({
               <LocationIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             )}
           </div>
-          <div className="flex-1 min-w-0 mr-auto">
+          <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-base sm:text-lg mb-2">{name}</h3>
             {isSportsCards && collectionStats ? (
               <div className="space-y-2">
@@ -102,30 +102,30 @@ export const LocationCard = ({
               </p>
             )}
           </div>
-          <div className="flex gap-0.5 sm:gap-1 shrink-0 self-start">
+          <div className="flex gap-0.5 shrink-0 self-start ml-2">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 sm:h-10 sm:w-10"
+              className="h-7 w-7 sm:h-9 sm:w-9"
               onClick={onQRClick}
             >
-              <QrCode className="h-4 w-4 sm:h-5 sm:w-5" />
+              <QrCode className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 sm:h-10 sm:w-10"
+              className="h-7 w-7 sm:h-9 sm:w-9"
               onClick={onRenameClick}
             >
-              <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Pencil className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 sm:h-10 sm:w-10 text-destructive hover:text-destructive"
+              className="h-7 w-7 sm:h-9 sm:w-9 text-destructive hover:text-destructive"
               onClick={onDeleteClick}
             >
-              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>
