@@ -63,37 +63,39 @@ export const LocationCard = ({
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg mb-1">{name}</h3>
+            <h3 className="font-semibold text-lg mb-2">{name}</h3>
             {isSportsCards && collectionStats ? (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-2xl font-bold">${collectionStats.total_value.toFixed(0)}</span>
-                  {!isNeutral && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge 
-                            variant="outline"
-                            className={`gap-1 text-xs border-none ${
-                              isPositive 
-                                ? 'bg-[#00C853]/15 text-[#00C853]' 
-                                : 'bg-[#D32F2F]/15 text-[#D32F2F]'
-                            }`}
-                          >
-                            {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                            {isPositive ? '+' : ''}{collectionStats.weekly_change_percent.toFixed(1)}%
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Change over last 7 days</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">${collectionStats.total_value.toFixed(0)}</span>
+                    {!isNeutral && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge 
+                              variant="outline"
+                              className={`gap-1 text-sm border-none ${
+                                isPositive 
+                                  ? 'bg-[#00C853]/15 text-[#00C853]' 
+                                  : 'bg-[#D32F2F]/15 text-[#D32F2F]'
+                              }`}
+                            >
+                              {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                              {isPositive ? '+' : ''}{collectionStats.weekly_change_percent.toFixed(1)}%
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Change over last 7 days</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {collectionStats.card_count} cards • {isPositive ? '+' : ''}{collectionStats.weekly_change >= 0 ? '$' : '-$'}{Math.abs(collectionStats.weekly_change).toFixed(0)} this week
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {collectionStats.card_count} cards
-                </span>
                 {collectionStats.top_mover && (
                   <p className="text-xs text-muted-foreground">
                     Top: <span className="font-medium text-foreground">{collectionStats.top_mover.name}</span>
