@@ -194,7 +194,8 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
                       },
                       player_name: { type: "string", description: "Player's full name as printed on card" },
                       card_year: { type: "string", description: "Card production year from copyright (©) symbol, NOT player rookie year - look at bottom of card for '© YYYY'" },
-                      set_brand: { type: "string", description: "Full brand and set name (e.g., 'Panini Elite', 'Topps Chrome', 'Prizm Draft Picks')" },
+                      brand: { type: "string", description: "Card manufacturer/brand (e.g., 'Panini', 'Topps', 'Upper Deck', 'Bowman')" },
+                      set_name: { type: "string", description: "Specific set/series name (e.g., 'Prizm', 'Chrome', 'Elite', 'Optic')" },
                       sport: { type: "string", description: "Sport type (Baseball, Basketball, Football, Hockey, Soccer, Other)" },
                       card_number: { type: "string", description: "Card number if visible on card" },
                       condition: { type: "string", description: "Visual grade: Mint (pristine, sharp), Near Mint (minimal wear), Excellent (slight wear), Very Good (noticeable wear), Good (obvious wear), Fair (heavy wear), Poor (damaged)" },
@@ -207,7 +208,7 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
                         description: "Array of attributes visible on card: 'Rookie Card' (RC logo or text), 'Autographed' (signature visible), 'Jersey Card' (fabric swatch), 'Numbered' (#/XXX), 'Refractor' (shiny surface), 'Insert' (special design)" 
                       }
                     },
-                    required: ["label", "confidence", "bbox", "card_year", "set_brand", "condition"]
+                    required: ["label", "confidence", "bbox", "card_year", "brand", "condition"]
                   }
                 }
               },
@@ -291,7 +292,8 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
         normalized.cardDetails = {
           player_name: det.player_name || '',
           card_year: det.card_year || '',
-          set_brand: det.set_brand || '',
+          brand: det.brand || '',
+          set_name: det.set_name || '',
           sport: det.sport || '',
           card_number: det.card_number || '',
           condition: det.condition || '',

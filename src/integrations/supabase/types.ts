@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       card_details: {
         Row: {
+          brand: string | null
           card_number: string | null
           card_year: number | null
           condition: string | null
@@ -27,12 +28,13 @@ export type Database = {
           is_graded: boolean | null
           item_id: string
           player_name: string | null
-          set_brand: string | null
+          set_name: string | null
           special_attributes: string[] | null
           sport: string | null
           updated_at: string | null
         }
         Insert: {
+          brand?: string | null
           card_number?: string | null
           card_year?: number | null
           condition?: string | null
@@ -44,12 +46,13 @@ export type Database = {
           is_graded?: boolean | null
           item_id: string
           player_name?: string | null
-          set_brand?: string | null
+          set_name?: string | null
           special_attributes?: string[] | null
           sport?: string | null
           updated_at?: string | null
         }
         Update: {
+          brand?: string | null
           card_number?: string | null
           card_year?: number | null
           condition?: string | null
@@ -61,7 +64,7 @@ export type Database = {
           is_graded?: boolean | null
           item_id?: string
           player_name?: string | null
-          set_brand?: string | null
+          set_name?: string | null
           special_attributes?: string[] | null
           sport?: string | null
           updated_at?: string | null

@@ -45,7 +45,8 @@ interface ReviewItem extends Detection {
   cardDetails?: {
     player_name: string;
     card_year: string;
-    set_brand: string;
+    brand: string;
+    set_name: string;
     sport: string;
     card_number: string;
     condition: string;
@@ -89,7 +90,8 @@ const Review = () => {
             cardDetails: d.cardDetails || {
               player_name: '',
               card_year: '',
-              set_brand: '',
+              brand: '',
+              set_name: '',
               sport: '',
               card_number: '',
               condition: '',
@@ -249,7 +251,8 @@ const Review = () => {
             item_id: insertedItem.id,
             player_name: item.cardDetails.player_name || null,
             card_year: item.cardDetails.card_year ? parseInt(item.cardDetails.card_year) : null,
-            set_brand: item.cardDetails.set_brand || null,
+            brand: item.cardDetails.brand || null,
+            set_name: item.cardDetails.set_name || null,
             sport: item.cardDetails.sport || null,
             card_number: item.cardDetails.card_number || null,
             condition: item.cardDetails.condition || null,

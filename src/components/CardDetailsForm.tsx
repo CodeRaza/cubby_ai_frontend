@@ -6,7 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 interface CardDetails {
   player_name: string;
   card_year: string;
-  set_brand: string;
+  brand: string;
+  set_name: string;
   sport: string;
   card_number: string;
   condition: string;
@@ -81,10 +82,10 @@ export const CardDetailsForm = ({ details, onChange }: CardDetailsFormProps) => 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="set_brand">Set/Brand</Label>
-          <Select value={details.set_brand} onValueChange={(value) => updateField('set_brand', value)}>
+          <Label htmlFor="brand">Brand</Label>
+          <Select value={details.brand} onValueChange={(value) => updateField('brand', value)}>
             <SelectTrigger>
-              <SelectValue placeholder="Select set/brand" />
+              <SelectValue placeholder="Select brand" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Topps">Topps</SelectItem>
@@ -93,12 +94,19 @@ export const CardDetailsForm = ({ details, onChange }: CardDetailsFormProps) => 
               <SelectItem value="Bowman">Bowman</SelectItem>
               <SelectItem value="Donruss">Donruss</SelectItem>
               <SelectItem value="Fleer">Fleer</SelectItem>
-              <SelectItem value="Prizm">Prizm</SelectItem>
-              <SelectItem value="Select">Select</SelectItem>
-              <SelectItem value="Optic">Optic</SelectItem>
               <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="set_name">Set Name</Label>
+          <Input
+            id="set_name"
+            value={details.set_name}
+            onChange={(e) => updateField('set_name', e.target.value)}
+            placeholder="e.g., Prizm, Chrome, Elite"
+          />
         </div>
 
         <div className="space-y-2">
