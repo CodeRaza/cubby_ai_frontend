@@ -175,6 +175,9 @@ export type Database = {
           location_id: string | null
           name: string
           quantity: number | null
+          sold: boolean | null
+          sold_date: string | null
+          sold_price: number | null
           source_context: string | null
           user_id: string
         }
@@ -190,6 +193,9 @@ export type Database = {
           location_id?: string | null
           name: string
           quantity?: number | null
+          sold?: boolean | null
+          sold_date?: string | null
+          sold_price?: number | null
           source_context?: string | null
           user_id: string
         }
@@ -205,6 +211,9 @@ export type Database = {
           location_id?: string | null
           name?: string
           quantity?: number | null
+          sold?: boolean | null
+          sold_date?: string | null
+          sold_price?: number | null
           source_context?: string | null
           user_id?: string
         }

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, DollarSign } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
@@ -38,6 +38,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 interface EbayListing {
   title: string;
@@ -55,6 +56,9 @@ interface ItemDetails {
   quantity: number;
   acquired_date: string | null;
   cost: number | null;
+  sold: boolean;
+  sold_price: number | null;
+  sold_date: string | null;
   image_url: string | null;
   back_image_url: string | null;
   created_at: string;
@@ -106,6 +110,9 @@ const ItemDetail = () => {
   const [editedCost, setEditedCost] = useState("");
   const [editedCardDetails, setEditedCardDetails] = useState<any>(null);
   const [ebayComps, setEbayComps] = useState<EbayListing[]>([]);
+  const [sold, setSold] = useState(false);
+  const [soldPrice, setSoldPrice] = useState("");
+  const [soldDate, setSoldDate] = useState("");
 
   useEffect(() => {
     loadItem();
@@ -131,6 +138,9 @@ const ItemDetail = () => {
       setEditedQuantity(data.quantity);
       setEditedAcquiredDate(data.acquired_date || "");
       setEditedCost(data.cost?.toString() || "");
+      setSold(data.sold || false);
+      setSoldPrice(data.sold_price?.toString() || "");
+      setSoldDate(data.sold_date || "");
       
       // Initialize card details if they exist
       if (data.card_details) {
@@ -208,6 +218,9 @@ const ItemDetail = () => {
           quantity: editedQuantity,
           acquired_date: editedAcquiredDate || null,
           cost: editedCost ? parseFloat(editedCost) : null,
+          sold: sold,
+          sold_price: soldPrice ? parseFloat(soldPrice) : null,
+          sold_date: soldDate || null,
         })
         .eq("id", id);
 
@@ -347,6 +360,47 @@ const ItemDetail = () => {
                         onChange={(e) => setEditedCost(e.target.value)}
                       />
                     </div>
+                  </div>
+
+                  {/* Sold Status Section */}
+                  <div className="pt-4 border-t space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="edit-sold">Mark as Sold</Label>
+                        <p className="text-sm text-muted-foreground">Track when you sell this item</p>
+                      </div>
+                      <Switch
+                        id="edit-sold"
+                        checked={sold}
+                        onCheckedChange={setSold}
+                      />
+                    </div>
+                    
+                    {sold && (
+                      <div className="grid grid-cols-2 gap-4 pl-4 border-l-2 border-primary/20">
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-sold-price">Sold Price</Label>
+                          <Input
+                            id="edit-sold-price"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={soldPrice}
+                            onChange={(e) => setSoldPrice(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-sold-date">Sold Date</Label>
+                          <Input
+                            id="edit-sold-date"
+                            type="date"
+                            value={soldDate}
+                            onChange={(e) => setSoldDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Card Details Edit Section */}
@@ -508,15 +562,118 @@ const ItemDetail = () => {
                 </div>
               )}
 
+              {item.sold && item.sold_price && (
+                <div className="flex items-center gap-3 text-green-600 dark:text-green-400">
+                  <DollarSign className="h-5 w-5" />
+                  <span className="font-semibold">Sold: ${item.sold_price.toFixed(2)}</span>
+                  {item.sold_date && (
+                    <span className="text-sm">on {new Date(item.sold_date).toLocaleDateString()}</span>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center gap-3 text-muted-foreground text-sm">
                 <Calendar className="h-4 w-4" />
                 <span>Added: {new Date(item.created_at).toLocaleDateString()}</span>
               </div>
             </div>
 
-            {/* Card Details Section */}
-            {item.card_details && (
+            {/* P&L Section */}
+            {(item.cost || item.sold_price) && (item.card_details?.estimated_value || item.sold_price) && (
               <>
+                <Separator />
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Profit & Loss
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {item.sold && item.sold_price && item.cost ? (
+                      <Card className={`${
+                        item.sold_price - item.cost > 0
+                          ? 'bg-green-500/5 border-green-500/20'
+                          : 'bg-red-500/5 border-red-500/20'
+                      }`}>
+                        <CardContent className="p-4">
+                          <p className="text-sm text-muted-foreground mb-1">Realized Gain/Loss</p>
+                          <div className="flex items-center gap-2">
+                            {item.sold_price - item.cost > 0 ? (
+                              <TrendingUp className="h-5 w-5 text-green-600" />
+                            ) : (
+                              <TrendingDown className="h-5 w-5 text-red-600" />
+                            )}
+                            <p className={`text-2xl font-bold ${
+                              item.sold_price - item.cost > 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              ${Math.abs(item.sold_price - item.cost).toFixed(2)}
+                            </p>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {((item.sold_price - item.cost) / item.cost * 100).toFixed(1)}% return
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ) : !item.sold && item.card_details?.estimated_value && item.cost ? (
+                      <Card className={`${
+                        item.card_details.estimated_value - item.cost > 0
+                          ? 'bg-blue-500/5 border-blue-500/20'
+                          : 'bg-red-500/5 border-red-500/20'
+                      }`}>
+                        <CardContent className="p-4">
+                          <p className="text-sm text-muted-foreground mb-1">Unrealized Gain/Loss</p>
+                          <div className="flex items-center gap-2">
+                            {item.card_details.estimated_value - item.cost > 0 ? (
+                              <TrendingUp className="h-5 w-5 text-blue-600" />
+                            ) : (
+                              <TrendingDown className="h-5 w-5 text-red-600" />
+                            )}
+                            <p className={`text-2xl font-bold ${
+                              item.card_details.estimated_value - item.cost > 0 
+                                ? 'text-blue-600' 
+                                : 'text-red-600'
+                            }`}>
+                              ${Math.abs(item.card_details.estimated_value - item.cost).toFixed(2)}
+                            </p>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {((item.card_details.estimated_value - item.cost) / item.cost * 100).toFixed(1)}% potential return
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ) : null}
+
+                    {item.cost && (
+                      <Card className="bg-muted/30">
+                        <CardContent className="p-4">
+                          <p className="text-sm text-muted-foreground mb-1">Cost Basis</p>
+                          <p className="text-2xl font-bold">${item.cost.toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {item.acquired_date 
+                              ? `Acquired ${new Date(item.acquired_date).toLocaleDateString()}`
+                              : 'Original purchase price'}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                  
+                  {!item.sold && (
+                    <div className="text-center p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        💡 Unrealized gains represent potential profit based on current market value
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Card-specific sections only for cards */}
+        {item.card_details && (
+          <Card>
+            <CardContent className="pt-6 space-y-6">
                 <Separator />
                 
                 {/* Pricing Section */}
@@ -775,8 +932,6 @@ const ItemDetail = () => {
                     )}
                   </div>
                 </div>
-              </>
-            )}
 
             {/* eBay Comps Section */}
             {item.source_context === "sports-cards" && ebayComps.length > 0 && (
@@ -817,8 +972,9 @@ const ItemDetail = () => {
                 </div>
               </>
             )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );
