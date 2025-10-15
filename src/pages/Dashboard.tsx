@@ -559,6 +559,20 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+
+        {/* Dev helper button */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-20 left-4">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/dashboard/empty')}
+              className="text-xs"
+            >
+              View Empty State
+            </Button>
+          </div>
+        )}
       </main>
 
       {/* Bottom Navigation */}

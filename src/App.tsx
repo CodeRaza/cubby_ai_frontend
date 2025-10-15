@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ConfirmEmail from "./pages/ConfirmEmail";
 import Dashboard from "./pages/Dashboard";
+import DashboardEmpty from "./pages/DashboardEmpty";
 import Scan from "./pages/Scan";
 import Review from "./pages/Review";
 import Search from "./pages/Search";
@@ -61,6 +62,7 @@ const App = () => (
           <Route path="/for/sports-cards" element={<SportsCards />} />
           
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/empty" element={<DashboardEmpty />} />
           <Route path="/scan" element={<Scan />} />
           <Route path="/review" element={<Review />} />
           <Route path="/search" element={<Search />} />
