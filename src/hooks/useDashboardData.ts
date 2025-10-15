@@ -398,11 +398,17 @@ function generateSparklineData(currentValue: number, weeklyChangePercent: number
   const data: number[] = [];
   const weeklyChange = weeklyChangePercent / 100;
   
-  // Generate a smooth curve representing the 30-day trend
+  // Calculate the starting value (30 days ago) based on the weekly trend
+  // If weeklyChangePercent is +2.5%, then 30 days ago value was lower
+  // If weeklyChangePercent is -2.5%, then 30 days ago value was higher
+  const totalChange = weeklyChange * 4.3; // Approximate 30-day from 7-day
+  const startValue = currentValue / (1 + totalChange);
+  
+  // Generate a smooth curve from past (startValue) to present (currentValue)
   for (let i = 0; i < points; i++) {
     const progress = i / (points - 1);
-    const value = currentValue * (1 - (weeklyChange * progress * 4.3)); // Approximate 30-day from 7-day
-    const noise = (Math.random() - 0.5) * currentValue * 0.02; // Add small variance
+    const value = startValue + (currentValue - startValue) * progress;
+    const noise = (Math.random() - 0.5) * currentValue * 0.015; // Add small variance
     data.push(Math.max(0, value + noise));
   }
   
