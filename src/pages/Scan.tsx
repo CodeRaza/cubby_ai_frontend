@@ -234,10 +234,23 @@ const Scan = () => {
               className="hidden"
             />
             
-            <div className="bg-primary/10 border-2 border-primary/20 rounded-lg p-4 text-center">
-              <p className="font-semibold text-primary mb-1">📸 Sports Cards</p>
+            <div className="bg-primary/10 border-2 border-primary/20 rounded-lg p-4 text-center space-y-2">
+              <p className="font-semibold text-primary mb-1">📸 Bulk Card Scanning</p>
               <p className="text-sm text-muted-foreground">
-                Please select <strong>2 images</strong>: front and back of your cards for accurate year detection
+                Upload <strong>2 photos</strong>:
+              </p>
+              <ol className="text-sm text-left space-y-1 max-w-sm mx-auto">
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-primary">1.</span>
+                  <span>All card <strong>fronts</strong> arranged in order</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-primary">2.</span>
+                  <span>All card <strong>backs</strong> in the same order</span>
+                </li>
+              </ol>
+              <p className="text-xs text-muted-foreground pt-1">
+                💡 Keep cards in the same position/order for accurate matching
               </p>
             </div>
             
@@ -247,7 +260,8 @@ const Scan = () => {
               onClick={() => fileInputRef.current?.click()}
             >
               <Camera className="h-16 w-16" />
-              <span>Take Photos (Front & Back)</span>
+              <span>Take 2 Photos</span>
+              <span className="text-xs font-normal opacity-80">(All Fronts, Then All Backs)</span>
             </Button>
 
             <div className="relative">
@@ -275,9 +289,14 @@ const Scan = () => {
               <span>Upload from Gallery</span>
             </Button>
 
-            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center">
-              <p className="font-medium mb-1">📱 Tips</p>
-              <p>Take clear photos of both front and back. The back usually has the copyright year needed for accurate identification.</p>
+            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center space-y-2">
+              <p className="font-medium mb-1">📱 Best Practices</p>
+              <ul className="text-left space-y-1 max-w-sm mx-auto">
+                <li>• Arrange cards in a grid (2x2, 3x3, etc.)</li>
+                <li>• Use good lighting, avoid glare on reflective surfaces</li>
+                <li>• Keep the same arrangement for front and back photos</li>
+                <li>• The back photo contains the copyright year needed for accuracy</li>
+              </ul>
             </div>
           </div>
         )}

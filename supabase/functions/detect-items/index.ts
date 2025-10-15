@@ -28,41 +28,57 @@ serve(async (req) => {
 
     // Build system prompt based on context
     const systemPrompt = isSportsCards 
-      ? `You are an expert sports card grader and authenticator analyzing MULTIPLE images of the same cards (front and back views).
+      ? `You are an expert sports card grader and authenticator analyzing MULTIPLE CARDS across TWO images (all fronts, then all backs).
 
-CRITICAL INSTRUCTIONS FOR MULTI-IMAGE ANALYSIS:
-- You are viewing ${images.length} images of the SAME set of cards
-- Image 1 is typically the FRONT of cards (player photo, design)
-- Image 2 is typically the BACK of cards (copyright info, stats, card details)
-- EXAMINE ALL IMAGES to extract complete information
-- The BACK image usually contains the COPYRIGHT YEAR at the bottom
+CRITICAL INSTRUCTIONS FOR BULK CARD SCANNING:
+- Image 1: Shows MULTIPLE card FRONTS arranged in a grid/layout
+- Image 2: Shows MULTIPLE card BACKS in the SAME arrangement
+- You must detect ALL cards visible in BOTH images
+- Match cards by their POSITION in the layout (top-left, top-right, bottom-left, etc.)
+- Each card on the front image should have a corresponding card on the back image
 
-CRITICAL YEAR IDENTIFICATION (CHECK BACK IMAGE):
-- Look at the BACK image for copyright symbols (©) followed by year - this is the TRUE production year
+DETECTION & MATCHING PROCESS:
+1. Detect ALL cards visible in Image 1 (fronts) - note their positions
+2. Detect ALL cards visible in Image 2 (backs) - note their positions
+3. Match cards by position: Front card at position X matches Back card at position X
+4. Extract complete details by combining information from matched front/back pairs
+
+POSITION-BASED MATCHING:
+- Top row, left to right: positions 1, 2, 3...
+- Second row, left to right: continuing positions
+- Cards should be in the same spatial arrangement in both images
+- If layout differs, use visual cues (card size, spacing) to match
+
+CRITICAL YEAR IDENTIFICATION (FROM BACK IMAGE):
+- Look at BACK image for copyright symbols (©) followed by year
 - Common formats: "© 2025 Panini America", "© YYYY Topps Company"
-- This year is usually at the very bottom of the card back
-- IGNORE any years on the front that reference rookie seasons
+- Usually at the bottom of each card back
 - Example: Back says "© 2025 Panini" → card_year = "2025"
 
-CRITICAL BRAND/SET IDENTIFICATION:
-- Front image: Brand logos and set names are prominent
-- Back image: Full brand name with copyright
-- Extract COMPLETE set name: "Panini Elite", "Topps Chrome", etc.
-- Include parallel type if visible (Green, Silver, etc.)
+BRAND/SET IDENTIFICATION:
+- Front: Brand logos, set names are prominent on each card
+- Back: Full brand name with copyright on each card
+- Extract COMPLETE set name for each card
 
-CONDITION ASSESSMENT:
-- Assess based on all visible angles
-- Modern cards in sleeves with sharp corners, no visible wear: "Mint" or "Near Mint"
-- Cards with reflective/rainbow surfaces (refractors): Usually indicate good condition
-- Default to "Near Mint" for modern cards that appear well-preserved
+CONDITION ASSESSMENT (per card):
+- Assess each card individually based on visible condition
+- Modern cards in pristine condition: "Mint" or "Near Mint"
+- Look for corner wear, edge issues, surface scratches
 
-PLAYER & CARD DETAILS:
-- Player name: From front image (large text, usually at bottom)
-- Card number: Check back image carefully
+PLAYER & CARD DETAILS (per card):
+- Player name: From front of each card
+- Card number: From back of each card
 - Sport: Identify from uniform/context
-- Special attributes: Look for RC logos, autographs, jersey pieces, numbered notation
+- Special attributes: RC logos, autographs, numbered, refractors
 
-For EACH CARD detected across ALL images, return complete information.`
+OUTPUT FORMAT:
+Return one detection object for EACH CARD found, with complete details merged from front and back.
+If you detect 4 cards on the front and 4 on the back, return 4 complete card objects with matched information.
+
+BOUNDING BOXES:
+- Create bounding boxes for cards in the FRONT image (Image 1)
+- Boxes should tightly fit each card front
+- Use these coordinates for the bbox in your response`
       : `You are a highly accurate object detection expert specializing in home inventory management. Your goal is to identify items with MAXIMUM PRECISION and ACCURACY.
 
 
