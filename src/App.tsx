@@ -18,6 +18,7 @@ import QRCodeSingle from "./pages/QRCodeSingle";
 import QRCodeBulk from "./pages/QRCodeBulk";
 import Subscription from "./pages/Subscription";
 import Admin from "./pages/Admin";
+import ApiUsage from "./pages/ApiUsage";
 import Settings from "./pages/Settings";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
@@ -72,6 +73,7 @@ const App = () => (
           <Route path="/qr-codes/bulk" element={<QRCodeBulk />} />
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/api-usage" element={<ApiUsage />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/update-password" element={<UpdatePassword />} />

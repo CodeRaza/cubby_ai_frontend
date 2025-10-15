@@ -144,9 +144,15 @@ const Admin = () => {
               <p className="text-muted-foreground">Monitor platform metrics and user activity</p>
             </div>
           </div>
-          <Button onClick={loadDashboardData} disabled={loading}>
-            Refresh Data
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/admin/api-usage")}>
+              <Activity className="h-4 w-4 mr-2" />
+              API Usage
+            </Button>
+            <Button onClick={loadDashboardData} disabled={loading}>
+              Refresh Data
+            </Button>
+          </div>
         </div>
 
         {loading ? (
