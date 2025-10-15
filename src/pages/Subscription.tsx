@@ -26,33 +26,55 @@ const plans = [
     name: "Free",
     tier: "free",
     price: "$0",
-    items: 50,
-    features: ["50 items/month", "1 room", "Basic AI detection"],
+    scans: 10,
+    features: ["10 scans total", "1 collection", "Basic AI detection"],
     priceId: null,
   },
   {
     name: "Starter",
     tier: "starter",
-    price: "$1.99",
-    items: 250,
-    features: ["250 items/month", "Multi-room", "Standard AI detection"],
+    price: "$4.99",
+    scans: 100,
+    features: ["100 scans/month", "Multi-collection", "Real-time pricing", "Cloud backup"],
     priceId: "price_1SFQhTIkzp5CYjx0zVwvIUGQ",
   },
   {
     name: "Pro",
     tier: "pro",
-    price: "$4.99",
-    items: 1000,
-    features: ["1000 items/month", "Expiry reminders", "Cloud backup", "CSV export", "Priority AI"],
+    price: "$14.99",
+    scans: 1000,
+    features: ["1,000 scans/month", "Portfolio insights", "Price alerts", "CSV export", "Priority support"],
     priceId: "price_1SFQibIkzp5CYjx0c0qy7nTg",
   },
   {
-    name: "Power",
-    tier: "power",
-    price: "$9.99",
-    items: 5000,
-    features: ["5000 items/month", "Multi-user (up to 3)", "API access", "Advanced export"],
+    name: "Investor",
+    tier: "investor",
+    price: "$29.99",
+    scans: 5000,
+    features: ["5,000 scans/month", "Bulk upload", "Multi-user access", "API access", "Advanced analytics"],
     priceId: "price_1SFQjPIkzp5CYjx0oJZlH0DL",
+  },
+];
+
+const scanPacks = [
+  {
+    name: "Starter Pack",
+    scans: 100,
+    price: "$6.99",
+    priceId: "price_scan_pack_100",
+  },
+  {
+    name: "Value Pack",
+    scans: 500,
+    price: "$24.99",
+    priceId: "price_scan_pack_500",
+    popular: true,
+  },
+  {
+    name: "Power Pack",
+    scans: 1000,
+    price: "$39.99",
+    priceId: "price_scan_pack_1000",
   },
 ];
 
@@ -225,10 +247,10 @@ const Subscription = () => {
   }
 
   const currentPlan = plans.find(p => p.tier === subscription?.plan_tier) || plans[0];
-  const itemLimit = currentPlan.items + (usage?.bonus_items || 0);
-  const itemsUsed = usage?.items_detected || 0;
-  const itemsRemaining = Math.max(0, itemLimit - itemsUsed);
-  const usagePercent = itemLimit > 0 ? (itemsUsed / itemLimit) * 100 : 0;
+  const scanLimit = currentPlan.scans + (usage?.bonus_items || 0);
+  const scansUsed = usage?.items_detected || 0;
+  const scansRemaining = Math.max(0, scanLimit - scansUsed);
+  const usagePercent = scanLimit > 0 ? (scansUsed / scanLimit) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,31 +265,39 @@ const Subscription = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
         {/* Current Usage */}
-        <Card>
+        <Card className="bg-gradient-to-br from-card to-card/50">
           <CardHeader>
-            <CardTitle>Current Usage</CardTitle>
-            <CardDescription>
-              {itemsRemaining} of {itemLimit} items remaining this month
+            <CardTitle>Your Scan Usage</CardTitle>
+            <CardDescription className="text-base font-medium">
+              You've used {scansUsed}/{scanLimit} scans
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Progress value={usagePercent} className="h-3" />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{itemsUsed} used</span>
-              <span>{itemsRemaining} remaining</span>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{scansUsed} used</span>
+              <span className="font-medium text-foreground">{scansRemaining} remaining</span>
             </div>
             {usage?.bonus_items && usage.bonus_items > 0 && (
               <Badge variant="secondary" className="mt-2">
                 <Sparkles className="h-3 w-3 mr-1" />
-                {usage.bonus_items} bonus items
+                {usage.bonus_items} bonus scans
               </Badge>
+            )}
+            {scansRemaining < scanLimit * 0.2 && scansRemaining > 0 && (
+              <p className="text-sm text-amber-600 dark:text-amber-500 font-medium mt-2">
+                Running low on scans! Consider upgrading your plan.
+              </p>
             )}
           </CardContent>
         </Card>
 
         {/* Subscription Plans */}
         <div>
-          <h2 className="text-2xl font-bold mb-6">Choose Your Plan</h2>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-2">Upgrade Your Collection Game</h2>
+            <p className="text-muted-foreground">Choose the plan that fits your collecting style</p>
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {plans.map((plan) => {
               const isCurrentPlan = plan.tier === subscription?.plan_tier;
@@ -333,40 +363,55 @@ const Subscription = () => {
           </div>
         </div>
 
-        {/* Scan Pack Add-on */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Need more items?</CardTitle>
-            <CardDescription>
-              Purchase additional items without changing your plan
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold">Item Pack</p>
-                <p className="text-sm text-muted-foreground">+100 items</p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold">$1.99</p>
-                <p className="text-xs text-muted-foreground">one-time</p>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button 
-              variant="secondary" 
-              className="w-full"
-              onClick={handleBuyScanPack}
-              disabled={processingPlan === 'scan-pack'}
-            >
-              {processingPlan === 'scan-pack' ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
-              Purchase Item Pack
-            </Button>
-          </CardFooter>
-        </Card>
+        {/* Scan Pack Add-ons */}
+        <div>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold mb-2">Or Buy Scan Packs</h2>
+            <p className="text-sm text-muted-foreground">One-time purchases to top up your scans</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {scanPacks.map((pack) => {
+              const isProcessing = processingPlan === pack.priceId;
+              
+              return (
+                <Card key={pack.priceId} className={pack.popular ? "ring-2 ring-primary/50" : ""}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{pack.name}</CardTitle>
+                      {pack.popular && (
+                        <Badge variant="secondary" className="bg-primary/10 text-primary">
+                          Popular
+                        </Badge>
+                      )}
+                    </div>
+                    <CardDescription className="text-2xl font-bold text-foreground">
+                      {pack.price}
+                      <span className="text-sm font-normal text-muted-foreground"> one-time</span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      <span className="text-2xl font-bold text-foreground">{pack.scans}</span> additional scans
+                    </p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handleBuyScanPack}
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : null}
+                      Buy Now
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
       </main>
     </div>
   );
