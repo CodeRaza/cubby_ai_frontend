@@ -1,12 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { LocationCard } from "@/components/LocationCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield, Settings as SettingsIcon, Home, Trophy, TrendingUp, Star, DollarSign } from "lucide-react";
+import { Plus, Camera, Trophy, TrendingUp, Star, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -31,55 +28,37 @@ import { PREDEFINED_LOCATIONS, SPORTS_COLLECTIONS } from "@/lib/locationTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { TopMovers } from "@/components/TopMovers";
-
-interface Location {
-  id: string;
-  name: string;
-  itemCount: number;
-}
-
-interface SubscriptionStatus {
-  plan_tier: string;
-  scans_used: number;
-  scans_limit: number;
-  bonus_credits: number;
-}
-
-interface CardStats {
-  total_cards: number;
-  total_value: number;
-  graded_count: number;
-  sports_breakdown: Record<string, number>;
-  top_cards: Array<{
-    name: string;
-    value: number;
-    image_url: string;
-  }>;
-}
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
+import { CardStatsOverview } from "@/components/dashboard/CardStatsOverview";
+import { LocationsList } from "@/components/dashboard/LocationsList";
+import { useLocations, useSubscription, useAdminStatus, useCardStats } from "@/hooks/useDashboardData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [loading, setLoading] = useState(true);
   const [newLocationName, setNewLocationName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [deleteLocationId, setDeleteLocationId] = useState<string | null>(null);
   const [deleteLocationName, setDeleteLocationName] = useState("");
   const [renameLocationId, setRenameLocationId] = useState<string | null>(null);
   const [renameLocationName, setRenameLocationName] = useState("");
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [showFirstScanPrompt, setShowFirstScanPrompt] = useState(false);
-  const [totalItemsScanned, setTotalItemsScanned] = useState(0);
   const [source, setSource] = useState("");
-  const [cardStats, setCardStats] = useState<CardStats | null>(null);
+
+  // Use custom hooks for data fetching
+  const { data: locationsData, isLoading: locationsLoading, refetch: refetchLocations } = useLocations();
+  const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
+  const { data: isAdmin, isLoading: adminLoading } = useAdminStatus();
+  const { data: cardStats, isLoading: cardStatsLoading } = useCardStats(source === 'sports-cards');
+
+  const locations = locationsData?.locations || [];
+  const totalItemsScanned = locationsData?.totalItems || 0;
 
   useEffect(() => {
-    // Get source from sessionStorage
     const userSource = sessionStorage.getItem('user_source') || '';
     setSource(userSource);
 
@@ -91,14 +70,6 @@ const Dashboard = () => {
         if (!session) {
           navigate("/auth");
           return;
-        }
-        
-        await loadLocations();
-        await loadSubscription();
-        await checkAdminStatus();
-        
-        if (userSource === 'sports-cards') {
-          await loadCardStats();
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
@@ -116,20 +87,16 @@ const Dashboard = () => {
       if (sessionId) {
         handleScanPackSuccess(sessionId);
       }
-      // Clean up URL
       window.history.replaceState({}, '', '/dashboard');
     } else if (urlParams.get('success') === 'true') {
-      // Subscription success
       toast({
         title: "Subscription activated!",
         description: "Your subscription is now active. Enjoy your scans!"
       });
-      loadSubscription();
       window.history.replaceState({}, '', '/dashboard');
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      // Only redirect if auth is already checked and session is definitely gone
       if (authChecked && !session) {
         navigate("/auth");
       }
@@ -138,196 +105,15 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate, authChecked]);
 
-  const loadLocations = async () => {
-    try {
-      const { data: locationsData, error: locError } = await supabase
-        .from("locations")
-        .select("id, name, user_id, created_at")
-        .order("created_at", { ascending: false });
-
-      if (locError) throw locError;
-
-      const locationsWithCounts = await Promise.all(
-        (locationsData || []).map(async (loc) => {
-          const { count } = await supabase
-            .from("items")
-            .select("*", { count: "exact", head: true })
-            .eq("location_id", loc.id);
-
-          return {
-            id: loc.id,
-            name: loc.name,
-            itemCount: count || 0,
-          };
-        })
-      );
-
-      setLocations(locationsWithCounts);
-      
-      // Calculate total items scanned
-      const totalItems = locationsWithCounts.reduce((sum, loc) => sum + loc.itemCount, 0);
-      setTotalItemsScanned(totalItems);
-      
-      // Only redirect to onboarding if user came from auth and has no locations
-      // Don't redirect if they explicitly skipped onboarding
+  // Check if should redirect to onboarding
+  useEffect(() => {
+    if (!locationsLoading && locations.length === 0) {
       const hasCompletedOnboarding = sessionStorage.getItem('onboarding_completed');
-      if (locationsWithCounts.length === 0 && !hasCompletedOnboarding && !window.location.search.includes('from_onboarding')) {
+      if (!hasCompletedOnboarding && !window.location.search.includes('from_onboarding')) {
         navigate("/onboarding");
       }
-    } catch (error: any) {
-      toast({
-        title: "Error loading locations",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const loadSubscription = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Check subscription status with Stripe first
-      const { data: checkData, error: checkError } = await supabase.functions.invoke('check-subscription');
-      if (checkError) {
-        console.error('Subscription check error:', checkError);
-      }
-
-      // Get subscription info from database
-      const { data: subData, error: subError } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (subError) throw subError;
-
-      // Get usage info
-      const { data: usageData, error: usageError } = await supabase
-        .from('scan_usage')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('period_end', new Date().toISOString())
-        .maybeSingle();
-
-      if (usageError) throw usageError;
-
-      const planTier = subData?.plan_tier || 'free';
-      const itemLimits: Record<string, number> = {
-        free: 50,
-        starter: 250,
-        pro: 1000,
-        power: 5000
-      };
-
-      setSubscription({
-        plan_tier: planTier,
-        scans_used: usageData?.items_detected || 0,
-        scans_limit: itemLimits[planTier],
-        bonus_credits: usageData?.bonus_items || 0
-      });
-    } catch (error: any) {
-      console.error('Error loading subscription:', error);
-    }
-  };
-
-  const checkAdminStatus = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      setIsAdmin(!!roles);
-    } catch (error) {
-      console.error("Error checking admin status:", error);
-    }
-  };
-
-  const loadCardStats = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get all items for the user with card details
-      const { data: items, error: itemsError } = await supabase
-        .from("items")
-        .select(`
-          id, 
-          name,
-          source_context,
-          image_url,
-          card_details(estimated_value, sport, is_graded)
-        `)
-        .eq("user_id", user.id)
-        .eq("source_context", "sports-cards");
-
-      if (itemsError) throw itemsError;
-
-      if (!items || items.length === 0) {
-        setCardStats({ 
-          total_cards: 0, 
-          total_value: 0, 
-          graded_count: 0, 
-          sports_breakdown: {},
-          top_cards: []
-        });
-        return;
-      }
-
-      // Calculate stats
-      const total_cards = items.length;
-      let total_value = 0;
-      let graded_count = 0;
-      const sports_breakdown: Record<string, number> = {};
-      const cardsWithValues: Array<{ name: string; value: number; image_url: string }> = [];
-
-      items.forEach((item: any) => {
-        const cardDetail = item.card_details;
-        if (cardDetail) {
-          const value = Number(cardDetail.estimated_value) || 0;
-          total_value += value;
-          
-          if (cardDetail.is_graded) graded_count++;
-          
-          if (cardDetail.sport) {
-            sports_breakdown[cardDetail.sport] = (sports_breakdown[cardDetail.sport] || 0) + 1;
-          }
-
-          if (value > 0) {
-            cardsWithValues.push({
-              name: item.name,
-              value: value,
-              image_url: item.image_url || ''
-            });
-          }
-        }
-      });
-
-      // Get top 5 cards by value
-      const top_cards = cardsWithValues
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
-
-      setCardStats({ 
-        total_cards, 
-        total_value, 
-        graded_count, 
-        sports_breakdown,
-        top_cards 
-      });
-    } catch (error) {
-      console.error("Error loading card stats:", error);
-    }
-  };
+  }, [locations, locationsLoading, navigate]);
 
   const handleCreateLocation = async (locationName: string) => {
     if (!locationName.trim()) return;
@@ -346,19 +132,12 @@ const Dashboard = () => {
       toast({ title: "Location created!" });
       setNewLocationName("");
       setDialogOpen(false);
-      setShowCustomInput(false);
       
-      // Show first scan prompt if user has no items
       if (totalItemsScanned === 0) {
         setShowFirstScanPrompt(true);
       }
       
-      loadLocations();
-      
-      // Reload card stats for sports cards users
-      if (source === 'sports-cards') {
-        loadCardStats();
-      }
+      refetchLocations();
     } catch (error: any) {
       toast({
         title: "Error creating location",
@@ -366,11 +145,6 @@ const Dashboard = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleCustomLocationSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleCreateLocation(newLocationName);
   };
 
   const handleRenameLocation = async (e: React.FormEvent) => {
@@ -389,7 +163,7 @@ const Dashboard = () => {
       setRenameLocationId(null);
       setRenameLocationName("");
       setRenameDialogOpen(false);
-      loadLocations();
+      refetchLocations();
     } catch (error: any) {
       toast({
         title: "Error renaming location",
@@ -413,7 +187,7 @@ const Dashboard = () => {
       toast({ title: "Location deleted" });
       setDeleteLocationId(null);
       setDeleteLocationName("");
-      loadLocations();
+      refetchLocations();
     } catch (error: any) {
       toast({
         title: "Error deleting location",
@@ -421,11 +195,6 @@ const Dashboard = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
   };
 
   const handleScanPackSuccess = async (sessionId: string) => {
@@ -440,8 +209,6 @@ const Dashboard = () => {
         title: "Item pack added!",
         description: "100 bonus items have been added to your account."
       });
-
-      loadSubscription();
     } catch (error: any) {
       console.error('Error processing scan pack:', error);
       toast({
@@ -452,122 +219,39 @@ const Dashboard = () => {
     }
   };
 
-  if (loading || !authChecked) {
+  const planName = useMemo(() => {
+    if (!subscription) return 'Free';
+    return subscription.plan_tier.charAt(0).toUpperCase() + subscription.plan_tier.slice(1);
+  }, [subscription]);
+
+  if (!authChecked || locationsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-6">
+          <Skeleton className="h-16 w-full mb-4" />
+          <Skeleton className="h-24 w-full mb-6" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-32 w-full" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
-  const totalScans = subscription ? subscription.scans_limit + subscription.bonus_credits : 0;
-  const scansUsed = subscription?.scans_used || 0;
-  const scansRemaining = Math.max(0, totalScans - scansUsed);
-  const usagePercent = totalScans > 0 ? (scansUsed / totalScans) * 100 : 0;
-  const planName = subscription?.plan_tier ? subscription.plan_tier.charAt(0).toUpperCase() + subscription.plan_tier.slice(1) : 'Free';
-
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-lg border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">{source === 'sports-cards' ? 'Card Collection' : 'Cubby'}</h1>
-          <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate('/admin')}
-                className="gap-2"
-              >
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Admin</span>
-              </Button>
-            )}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/subscription')}
-              className="gap-2"
-            >
-              <Crown className="h-4 w-4" />
-              <span className="hidden sm:inline">{planName}</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => navigate('/settings')}
-            >
-              <SettingsIcon className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader 
+        source={source} 
+        isAdmin={isAdmin || false} 
+        planName={planName} 
+      />
 
-      {/* Subscription Status Banner */}
-      {subscription && (
-        <div className="bg-card border-b">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Items this month</span>
-                {subscription.bonus_credits > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    +{subscription.bonus_credits} bonus
-                  </Badge>
-                )}
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {scansRemaining} of {totalScans} remaining
-              </span>
-            </div>
-            <Progress value={usagePercent} className="h-2" />
-            {scansRemaining <= 10 && scansRemaining > 0 && (
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                Running low on items! Consider upgrading or buying an item pack.
-              </p>
-            )}
-            {scansRemaining === 0 && (
-              <p className="text-xs text-destructive mt-2">
-                Out of items! Upgrade your plan or purchase an item pack to continue.
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      {subscription && <SubscriptionBanner subscription={subscription} />}
 
-      {/* Card Stats for Sports Cards Users */}
-      {source === 'sports-cards' && cardStats && cardStats.total_cards > 0 && (
-        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Trophy className="h-4 w-4 text-primary" />
-                  <span className="text-2xl font-bold">{cardStats.total_cards}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">Total Cards</p>
-              </div>
-              <div className="text-center border-x border-border">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  <span className="text-2xl font-bold">${cardStats.total_value.toFixed(0)}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">Est. Value</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Star className="h-4 w-4 text-primary" />
-                  <span className="text-2xl font-bold">{cardStats.graded_count}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">Graded</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {source === 'sports-cards' && (
+        <CardStatsOverview cardStats={cardStats} isLoading={cardStatsLoading} />
       )}
 
       {/* Progress Gamification Banner for non-sports-cards users */}
@@ -761,127 +445,77 @@ const Dashboard = () => {
           </Dialog>
         </div>
 
-        {locations.length === 0 ? (
-          <Card className="border-dashed">
-            <div className="text-center py-12 px-6">
-              <div className="mb-4">
-                {source === 'sports-cards' ? (
-                  <Trophy className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                ) : (
-                  <Home className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                )}
-              </div>
-              <h3 className="text-lg font-semibold mb-2">
-                {source === 'sports-cards' ? 'No collections yet' : 'No locations yet'}
-              </h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                {source === 'sports-cards' 
-                  ? 'Create your first collection to start cataloging your cards. Collections help you organize by sport, set, or type.'
-                  : 'Create your first location to start organizing and scanning items. Locations help you track where everything is stored.'
-                }
-              </p>
-              <Button onClick={() => setDialogOpen(true)} size="lg">
-                <Plus className="h-4 w-4 mr-2" />
-                {source === 'sports-cards' ? 'Create Your First Collection' : 'Create Your First Location'}
-              </Button>
-            </div>
-          </Card>
-        ) : (
-          <>
-            <div className="flex justify-end mb-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/qr-codes/bulk")}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Print All QR Codes
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {locations.map((location) => (
-                <LocationCard
-                  key={location.id}
-                  id={location.id}
-                  name={location.name}
-                  itemCount={location.itemCount}
-                  onClick={() => navigate(`/location/${location.id}`)}
-                  onQRClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/qr-codes/${location.id}`);
-                  }}
-                  onRenameClick={(e) => {
-                    e.stopPropagation();
-                    setRenameLocationId(location.id);
-                    setRenameLocationName(location.name);
-                    setRenameDialogOpen(true);
-                  }}
-                  onDeleteClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteLocationId(location.id);
-                    setDeleteLocationName(location.name);
-                  }}
+        <LocationsList
+          locations={locations}
+          source={source}
+          isLoading={locationsLoading}
+          onOpenDialog={() => setDialogOpen(true)}
+          onRename={(id, name) => {
+            setRenameLocationId(id);
+            setRenameLocationName(name);
+            setRenameDialogOpen(true);
+          }}
+          onDelete={(id, name) => {
+            setDeleteLocationId(id);
+            setDeleteLocationName(name);
+          }}
+        />
+            
+        <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rename Location</DialogTitle>
+              <DialogDescription>
+                Enter a new name for this location
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleRenameLocation} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="rename-location">Location Name</Label>
+                <Input
+                  id="rename-location"
+                  value={renameLocationName}
+                  onChange={(e) => setRenameLocationName(e.target.value)}
+                  autoFocus
+                  required
                 />
-              ))}
-            </div>
-            
-            <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Rename Location</DialogTitle>
-                  <DialogDescription>
-                    Enter a new name for this location
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleRenameLocation} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="rename-location">Location Name</Label>
-                    <Input
-                      id="rename-location"
-                      value={renameLocationName}
-                      onChange={(e) => setRenameLocationName(e.target.value)}
-                      autoFocus
-                      required
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => setRenameDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" className="flex-1">
-                      Rename
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-            
-            <AlertDialog open={!!deleteLocationId} onOpenChange={(open) => !open && setDeleteLocationId(null)}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Location?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete "{deleteLocationName}"? This will also delete all items in this location. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteLocation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
-        )}
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setRenameDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1">
+                  Rename
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+        
+        <AlertDialog open={!!deleteLocationId} onOpenChange={(open) => !open && setDeleteLocationId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Location?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{deleteLocationName}"? This will also delete all items in this location. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteLocation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Card Charts & Analytics for Sports Cards Users */}
-        {source === 'sports-cards' && cardStats && cardStats.total_cards > 0 && (
+        {source === 'sports-cards' && cardStats && cardStats.total_cards > 0 && !cardStatsLoading && (
           <div className="space-y-6 mt-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Sports Breakdown Pie Chart */}
@@ -897,54 +531,21 @@ const Dashboard = () => {
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
-                          data={Object.entries(cardStats.sports_breakdown).map(([sport, count]) => {
-                            // Sport icons mapping
-                            const sportIcons: Record<string, string> = {
-                              'Baseball': '⚾',
-                              'Basketball': '🏀',
-                              'Football': '🏈',
-                              'Hockey': '🏒',
-                              'Soccer': '⚽',
-                              'Golf': '⛳',
-                            };
-                            return {
-                              name: `${sportIcons[sport] || '🎯'} ${sport}`,
-                              value: count,
-                              sport
-                            };
-                          })}
+                          data={Object.entries(cardStats.sports_breakdown).map(([sport, count]) => ({
+                            name: sport,
+                            value: count
+                          }))}
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          label={(entry) => `${entry.name}: ${entry.value}`}
                           outerRadius={80}
                           fill="hsl(var(--primary))"
                           dataKey="value"
                         >
-                          {Object.entries(cardStats.sports_breakdown).map(([sport], index) => {
-                            // Modern vibrant color palette for different sports
-                            const sportColors: Record<string, string> = {
-                              'Baseball': 'hsl(220, 90%, 56%)', // Blue
-                              'Basketball': 'hsl(25, 95%, 53%)', // Orange
-                              'Football': 'hsl(142, 76%, 36%)', // Green
-                              'Hockey': 'hsl(0, 84%, 60%)', // Red
-                              'Soccer': 'hsl(280, 80%, 55%)', // Purple
-                              'Golf': 'hsl(45, 93%, 47%)', // Gold
-                            };
-                            const defaultColors = [
-                              'hsl(262, 83%, 58%)', // Purple
-                              'hsl(339, 90%, 51%)', // Pink
-                              'hsl(173, 80%, 40%)', // Teal
-                              'hsl(36, 100%, 50%)', // Amber
-                              'hsl(201, 96%, 32%)', // Blue
-                            ];
-                            return (
-                              <Cell 
-                                key={`cell-${index}`} 
-                                fill={sportColors[sport] || defaultColors[index % defaultColors.length]}
-                              />
-                            );
-                          })}
+                          {Object.entries(cardStats.sports_breakdown).map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={`hsl(var(--primary) / ${1 - index * 0.15})`} />
+                          ))}
                         </Pie>
                         <Tooltip />
                         <Legend />
@@ -965,7 +566,11 @@ const Dashboard = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {cardStats.top_cards.map((card, index) => (
-                      <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                      <div 
+                        key={index} 
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/item/${card.id}`)}
+                      >
                         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-sm">
                           {index + 1}
                         </div>
@@ -1021,24 +626,7 @@ const Dashboard = () => {
                           borderRadius: '8px'
                         }}
                       />
-                      <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                        {cardStats.top_cards.map((_, index) => {
-                          // Gradient colors from high to low value
-                          const colors = [
-                            'hsl(142, 76%, 36%)', // Green for highest
-                            'hsl(45, 93%, 47%)',  // Gold
-                            'hsl(25, 95%, 53%)',  // Orange
-                            'hsl(220, 90%, 56%)', // Blue
-                            'hsl(262, 83%, 58%)', // Purple
-                          ];
-                          return (
-                            <Cell 
-                              key={`bar-${index}`}
-                              fill={colors[index % colors.length]}
-                            />
-                          );
-                        })}
-                      </Bar>
+                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -1048,30 +636,35 @@ const Dashboard = () => {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t px-4 py-3 safe-bottom">
-        <div className="container mx-auto flex items-center justify-around max-w-lg">
-          <Button 
-            variant="ghost" 
-            className="flex-col h-auto py-2 px-4 gap-1 active:scale-95 transition-transform" 
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t py-3 z-50">
+        <div className="container mx-auto px-4 flex justify-around items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex flex-col items-center gap-1"
             onClick={() => navigate("/dashboard")}
           >
-            <Home className="h-6 w-6" />
-            <span className="text-xs font-medium">Home</span>
+            <Trophy className="h-5 w-5" />
+            <span className="text-xs">Home</span>
           </Button>
           <Button
-            size="icon"
-            className="h-16 w-16 rounded-full shadow-xl hover:shadow-2xl active:scale-90 transition-all"
+            variant="ghost"
+            size="sm"
+            className="flex flex-col items-center gap-1"
             onClick={() => navigate("/scan")}
           >
-            <Camera className="h-7 w-7" />
+            <Camera className="h-5 w-5" />
+            <span className="text-xs">Scan</span>
           </Button>
-          <Button 
-            variant="ghost" 
-            className="flex-col h-auto py-2 px-4 gap-1 active:scale-95 transition-transform" 
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex flex-col items-center gap-1"
             onClick={() => navigate("/search")}
           >
-            <Search className="h-6 w-6" />
-            <span className="text-xs font-medium">Search</span>
+            <Trophy className="h-5 w-5" />
+            <span className="text-xs">Search</span>
           </Button>
         </div>
       </nav>

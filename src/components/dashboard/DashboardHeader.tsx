@@ -1,0 +1,59 @@
+import { Button } from "@/components/ui/button";
+import { Crown, Shield, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+interface DashboardHeaderProps {
+  source: string;
+  isAdmin: boolean;
+  planName: string;
+}
+
+export const DashboardHeader = ({ source, isAdmin, planName }: DashboardHeaderProps) => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
+  return (
+    <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-lg border-b">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-bold">{source === 'sports-cards' ? 'Card Collection' : 'Cubby'}</h1>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/admin')}
+              className="gap-2"
+            >
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </Button>
+          )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate('/subscription')}
+            className="gap-2"
+          >
+            <Crown className="h-4 w-4" />
+            <span className="hidden sm:inline">{planName}</span>
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate('/settings')}
+          >
+            <SettingsIcon className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <LogOut className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+};
