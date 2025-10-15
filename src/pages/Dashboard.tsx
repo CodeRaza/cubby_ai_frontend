@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PREDEFINED_LOCATIONS } from "@/lib/locationTypes";
+import { PREDEFINED_LOCATIONS, SPORTS_COLLECTIONS } from "@/lib/locationTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
@@ -720,15 +720,9 @@ const Dashboard = () => {
                 <div className="space-y-2">
                   <Label className="text-sm text-muted-foreground">Quick Presets</Label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {(source === 'sports-cards' ? [
-                      { id: 'baseball', name: 'Baseball Cards', icon: Trophy },
-                      { id: 'basketball', name: 'Basketball Cards', icon: Trophy },
-                      { id: 'football', name: 'Football Cards', icon: Trophy },
-                      { id: 'hockey', name: 'Hockey Cards', icon: Trophy },
-                      { id: 'rookie', name: 'Rookie Cards', icon: Star },
-                      { id: 'graded', name: 'Graded Cards', icon: Shield },
-                    ] : PREDEFINED_LOCATIONS).map((locationType) => {
+                    {(source === 'sports-cards' ? SPORTS_COLLECTIONS : PREDEFINED_LOCATIONS).map((locationType) => {
                       const IconComponent = locationType.icon;
+                      const emoji = 'emoji' in locationType ? locationType.emoji : undefined;
                       return (
                         <Button
                           key={locationType.id}
@@ -737,8 +731,12 @@ const Dashboard = () => {
                           onClick={() => setNewLocationName(locationType.name)}
                           type="button"
                         >
-                          <IconComponent className="h-5 w-5" />
-                          <span className="text-xs">{locationType.name}</span>
+                          {emoji ? (
+                            <span className="text-2xl">{emoji}</span>
+                          ) : (
+                            <IconComponent className="h-5 w-5" />
+                          )}
+                          <span className="text-xs text-center">{locationType.name}</span>
                         </Button>
                       );
                     })}

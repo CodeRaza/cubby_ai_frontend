@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QrCode, Trash2, Pencil } from "lucide-react";
-import { getLocationIcon } from "@/lib/locationTypes";
+import { getLocationIcon, getLocationEmoji } from "@/lib/locationTypes";
 
 interface LocationCardProps {
   id: string;
@@ -15,6 +15,7 @@ interface LocationCardProps {
 
 export const LocationCard = ({ id, name, itemCount, onClick, onQRClick, onDeleteClick, onRenameClick }: LocationCardProps) => {
   const LocationIcon = getLocationIcon(name);
+  const emoji = getLocationEmoji(name);
   
   return (
     <Card 
@@ -23,8 +24,12 @@ export const LocationCard = ({ id, name, itemCount, onClick, onQRClick, onDelete
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
-          <div className="p-3 rounded-xl bg-primary/10">
-            <LocationIcon className="h-6 w-6 text-primary" />
+          <div className="p-3 rounded-xl bg-primary/10 flex items-center justify-center">
+            {emoji ? (
+              <span className="text-3xl">{emoji}</span>
+            ) : (
+              <LocationIcon className="h-6 w-6 text-primary" />
+            )}
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-lg">{name}</h3>
