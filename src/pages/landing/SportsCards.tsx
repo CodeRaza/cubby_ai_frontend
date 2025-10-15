@@ -23,7 +23,7 @@ export default function SportsCards() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 animate-fade-in">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                Turn Your Sports Cards Into a Smart Portfolio
+                Turn Your Sports Cards Into a <span className="text-primary bg-primary/10 px-2 rounded">Smart Portfolio</span>
               </h1>
               
               <p className="text-xl text-muted-foreground">
