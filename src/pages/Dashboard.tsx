@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationCard } from "@/components/LocationCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield, Settings as SettingsIcon, Home, Trophy, TrendingUp, Star } from "lucide-react";
+import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield, Settings as SettingsIcon, Home, Trophy, TrendingUp, Star, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PREDEFINED_LOCATIONS } from "@/lib/locationTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
 interface Location {
   id: string;
@@ -48,6 +49,11 @@ interface CardStats {
   total_value: number;
   graded_count: number;
   sports_breakdown: Record<string, number>;
+  top_cards: Array<{
+    name: string;
+    value: number;
+    image_url: string;
+  }>;
 }
 
 const Dashboard = () => {
@@ -250,42 +256,73 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get all items for the user
+      // Get all items for the user with card details
       const { data: items, error: itemsError } = await supabase
         .from("items")
-        .select("id, source_context")
+        .select(`
+          id, 
+          name,
+          source_context,
+          image_url,
+          card_details(estimated_value, sport, is_graded)
+        `)
         .eq("user_id", user.id)
         .eq("source_context", "sports-cards");
 
       if (itemsError) throw itemsError;
 
-      // Get card details for all items
-      const itemIds = items?.map(i => i.id) || [];
-      if (itemIds.length === 0) {
-        setCardStats({ total_cards: 0, total_value: 0, graded_count: 0, sports_breakdown: {} });
+      if (!items || items.length === 0) {
+        setCardStats({ 
+          total_cards: 0, 
+          total_value: 0, 
+          graded_count: 0, 
+          sports_breakdown: {},
+          top_cards: []
+        });
         return;
       }
 
-      const { data: cardDetails, error: detailsError } = await supabase
-        .from("card_details")
-        .select("*")
-        .in("item_id", itemIds);
-
-      if (detailsError) throw detailsError;
-
       // Calculate stats
-      const total_cards = items?.length || 0;
-      const total_value = cardDetails?.reduce((sum, card) => sum + (Number(card.estimated_value) || 0), 0) || 0;
-      const graded_count = cardDetails?.filter(card => card.is_graded).length || 0;
-      
+      const total_cards = items.length;
+      let total_value = 0;
+      let graded_count = 0;
       const sports_breakdown: Record<string, number> = {};
-      cardDetails?.forEach(card => {
-        if (card.sport) {
-          sports_breakdown[card.sport] = (sports_breakdown[card.sport] || 0) + 1;
+      const cardsWithValues: Array<{ name: string; value: number; image_url: string }> = [];
+
+      items.forEach((item: any) => {
+        const cardDetail = item.card_details;
+        if (cardDetail) {
+          const value = Number(cardDetail.estimated_value) || 0;
+          total_value += value;
+          
+          if (cardDetail.is_graded) graded_count++;
+          
+          if (cardDetail.sport) {
+            sports_breakdown[cardDetail.sport] = (sports_breakdown[cardDetail.sport] || 0) + 1;
+          }
+
+          if (value > 0) {
+            cardsWithValues.push({
+              name: item.name,
+              value: value,
+              image_url: item.image_url || ''
+            });
+          }
         }
       });
 
-      setCardStats({ total_cards, total_value, graded_count, sports_breakdown });
+      // Get top 5 cards by value
+      const top_cards = cardsWithValues
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5);
+
+      setCardStats({ 
+        total_cards, 
+        total_value, 
+        graded_count, 
+        sports_breakdown,
+        top_cards 
+      });
     } catch (error) {
       console.error("Error loading card stats:", error);
     }
@@ -529,6 +566,117 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Card Charts & Analytics for Sports Cards Users */}
+      {source === 'sports-cards' && cardStats && cardStats.total_cards > 0 && (
+        <div className="container mx-auto px-4 py-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Sports Breakdown Pie Chart */}
+            {Object.keys(cardStats.sports_breakdown).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-primary" />
+                    Collection Breakdown
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={Object.entries(cardStats.sports_breakdown).map(([sport, count]) => ({
+                          name: sport,
+                          value: count
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="hsl(var(--primary))"
+                        dataKey="value"
+                      >
+                        {Object.entries(cardStats.sports_breakdown).map((_, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={`hsl(var(--primary) / ${1 - (index * 0.15)})`}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Top Cards by Value */}
+            {cardStats.top_cards.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-primary" />
+                    Top Valuable Cards
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {cardStats.top_cards.map((card, index) => (
+                    <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-sm">
+                        {index + 1}
+                      </div>
+                      {card.image_url && (
+                        <img 
+                          src={card.image_url} 
+                          alt={card.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{card.name}</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-primary font-semibold">
+                        <DollarSign className="h-4 w-4" />
+                        {card.value.toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Value Distribution Bar Chart */}
+          {cardStats.top_cards.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Value Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={cardStats.top_cards}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
