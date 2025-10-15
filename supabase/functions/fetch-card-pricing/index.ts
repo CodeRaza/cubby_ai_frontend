@@ -12,14 +12,21 @@ const EBAY_SANDBOX = false; // Production API enabled
 
 // Note: Finding Service API doesn't use OAuth - it uses App ID directly
 async function searchEbayListings(cardDetails: any) {
-  // Build search query from card details
-  const searchTerms = [
-    cardDetails.player_name,
+  // Build search query from card details - prioritize specific details
+  const searchParts = [
     cardDetails.card_year,
     cardDetails.brand,
-    cardDetails.sport,
+    cardDetails.player_name,
+    cardDetails.card_number?.replace('#', ''), // Remove # symbol
     cardDetails.set_name,
-  ].filter(Boolean).join(' ');
+  ].filter(Boolean);
+
+  // For rookie cards, add that to search
+  if (cardDetails.special_attributes?.includes('Rookie Card')) {
+    searchParts.push('Rookie');
+  }
+
+  const searchTerms = searchParts.join(' ');
 
   console.log('[FETCH-PRICING] Searching eBay for:', searchTerms);
 
@@ -199,53 +206,81 @@ serve(async (req) => {
 });
 
 function calculateBasePrice(cardDetails: any): number {
-  let basePrice = 10; // Default base price
+  let basePrice = 2; // Start very low
 
-  // Adjust for year (older cards often more valuable)
+  // Adjust for year (older cards often more valuable, but 1980s-90s are common)
   const currentYear = new Date().getFullYear();
   const cardAge = currentYear - (cardDetails.card_year || currentYear);
-  if (cardAge > 30) basePrice *= 5;
-  else if (cardAge > 20) basePrice *= 3;
-  else if (cardAge > 10) basePrice *= 1.5;
+  
+  if (cardAge > 50) basePrice += 20; // Pre-1975
+  else if (cardAge > 40) basePrice += 10; // 1975-1985
+  else if (cardAge > 30) basePrice += 3; // 1985-1995 (junk wax era)
+  else if (cardAge > 20) basePrice += 5; // 1995-2005
+  else if (cardAge > 10) basePrice += 8; // 2005-2015
+  else basePrice += 10; // Modern cards
 
-  // Adjust for brand
-  const premiumBrands = ['Topps', 'Upper Deck', 'Fleer'];
-  if (premiumBrands.includes(cardDetails.brand)) {
-    basePrice *= 1.5;
+  // Adjust for brand (additive, not multiplicative)
+  const premiumBrands = ['Topps Chrome', 'Bowman Chrome', 'Panini Prizm', 'Select'];
+  const modernBrands = ['Topps', 'Bowman', 'Upper Deck'];
+  const vintageBrands = ['Fleer', 'Donruss', 'Score'];
+  
+  if (premiumBrands.some(brand => cardDetails.brand?.includes(brand))) {
+    basePrice += 15;
+  } else if (modernBrands.includes(cardDetails.brand)) {
+    basePrice += 5;
+  } else if (vintageBrands.includes(cardDetails.brand)) {
+    basePrice += 2;
   }
 
-  // Adjust for player (simplified)
-  const legendaryPlayers = ['Jeter', 'Jordan', 'Brady', 'Gretzky', 'Ruth'];
+  // Player multiplier (multiplicative for major impact)
+  const legendaryPlayers = ['Jeter', 'Jordan', 'Brady', 'Gretzky', 'Ruth', 'Mantle', 'Williams', 'Mays', 'Montana'];
+  const superstarPlayers = ['Trout', 'Ohtani', 'Mahomes', 'Wembanyama', 'Judge'];
+  const starPlayers = ['Bonds', 'Griffey', 'Rodriguez', 'Pujols', 'Soto', 'Tatum'];
+  
   if (legendaryPlayers.some(name => cardDetails.player_name?.includes(name))) {
-    basePrice *= 10;
+    basePrice *= 20;
+  } else if (superstarPlayers.some(name => cardDetails.player_name?.includes(name))) {
+    basePrice *= 12;
+  } else if (starPlayers.some(name => cardDetails.player_name?.includes(name))) {
+    basePrice *= 3;
+  } else {
+    basePrice *= 1.5; // Common players
   }
 
-  // Adjust for special attributes
+  // Rookie cards get multiplier
   if (cardDetails.special_attributes?.includes('Rookie Card')) {
-    basePrice *= 3;
+    basePrice *= 2.5;
   }
+  
+  // Autograph cards
   if (cardDetails.special_attributes?.includes('Autograph')) {
-    basePrice *= 5;
+    basePrice *= 6;
   }
-  if (cardDetails.special_attributes?.includes('Refractor')) {
+  
+  // Special insert cards
+  if (cardDetails.special_attributes?.some((attr: string) => 
+    ['Refractor', 'Prizm', 'Parallel', 'Serial Numbered'].includes(attr))) {
     basePrice *= 2;
   }
 
   // Adjust for grading
   if (cardDetails.is_graded) {
     const grade = Number(cardDetails.grade) || 7;
-    if (grade >= 9.5) basePrice *= 5;
+    if (grade >= 10) basePrice *= 8;
+    else if (grade >= 9.5) basePrice *= 5;
     else if (grade >= 9) basePrice *= 3;
     else if (grade >= 8) basePrice *= 2;
-  }
-
-  // Adjust for condition (if not graded)
-  if (!cardDetails.is_graded) {
+    else if (grade >= 7) basePrice *= 1.3;
+  } else {
+    // Condition adjustment for raw cards (smaller impact)
     const condition = cardDetails.condition?.toLowerCase() || '';
-    if (condition.includes('mint')) basePrice *= 1.5;
-    else if (condition.includes('excellent')) basePrice *= 1.2;
-    else if (condition.includes('poor')) basePrice *= 0.5;
+    if (condition.includes('gem mint') || condition.includes('pristine')) basePrice *= 1.8;
+    else if (condition.includes('mint')) basePrice *= 1.5;
+    else if (condition.includes('near mint')) basePrice *= 1.2;
+    else if (condition.includes('excellent')) basePrice *= 1;
+    else if (condition.includes('good')) basePrice *= 0.7;
+    else if (condition.includes('poor')) basePrice *= 0.4;
   }
 
-  return basePrice;
+  return Math.max(Math.round(basePrice * 100) / 100, 0.5); // Round to 2 decimals, minimum 50 cents
 }

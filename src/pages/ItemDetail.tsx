@@ -105,6 +105,7 @@ const ItemDetail = () => {
   const [sold, setSold] = useState(false);
   const [soldPrice, setSoldPrice] = useState("");
   const [soldDate, setSoldDate] = useState("");
+  const [hasSalesData, setHasSalesData] = useState(false);
 
   useEffect(() => {
     loadItem();
@@ -150,6 +151,17 @@ const ItemDetail = () => {
           estimated_value: data.card_details.estimated_value?.toString() || '',
           special_attributes: data.card_details.special_attributes || []
         });
+        
+        // Check if we have actual sales data
+        if (data.card_details.id) {
+          const { data: salesData } = await supabase
+            .from('price_history')
+            .select('id')
+            .eq('card_id', data.card_details.id)
+            .limit(1);
+          
+          setHasSalesData(salesData && salesData.length > 0);
+        }
       }
     } catch (error: any) {
       toast({
@@ -667,6 +679,7 @@ const ItemDetail = () => {
                               // Invalidate recent sales query to refresh the component
                               queryClient.invalidateQueries({ queryKey: ['recent-sales', item.card_details?.id] });
                               
+                              // Refresh to check for sales data
                               loadItem();
                             } catch (error: any) {
                               toast({
@@ -695,10 +708,19 @@ const ItemDetail = () => {
                             : item.card_details.price_trend_7d && item.card_details.price_trend_7d < 0
                             ? 'bg-red-500/5 border-red-500/20'
                             : 'bg-muted/30'
-                        }`}>
-                          <CardContent className="p-4">
-                            <p className="text-sm text-muted-foreground mb-1">Estimated Value</p>
-                            <p className={`text-3xl font-bold ${
+                          }`}>
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-sm text-muted-foreground">
+                                  {hasSalesData ? 'Market Value' : 'Estimated Value'}
+                                </p>
+                                {!hasSalesData && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Estimate
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className={`text-3xl font-bold ${
                               item.card_details.price_trend_7d && item.card_details.price_trend_7d > 0
                                 ? 'text-green-600'
                                 : item.card_details.price_trend_7d && item.card_details.price_trend_7d < 0
@@ -707,13 +729,18 @@ const ItemDetail = () => {
                             }`}>
                               ${Number(item.card_details.estimated_value).toFixed(2)}
                             </p>
-                            {item.card_details.last_price_update && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Updated {format(new Date(item.card_details.last_price_update), 'MMM dd, h:mm a')}
-                              </p>
-                            )}
-                          </CardContent>
-                        </Card>
+                              {item.card_details.last_price_update && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Updated {format(new Date(item.card_details.last_price_update), 'MMM dd, h:mm a')}
+                                </p>
+                              )}
+                              {!hasSalesData && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  Based on card attributes • Click Refresh for live data
+                                </p>
+                              )}
+                            </CardContent>
+                          </Card>
                         
                         {item.card_details.price_trend_7d !== null && item.card_details.price_trend_7d !== undefined && (
                           <Card className="bg-muted/30">
@@ -795,6 +822,7 @@ const ItemDetail = () => {
                             // Invalidate recent sales query to refresh the component
                             queryClient.invalidateQueries({ queryKey: ['recent-sales', item.card_details?.id] });
                             
+                            // Refresh to check for sales data
                             loadItem();
                           } catch (error: any) {
                             toast({
