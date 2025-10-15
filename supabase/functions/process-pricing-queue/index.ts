@@ -274,14 +274,15 @@ async function searchEbayListings(cardDetails: any, userId?: string, cardKey?: s
     // Log successful API call
     const responseTime = Date.now() - startTime;
     if (supabaseClient) {
-      await supabaseClient.from('ebay_api_usage').insert({
+      const { error: logError } = await supabaseClient.from('ebay_api_usage').insert({
         endpoint: 'FindingService',
         operation: 'findCompletedItems',
         status: 'success',
         response_time_ms: responseTime,
         user_id: userId,
         card_key: cardKey
-      }).catch((err: Error) => console.error('[PROCESS-QUEUE] Error logging API usage:', err));
+      });
+      if (logError) console.error('[PROCESS-QUEUE] Error logging API usage:', logError);
     }
     
     return data;
@@ -289,7 +290,7 @@ async function searchEbayListings(cardDetails: any, userId?: string, cardKey?: s
     // Log failed API call
     const responseTime = Date.now() - startTime;
     if (supabaseClient) {
-      await supabaseClient.from('ebay_api_usage').insert({
+      const { error: logError } = await supabaseClient.from('ebay_api_usage').insert({
         endpoint: 'FindingService',
         operation: 'findCompletedItems',
         status: 'error',
@@ -297,7 +298,8 @@ async function searchEbayListings(cardDetails: any, userId?: string, cardKey?: s
         error_message: errorMessage || (error instanceof Error ? error.message : 'Unknown error'),
         user_id: userId,
         card_key: cardKey
-      }).catch((err: Error) => console.error('[PROCESS-QUEUE] Error logging API usage:', err));
+      });
+      if (logError) console.error('[PROCESS-QUEUE] Error logging API usage:', logError);
     }
     
     throw error;
