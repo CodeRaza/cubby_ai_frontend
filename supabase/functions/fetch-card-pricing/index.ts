@@ -6,6 +6,74 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const EBAY_APP_ID = Deno.env.get('EBAY_APP_ID');
+const EBAY_CERT_ID = Deno.env.get('EBAY_CERT_ID');
+const EBAY_SANDBOX = true; // Set to false for production
+
+async function getEbayAccessToken() {
+  const credentials = `${EBAY_APP_ID}:${EBAY_CERT_ID}`;
+  const encodedCredentials = btoa(credentials);
+  
+  const tokenUrl = EBAY_SANDBOX 
+    ? 'https://api.sandbox.ebay.com/identity/v1/oauth2/token'
+    : 'https://api.ebay.com/identity/v1/oauth2/token';
+
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${encodedCredentials}`,
+    },
+    body: 'grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get eBay token: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.access_token;
+}
+
+async function searchEbayListings(cardDetails: any, accessToken: string) {
+  // Build search query from card details
+  const searchTerms = [
+    cardDetails.player_name,
+    cardDetails.card_year,
+    cardDetails.brand,
+    cardDetails.sport,
+    cardDetails.set_name,
+  ].filter(Boolean).join(' ');
+
+  console.log('[FETCH-PRICING] Searching eBay for:', searchTerms);
+
+  const findingUrl = EBAY_SANDBOX
+    ? 'https://svcs.sandbox.ebay.com/services/search/FindingService/v1'
+    : 'https://svcs.ebay.com/services/search/FindingService/v1';
+
+  const params = new URLSearchParams({
+    'OPERATION-NAME': 'findCompletedItems',
+    'SERVICE-VERSION': '1.0.0',
+    'SECURITY-APPNAME': EBAY_APP_ID!,
+    'RESPONSE-DATA-FORMAT': 'JSON',
+    'REST-PAYLOAD': '',
+    'keywords': searchTerms,
+    'itemFilter(0).name': 'SoldItemsOnly',
+    'itemFilter(0).value': 'true',
+    'sortOrder': 'EndTimeSoonest',
+    'paginationInput.entriesPerPage': '10',
+  });
+
+  const response = await fetch(`${findingUrl}?${params}`);
+  
+  if (!response.ok) {
+    throw new Error(`eBay API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,34 +93,45 @@ serve(async (req) => {
 
     console.log('[FETCH-PRICING] Fetching pricing for card:', cardDetails);
 
-    // Simulate pricing API call
-    // In production, this would call eBay API, Card Ladder, or Market Movers
-    const basePrice = calculateBasePrice(cardDetails);
-    const variance = (Math.random() - 0.5) * basePrice * 0.3; // ±30% variance
-    const currentPrice = Math.max(1, basePrice + variance);
+    // Get eBay access token
+    const accessToken = await getEbayAccessToken();
+    console.log('[FETCH-PRICING] eBay token obtained');
 
-    // Generate recent sales history (last 5 sales)
+    // Search eBay for sold listings
+    const ebayData = await searchEbayListings(cardDetails, accessToken);
+    
+    // Parse eBay response
+    const searchResult = ebayData?.findCompletedItemsResponse?.[0];
+    const items = searchResult?.searchResult?.[0]?.item || [];
+    
+    console.log('[FETCH-PRICING] Found', items.length, 'eBay listings');
+
     const recentSales = [];
-    for (let i = 0; i < 5; i++) {
-      const daysAgo = Math.floor(Math.random() * 30) + 1;
-      const saleDate = new Date();
-      saleDate.setDate(saleDate.getDate() - daysAgo);
+    let totalPrice = 0;
+    
+    for (const item of items.slice(0, 10)) {
+      const sellingStatus = item.sellingStatus?.[0];
+      const price = parseFloat(sellingStatus?.currentPrice?.[0]?.__value__ || '0');
       
-      const saleVariance = (Math.random() - 0.5) * basePrice * 0.2;
-      const salePrice = Math.max(1, basePrice + saleVariance);
-
-      recentSales.push({
-        card_id: cardId,
-        price: Number(salePrice.toFixed(2)),
-        source: ['ebay', 'cardladder', 'goldin'][Math.floor(Math.random() * 3)],
-        condition: cardDetails.condition || 'raw',
-        date_of_sale: saleDate.toISOString(),
-        sale_url: `https://example.com/sale/${i}`
-      });
+      if (price > 0) {
+        recentSales.push({
+          card_id: cardId,
+          price: Number(price.toFixed(2)),
+          source: 'ebay',
+          condition: cardDetails.condition || 'raw',
+          date_of_sale: item.listingInfo?.[0]?.endTime?.[0] || new Date().toISOString(),
+          sale_url: item.viewItemURL?.[0] || null
+        });
+        totalPrice += price;
+      }
     }
 
-    // Sort by date (most recent first)
-    recentSales.sort((a, b) => new Date(b.date_of_sale).getTime() - new Date(a.date_of_sale).getTime());
+    // Calculate average price
+    const currentPrice = recentSales.length > 0 
+      ? totalPrice / recentSales.length 
+      : calculateBasePrice(cardDetails);
+
+    console.log('[FETCH-PRICING] Calculated average price:', currentPrice);
 
     // Insert price history
     const { error: historyError } = await supabase
