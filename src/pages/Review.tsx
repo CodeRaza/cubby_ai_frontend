@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import { CardDetailsForm } from "@/components/CardDetailsForm";
+import { cropImageFromBoundingBox } from "@/lib/imageCropping";
 import {
   Select,
   SelectContent,
@@ -252,6 +253,32 @@ const Review = () => {
             backImageUrl = imageUrls[halfPoint + i] || null;
           }
         }
+
+        // Crop individual card from full scan image if bbox available
+        const detectionForCrop = detections.find(d => d.label === item.label);
+        if (detectionForCrop?.bbox && frontImageUrl) {
+          try {
+            const croppedBlob = await cropImageFromBoundingBox(frontImageUrl, detectionForCrop.bbox);
+            const fileName = `${user.id}/${Date.now()}_${i}_cropped.jpg`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from("item-images")
+              .upload(fileName, croppedBlob, {
+                contentType: "image/jpeg",
+                upsert: false,
+              });
+
+            if (!uploadError) {
+              const { data: { publicUrl } } = supabase.storage
+                .from("item-images")
+                .getPublicUrl(fileName);
+              frontImageUrl = publicUrl;
+            }
+          } catch (cropError) {
+            console.error("Failed to crop image:", cropError);
+            // Fall back to original image URL
+          }
+        }
         
         const { data: insertedItem, error: itemError } = await supabase
           .from("items")
@@ -292,15 +319,14 @@ const Review = () => {
         }
 
         // Save detection data with bounding boxes
-        const detection = detections.find(d => d.label === item.label);
         await supabase.from("detections").insert({
           item_id: insertedItem.id,
           label: item.label,
           confidence: item.confidence,
-          bbox_x: detection?.bbox?.x || null,
-          bbox_y: detection?.bbox?.y || null,
-          bbox_width: detection?.bbox?.width || null,
-          bbox_height: detection?.bbox?.height || null,
+          bbox_x: detectionForCrop?.bbox?.x || null,
+          bbox_y: detectionForCrop?.bbox?.y || null,
+          bbox_width: detectionForCrop?.bbox?.width || null,
+          bbox_height: detectionForCrop?.bbox?.height || null,
         });
       }
 
