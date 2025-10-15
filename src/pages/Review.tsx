@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import { CardDetailsForm } from "@/components/CardDetailsForm";
 import { cropImageFromBoundingBox } from "@/lib/imageCropping";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -63,6 +64,7 @@ const Review = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { 
     detections = [], 
     imageUrl = "", 
@@ -313,6 +315,9 @@ const Review = () => {
           // Don't fail the save if email fails
         }
       }
+
+      // Invalidate subscription query to refresh usage counter immediately
+      queryClient.invalidateQueries({ queryKey: ['dashboard-subscription'] });
 
       toast({ title: `${items.length} items saved successfully!` });
       navigate("/dashboard");
