@@ -18,12 +18,20 @@ interface CardStats {
   total_cards: number;
   total_value: number;
   graded_count: number;
+  weekly_change?: number;
+  biggest_mover?: {
+    name: string;
+    change_percent: number;
+  };
   sports_breakdown: Record<string, number>;
   top_cards: Array<{
     name: string;
     value: number;
     image_url: string;
     id: string;
+    price_trend_7d?: number;
+    is_graded?: boolean;
+    special_attributes?: string[];
   }>;
 }
 
@@ -143,7 +151,13 @@ export const useCardStats = (enabled: boolean) => {
           id, 
           name,
           image_url,
-          card_details!inner(estimated_value, sport, is_graded)
+          card_details!inner(
+            estimated_value, 
+            sport, 
+            is_graded,
+            price_trend_7d,
+            special_attributes
+          )
         `)
         .eq("user_id", user.id)
         .eq("source_context", "sports-cards");
@@ -165,7 +179,20 @@ export const useCardStats = (enabled: boolean) => {
       let total_value = 0;
       let graded_count = 0;
       const sports_breakdown: Record<string, number> = {};
-      const cardsWithValues: Array<{ id: string; name: string; value: number; image_url: string }> = [];
+      const cardsWithValues: Array<{ 
+        id: string; 
+        name: string; 
+        value: number; 
+        image_url: string;
+        price_trend_7d?: number;
+        is_graded?: boolean;
+        special_attributes?: string[];
+      }> = [];
+
+      // Calculate weekly portfolio change
+      let weekly_change = 0;
+      let biggest_mover: { name: string; change_percent: number } | undefined;
+      let max_change = 0;
 
       items.forEach((item: any) => {
         const cardDetail = item.card_details;
@@ -179,12 +206,29 @@ export const useCardStats = (enabled: boolean) => {
             sports_breakdown[cardDetail.sport] = (sports_breakdown[cardDetail.sport] || 0) + 1;
           }
 
+          const trend_7d = Number(cardDetail.price_trend_7d) || 0;
+          if (trend_7d !== 0) {
+            const change_amount = (value * trend_7d) / (100 + trend_7d);
+            weekly_change += change_amount;
+
+            if (Math.abs(trend_7d) > Math.abs(max_change)) {
+              max_change = trend_7d;
+              biggest_mover = {
+                name: item.name,
+                change_percent: trend_7d
+              };
+            }
+          }
+
           if (value > 0) {
             cardsWithValues.push({
               id: item.id,
               name: item.name,
               value: value,
-              image_url: item.image_url || ''
+              image_url: item.image_url || '',
+              price_trend_7d: trend_7d,
+              is_graded: cardDetail.is_graded,
+              special_attributes: cardDetail.special_attributes || []
             });
           }
         }
@@ -198,7 +242,9 @@ export const useCardStats = (enabled: boolean) => {
       return { 
         total_cards, 
         total_value, 
-        graded_count, 
+        graded_count,
+        weekly_change: Math.abs(weekly_change) > 0.01 ? weekly_change : 0,
+        biggest_mover,
         sports_breakdown,
         top_cards 
       } as CardStats;

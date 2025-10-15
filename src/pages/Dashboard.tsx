@@ -26,12 +26,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PREDEFINED_LOCATIONS, SPORTS_COLLECTIONS } from "@/lib/locationTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { TopMovers } from "@/components/TopMovers";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { CardStatsOverview } from "@/components/dashboard/CardStatsOverview";
 import { LocationsList } from "@/components/dashboard/LocationsList";
+import { TopValuableCards } from "@/components/dashboard/TopValuableCards";
+import { CollectionBreakdown } from "@/components/dashboard/CollectionBreakdown";
 import { useLocations, useSubscription, useAdminStatus, useCardStats } from "@/hooks/useDashboardData";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -518,120 +519,22 @@ const Dashboard = () => {
         {source === 'sports-cards' && cardStats && cardStats.total_cards > 0 && !cardStatsLoading && (
           <div className="space-y-6 mt-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Sports Breakdown Pie Chart */}
-              {Object.keys(cardStats.sports_breakdown).length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Trophy className="h-5 w-5 text-primary" />
-                      Collection Breakdown
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={Object.entries(cardStats.sports_breakdown).map(([sport, count]) => ({
-                            name: sport,
-                            value: count
-                          }))}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={(entry) => `${entry.name}: ${entry.value}`}
-                          outerRadius={80}
-                          fill="hsl(var(--primary))"
-                          dataKey="value"
-                        >
-                          {Object.entries(cardStats.sports_breakdown).map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={`hsl(var(--primary) / ${1 - index * 0.15})`} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
+              {/* Collection Breakdown */}
+              <CollectionBreakdown 
+                sportsBreakdown={cardStats.sports_breakdown}
+                totalValue={cardStats.total_value}
+                isLoading={cardStatsLoading}
+              />
 
-              {/* Top Cards by Value */}
-              {cardStats.top_cards.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Star className="h-5 w-5 text-primary" />
-                      Top Valuable Cards
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {cardStats.top_cards.map((card, index) => (
-                      <div 
-                        key={index} 
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/item/${card.id}`)}
-                      >
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        {card.image_url && (
-                          <img 
-                            src={card.image_url} 
-                            alt={card.name}
-                            className="w-12 h-12 object-cover rounded"
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{card.name}</p>
-                        </div>
-                        <div className="flex items-center gap-1 text-primary font-semibold">
-                          <DollarSign className="h-4 w-4" />
-                          {card.value.toFixed(2)}
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+              {/* Top Valuable Cards */}
+              <TopValuableCards 
+                cards={cardStats.top_cards}
+                isLoading={cardStatsLoading}
+              />
               
               {/* Top Movers Component */}
               <TopMovers />
             </div>
-
-            {/* Value Distribution Bar Chart */}
-            {cardStats.top_cards.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Value Distribution
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={cardStats.top_cards}>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                      <XAxis 
-                        dataKey="name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            )}
           </div>
         )}
       </main>
