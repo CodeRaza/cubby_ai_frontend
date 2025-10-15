@@ -19,13 +19,22 @@ export const LandingNav = () => {
           <span className="text-2xl font-bold text-primary">Cubby</span>
         </div>
         
-        <Button 
-          size="lg" 
-          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover-scale h-12 px-6"
-          onClick={() => navigate('/auth?mode=signup')}
-        >
-          Start Free
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="lg"
+            onClick={() => navigate('/auth')}
+          >
+            Sign In
+          </Button>
+          <Button 
+            size="lg" 
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover-scale h-12 px-6"
+            onClick={() => navigate('/auth?mode=signup&source=sports-cards')}
+          >
+            Start Free
+          </Button>
+        </div>
       </div>
     </nav>
   );

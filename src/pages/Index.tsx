@@ -1,575 +1,374 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Camera, Sparkles, Search, Box, Home, Truck, Store, Shield, ArrowRight, Check } from "lucide-react";
-import cubbyLogo from "@/assets/cubby-logo.png";
-import garageScan from "@/assets/garage-scan.jpg";
+import { LandingNav } from "@/components/LandingNav";
 import { LandingFooter } from "@/components/LandingFooter";
+import { useNavigate } from "react-router-dom";
+import { Camera, Search, Trophy, Star, Shield, TrendingUp, BarChart3, Filter, Lock, Box, Brain, Sparkles, Award } from "lucide-react";
+import heroImage from "@/assets/hero-sports-dashboard.png";
+import problemImage from "@/assets/problem-boxes.jpg";
+
 const Index = () => {
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(false);
-  const [showSearchScreen, setShowSearchScreen] = useState(false);
-  
-  useEffect(() => {
-    setIsVisible(true);
-    // Transition to search screen after 4 seconds
-    const timer = setTimeout(() => {
-      setShowSearchScreen(true);
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
+
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    element?.scrollIntoView({
-      behavior: 'smooth'
-    });
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
-  return <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden">
-      {/* Sticky Navbar */}
-      <nav className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border/50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={cubbyLogo} alt="Cubby" className="h-10 w-10" />
-              <span className="text-2xl font-bold text-foreground">Cubby</span>
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background">
+      <LandingNav />
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden border-b border-border">
+        <div className="container mx-auto px-4 py-20 lg:py-32">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8 animate-fade-in">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                Turn Your Sports Cards Into a <span className="text-primary bg-primary/10 px-2 rounded">Smart Portfolio</span> 📈
+              </h1>
+              
+              <p className="text-xl text-muted-foreground">
+                Scan your cards in seconds. Track their market value automatically. Never lose a piece of your collection again.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  size="lg" 
+                  className="text-lg h-14 px-8 hover-scale shadow-lg"
+                  onClick={() => navigate('/auth?mode=signup&source=sports-cards')}
+                >
+                  Start Free — Scan Your Cards
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="text-lg h-14 px-8 hover-scale"
+                  onClick={() => scrollToSection('how-it-works')}
+                >
+                  Watch How It Works
+                </Button>
+              </div>
+
+              <div className="space-y-3 pt-4">
+                <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full">
+                  <Star className="h-4 w-4 text-primary fill-primary" />
+                  <span className="text-sm font-medium">Trusted by 5,000+ collectors</span>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span>Free • No credit card required</span>
+                  </div>
+                  <span className="text-border">•</span>
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-primary" />
+                    <span>Private & secure</span>
+                  </div>
+                  <span className="text-border">•</span>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <span>Real-time market data</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/auth')}
-                className="text-xs sm:text-sm"
-              >
-                Sign In
-              </Button>
-              <Button size="sm" className="sm:size-lg rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-xs sm:text-base px-3 sm:px-6" onClick={() => navigate('/auth?mode=signup')}>
-                <span className="hidden sm:inline">Start Scanning Free</span>
-                <span className="sm:hidden">Start Free</span>
-                <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
+
+            <div className="relative animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <img 
+                src={heroImage}
+                alt="Cubby Sports Card Portfolio Dashboard"
+                className="w-full h-auto rounded-lg shadow-2xl hover-scale"
+              />
             </div>
           </div>
         </div>
-      </nav>
+      </section>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-20 pb-32 overflow-hidden">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className={`space-y-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <Badge variant="secondary" className="text-sm px-4 py-2 font-medium">
-              <Sparkles className="h-4 w-4 mr-2" />
-              AI-Powered Organization
-            </Badge>
-            
-            <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-              Find anything in seconds.{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-primary">
-                Just scan it with Cubby.
-              </span>
-            </h1>
-            
-            <p className="text-xl text-muted-foreground leading-relaxed">
-              Take a picture of your pantry, garage, or storage — Cubby automatically 
-              tags and organizes everything for you.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all" onClick={() => navigate('/auth?mode=signup')}>
-                <Camera className="mr-2 h-5 w-5" />
-                Start Scanning Free
-              </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-full font-semibold" onClick={() => scrollToSection('how-it-works')}>
-                See how it works
-                <ArrowRight className="ml-2 h-5 w-5" />
+      {/* Problem Section */}
+      <section className="py-20 bg-muted/30 border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+            <div className="space-y-6">
+              <h2 className="text-3xl md:text-4xl font-bold">Stop Digging Through Boxes — Find Any Card in Seconds.</h2>
+              <p className="text-lg text-muted-foreground">
+                Hours wasted logging cards. Lost value. Missed opportunities. Your collection deserves better.
+              </p>
+              <Button 
+                size="lg"
+                className="h-14 px-8 text-lg hover-scale shadow-lg"
+                onClick={() => navigate('/auth?mode=signup&source=sports-cards')}
+              >
+                Try Free — 10 Cards Included
               </Button>
             </div>
-
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4" />
-              <span>Your photos stay private and secure</span>
-            </div>
-          </div>
-
-          <div className={`relative ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{
-          animationDelay: '0.2s'
-        }}>
-            {/* Decorative Background Elements */}
-            <div className="absolute inset-0 -z-10 overflow-hidden">
-              <div className="absolute top-1/4 right-0 w-72 h-72 bg-gradient-to-br from-primary/30 to-transparent rounded-full blur-3xl animate-float" />
-              <div className="absolute bottom-1/4 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/30 to-transparent rounded-full blur-3xl animate-float" style={{
-              animationDelay: '1.5s'
-            }} />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-3xl animate-float" style={{
-              animationDelay: '0.7s'
-            }} />
-            </div>
-
-            {/* Phone Mockup */}
-            <div className="relative mx-auto max-w-sm">
-              {/* Phone Frame */}
-              <div className="relative bg-foreground rounded-[3rem] p-3 shadow-2xl">
-                {/* Screen */}
-                <div className="bg-background rounded-[2.5rem] overflow-hidden">
-                  {/* Status Bar */}
-                  <div className="bg-card px-6 py-2 flex items-center justify-between text-xs">
-                    <span className="font-medium">9:41</span>
-                    <div className="flex items-center gap-1">
-                      <div className="w-4 h-3 border border-foreground/30 rounded-sm relative">
-                        <div className="absolute inset-0.5 bg-foreground/80 rounded-[1px]" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* App Content */}
-                  <div className="bg-gradient-to-b from-muted/30 to-background p-6 space-y-4 min-h-[600px] relative">
-                    {/* Scan Screen */}
-                    <div className={`absolute inset-0 p-6 transition-all duration-700 ${showSearchScreen ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}>
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <img src={cubbyLogo} alt="Cubby" className="h-10 w-10 animate-float" />
-                          <div>
-                            <h3 className="font-bold text-lg">Cubby</h3>
-                            <p className="text-xs text-muted-foreground">Scanning garage...</p>
-                          </div>
-                        </div>
-                        <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center shadow-lg animate-pulse">
-                          <Camera className="h-5 w-5 text-white" />
-                        </div>
-                      </div>
-
-                    {/* Camera View Simulation */}
-                    <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 aspect-[4/3] shadow-lg border-2 border-primary/20">
-                      <img src={garageScan} alt="Garage scan" className="absolute inset-0 w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent" />
-                      <div className="absolute top-4 left-4 flex items-center gap-2 bg-card/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-md">
-                        <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-xs font-medium">Live Scan</span>
-                      </div>
-                      
-                      {/* Scan Grid Overlay */}
-                      <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <defs>
-                          <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-primary" />
-                          </pattern>
-                        </defs>
-                        <rect width="100" height="100" fill="url(#grid)" />
-                      </svg>
-
-                      {/* Detection Boxes */}
-                      <div className="absolute top-1/4 left-1/6 w-1/3 h-1/4 border-2 border-primary rounded-lg animate-pulse mx-[40px] my-[30px]">
-                        <div className="absolute -top-8 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <span>DeWalt 20V Cordless Drill</span>
-                            <span className="opacity-80">98%</span>
-                          </div>
-                          <div className="text-[10px] opacity-70">Power Tools</div>
-                        </div>
-                      </div>
-                      <div className="absolute top-1/2 right-1/4 w-1/4 h-1/5 border-2 border-secondary rounded-lg animate-pulse" style={{
-                      animationDelay: '0.2s'
-                    }}>
-                        <div className="absolute -top-8 left-0 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <span>Purdy Pro-Extra Brushes</span>
-                            <span className="opacity-80">95%</span>
-                          </div>
-                          <div className="text-[10px] opacity-70">Paint Supplies</div>
-                        </div>
-                      </div>
-                      <div className="absolute bottom-1/4 left-1/4 w-1/5 h-1/6 border-2 border-accent rounded-lg animate-pulse" style={{
-                      animationDelay: '0.4s'
-                    }}>
-                        <div className="absolute -top-8 left-0 bg-accent text-accent-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <span>Estwing 16oz Claw Hammer</span>
-                            <span className="opacity-80">97%</span>
-                          </div>
-                          <div className="text-[10px] opacity-70">Hand Tools</div>
-                        </div>
-                      </div>
-                      <div className="absolute top-1/3 right-1/3 w-1/6 h-1/6 border-2 border-primary/70 rounded-lg animate-pulse" style={{
-                      animationDelay: '0.6s'
-                    }}>
-                        <div className="absolute -top-8 left-0 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <span>Craftsman Metric Wrench Set</span>
-                            <span className="opacity-80">93%</span>
-                          </div>
-                          <div className="text-[10px] opacity-70">Hardware</div>
-                        </div>
-                      </div>
-                      <div className="absolute bottom-1/3 right-1/5 w-1/5 h-1/5 border-2 border-secondary/70 rounded-lg animate-pulse" style={{
-                      animationDelay: '0.8s'
-                    }}>
-                        <div className="absolute -top-8 left-0 bg-secondary/90 text-secondary-foreground text-xs px-2 py-1 rounded font-medium shadow-lg whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <span>Behr Premium Plus Paint</span>
-                            <span className="opacity-80">91%</span>
-                          </div>
-                          <div className="text-[10px] opacity-70">Paint Supplies</div>
-                        </div>
-                      </div>
-                      
-                    </div>
-
-                    {/* Detection Results */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm mb-3">
-                        <span className="font-semibold">Items Detected</span>
-                        <Badge className="bg-primary text-primary-foreground">7 items</Badge>
-                      </div>
-                      
-                      {[{
-                      name: 'DeWalt 20V Cordless Drill',
-                      category: 'Power Tools',
-                      confidence: '98%',
-                      location: 'Garage - Shelf 2',
-                      color: 'bg-primary'
-                    }, {
-                      name: 'Purdy Pro-Extra Brushes',
-                      category: 'Paint Supplies',
-                      confidence: '95%',
-                      location: 'Garage - Shelf 2',
-                      color: 'bg-secondary'
-                    }, {
-                      name: 'Estwing 16oz Claw Hammer',
-                      category: 'Hand Tools',
-                      confidence: '97%',
-                      location: 'Garage - Shelf 2',
-                      color: 'bg-accent'
-                    }, {
-                      name: 'Craftsman Metric Wrench Set',
-                      category: 'Hardware',
-                      confidence: '93%',
-                      location: 'Garage - Shelf 2',
-                      color: 'bg-primary/70'
-                    }, {
-                      name: 'Behr Premium Plus Paint',
-                      category: 'Paint Supplies',
-                      confidence: '91%',
-                      location: 'Garage - Shelf 2',
-                      color: 'bg-secondary/70'
-                    }].map((item, i) => <div key={item.name} className="flex items-center gap-3 p-3 bg-card rounded-xl shadow-sm border border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{
-                      animationDelay: `${0.6 + i * 0.1}s`
-                    }}>
-                          <div className={`h-10 w-10 rounded-lg ${item.color} flex items-center justify-center shadow-sm`}>
-                            <Box className="h-5 w-5 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-sm truncate">{item.name}</p>
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">{item.confidence}</Badge>
-                            </div>
-                            <p className="text-[11px] text-muted-foreground/80">{item.category}</p>
-                            <p className="text-xs text-muted-foreground">{item.location}</p>
-                          </div>
-                          <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        </div>)}
-                    </div>
-                    </div>
-
-                    {/* Search Screen */}
-                    <div className={`absolute inset-0 p-6 transition-all duration-700 ${showSearchScreen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <img src={cubbyLogo} alt="Cubby" className="h-10 w-10 animate-float" />
-                          <div>
-                            <h3 className="font-bold text-lg">Cubby</h3>
-                            <p className="text-xs text-muted-foreground">Search your items</p>
-                          </div>
-                        </div>
-                        <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center shadow-lg">
-                          <Search className="h-5 w-5 text-white" />
-                        </div>
-                      </div>
-
-                      {/* Search Bar */}
-                      <div className="relative mb-4">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <input 
-                          type="text" 
-                          value="dewalt drill"
-                          readOnly
-                          className="w-full pl-12 pr-4 py-3 bg-card border-2 border-primary/50 rounded-xl text-sm font-medium focus:outline-none shadow-lg"
-                        />
-                      </div>
-
-                      {/* Search Results Header */}
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm font-semibold">Found in your inventory</span>
-                        <Badge className="bg-green-500 text-white">1 match</Badge>
-                      </div>
-
-                      {/* Main Result Card */}
-                      <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-4 border-2 border-primary shadow-xl mb-4">
-                        <div className="flex items-start gap-4 mb-3">
-                          <div className="h-16 w-16 rounded-xl bg-primary flex items-center justify-center shadow-lg flex-shrink-0">
-                            <Box className="h-8 w-8 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-base mb-1">DeWalt 20V Cordless Drill</h4>
-                            <p className="text-xs text-muted-foreground mb-2">Power Tools • 98% match</p>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">Garage</Badge>
-                              <Badge variant="outline" className="text-xs">Shelf 2</Badge>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Photo Preview */}
-                        <div className="relative rounded-xl overflow-hidden aspect-video mb-3">
-                          <img src={garageScan} alt="Location" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
-                          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                            <span className="text-xs text-white font-medium">Scanned 2 days ago</span>
-                            <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <Button className="w-full" size="sm">
-                          View Location Details
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      {/* Related Items */}
-                      <div className="space-y-2">
-                        <span className="text-sm font-semibold block mb-2">Nearby items</span>
-                        {[{
-                        name: 'Drill Bits Set',
-                        location: 'Garage - Shelf 2',
-                        color: 'bg-secondary'
-                      }, {
-                        name: 'Battery Charger',
-                        location: 'Garage - Shelf 2',
-                        color: 'bg-accent'
-                      }].map((item, i) => <div key={item.name} className="flex items-center gap-3 p-3 bg-card rounded-xl shadow-sm border border-border/50 hover:shadow-md transition-all">
-                            <div className={`h-10 w-10 rounded-lg ${item.color} flex items-center justify-center shadow-sm`}>
-                              <Box className="h-5 w-5 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{item.name}</p>
-                              <p className="text-xs text-muted-foreground">{item.location}</p>
-                            </div>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          </div>)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Phone Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-7 bg-foreground rounded-b-3xl" />
-              </div>
-
-              {/* Floating Elements */}
-              <div className={`absolute -bottom-6 -right-6 bg-card border border-border text-foreground px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float transition-all duration-700 ${showSearchScreen ? 'opacity-0' : 'opacity-100'}`} style={{
-              animationDelay: '0.5s'
-            }}>
-                <Check className="h-4 w-4 inline mr-1 text-green-500" />
-                Instant Results
-              </div>
-              <div className={`absolute -top-6 -left-6 bg-card border border-border text-foreground px-4 py-2 rounded-full shadow-xl text-sm font-semibold animate-float transition-all duration-700 ${showSearchScreen ? 'opacity-100' : 'opacity-0'}`} style={{
-              animationDelay: '0.5s'
-            }}>
-                <Search className="h-4 w-4 inline mr-1 text-primary" />
-                Smart Search
-              </div>
+            <div className="relative">
+              <img 
+                src={problemImage}
+                alt="Messy boxes of unsorted sports cards"
+                className="w-full h-auto rounded-lg shadow-xl"
+              />
             </div>
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-24 bg-muted/30">
+      <section id="how-it-works" className="py-20 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">How It Works</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Three simple steps to never lose anything again
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold">How It Works</h2>
+            <p className="text-muted-foreground mt-4">Get organized in 3 simple steps</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {[{
-            icon: Camera,
-            step: "1",
-            title: "Scan or Upload Photos",
-            description: "Take a picture of any shelf, box, or bin. Works with your phone or tablet."
-          }, {
-            icon: Sparkles,
-            step: "2",
-            title: "Cubby Organizes It",
-            description: "AI recognizes and tags each item with its location automatically."
-          }, {
-            icon: Search,
-            step: "3",
-            title: "Find It Instantly",
-            description: "Search 'drill,' 'toilet paper,' or 'holiday lights' — Cubby tells you where it is."
-          }].map((item, index) => <Card key={index} className="text-center hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
-                <CardContent className="pt-8 pb-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-primary text-white text-2xl font-bold mb-6 shadow-lg">
-                    {item.step}
-                  </div>
-                  <div className="h-12 w-12 mx-auto mb-4 text-primary">
-                    <item.icon className="h-full w-full" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
-                </CardContent>
-              </Card>)}
-          </div>
+          <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+            <div className="text-center space-y-4 group relative pt-6">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
+                1
+              </div>
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110">
+                <Camera className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <h3 className="text-xl font-bold">Scan</h3>
+              <p className="text-muted-foreground">
+                Snap a photo — our AI identifies the card instantly.
+              </p>
+            </div>
 
-          <div className="text-center">
-            <Button size="lg" className="text-lg px-8 py-6 rounded-full font-semibold shadow-xl" onClick={() => navigate('/auth?mode=signup')}>
-              Start Organizing Now
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <div className="text-center space-y-4 group relative pt-6">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
+                2
+              </div>
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110">
+                <Box className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <h3 className="text-xl font-bold">Organize</h3>
+              <p className="text-muted-foreground">
+                Sort by player, set, year, condition & value.
+              </p>
+            </div>
+
+            <div className="text-center space-y-4 group relative pt-6">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
+                3
+              </div>
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110">
+                <BarChart3 className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <h3 className="text-xl font-bold">Track</h3>
+              <p className="text-muted-foreground">
+                Monitor your collection's value in real time.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Value Proposition Section */}
-      <section className="py-24">
+      {/* Features Section */}
+      <section className="py-20 bg-muted/30 border-b border-border">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
-              The easiest way to track what you own
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Snap. Tag. Find.
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold">Everything You Need to Manage Your Collection</h2>
           </div>
+          
+          <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto">
+            {/* Smart Detection */}
+            <div className="space-y-6 group bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-all">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/20 transition-all">
+                  <Brain className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold">Smart Detection</h3>
+              </div>
+              <ul className="space-y-3 text-muted-foreground">
+                <li className="flex items-start gap-3">
+                  <Trophy className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>All sports supported</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Star className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>Player, year & set recognition</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Award className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>Condition & grading tracking</span>
+                </li>
+              </ul>
+            </div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {[{
-            icon: Search,
-            title: "Never lose things again",
-            description: "Find anything in seconds with smart search",
-            color: "text-primary"
-          }, {
-            icon: Sparkles,
-            title: "Smart visual memory",
-            description: "Cubby remembers what's in every photo",
-            color: "text-secondary"
-          }, {
-            icon: Camera,
-            title: "No manual sorting",
-            description: "Just snap and done — AI handles the rest",
-            color: "text-accent"
-          }].map((item, index) => <Card key={index} className="hover:shadow-xl transition-all duration-300 group">
-                <CardContent className="pt-8 pb-6">
-                  <div className={`h-14 w-14 mb-4 ${item.color} group-hover:scale-110 transition-transform`}>
-                    <item.icon className="h-full w-full" />
+            {/* Real-Time Value Tracking */}
+            <div className="space-y-6 group bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-all">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/20 transition-all">
+                  <BarChart3 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold">Value Tracking</h3>
+              </div>
+              <ul className="space-y-3 text-muted-foreground">
+                <li className="flex items-start gap-3">
+                  <TrendingUp className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>Automatic valuations</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <BarChart3 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>Portfolio statistics</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
-                </CardContent>
-              </Card>)}
-          </div>
+                  <div>
+                    <span>Price alerts </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">Pro</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
 
-          <div className="text-center">
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-full font-semibold" onClick={() => navigate('/auth?mode=signup')}>
-              Try Cubby Free
-            </Button>
+            {/* Powerful Organization */}
+            <div className="space-y-6 group bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-all">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/20 transition-all">
+                  <Filter className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold">Organization</h3>
+              </div>
+              <ul className="space-y-3 text-muted-foreground">
+                <li className="flex items-start gap-3">
+                  <Search className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>Advanced filters</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Box className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>Custom tags</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>Secure cloud storage</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Use Case Grid */}
-      <section className="py-24 bg-gradient-to-b from-muted/30 to-background">
+      {/* Use Cases Section */}
+      <section className="py-20 border-b border-border">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Perfect for every space</h2>
-          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover-scale">
+              <h3 className="font-bold text-lg">Personal Collections</h3>
+              <p className="text-sm text-muted-foreground">
+                Manage thousands of cards effortlessly.
+              </p>
+            </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[{
-            icon: Home,
-            title: "Pantry",
-            description: "Know what's running low at a glance",
-            gradient: "from-primary/10 to-primary/5"
-          }, {
-            icon: Box,
-            title: "Garage",
-            description: "Find tools without digging through bins",
-            gradient: "from-secondary/10 to-secondary/5"
-          }, {
-            icon: Truck,
-            title: "Moving",
-            description: "Label boxes visually, not with tape",
-            gradient: "from-accent/10 to-accent/5"
-          }, {
-            icon: Store,
-            title: "Small Business",
-            description: "Track stockrooms and backrooms easily",
-            gradient: "from-primary/10 to-accent/5"
-          }].map((useCase, index) => <Card key={index} className={`bg-gradient-to-br ${useCase.gradient} border-0 hover:shadow-xl transition-all duration-300 group cursor-pointer`} onClick={() => navigate('/auth?mode=signup')}>
-                <CardContent className="pt-8 pb-6 text-center">
-                  <div className="h-12 w-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform">
-                    <useCase.icon className="h-full w-full" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{useCase.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {useCase.description}
-                  </p>
-                </CardContent>
-              </Card>)}
+            <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover-scale">
+              <h3 className="font-bold text-lg">Trading & Selling</h3>
+              <p className="text-sm text-muted-foreground">
+                Know exactly what you have and what it's worth.
+              </p>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover-scale">
+              <h3 className="font-bold text-lg">Inheritance Management</h3>
+              <p className="text-sm text-muted-foreground">
+                Catalog inherited collections with ease.
+              </p>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover-scale">
+              <h3 className="font-bold text-lg">Investment Tracking</h3>
+              <p className="text-sm text-muted-foreground">
+                Monitor portfolio performance over time.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 bg-muted/20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+            <div className="space-y-6">
+              <div className="bg-card border border-border rounded-lg p-6 space-y-2">
+                <h3 className="font-bold text-lg">Is Cubby really free?</h3>
+                <p className="text-muted-foreground">Yes! You get 10 free cards (lifetime). Premium features unlock more cards and collections.</p>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-6 space-y-2">
+                <h3 className="font-bold text-lg">What sports are supported?</h3>
+                <p className="text-muted-foreground">All major sports: Baseball, Basketball, Football, Hockey, Soccer, and more. Our AI recognizes thousands of players and sets.</p>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-6 space-y-2">
+                <h3 className="font-bold text-lg">How accurate are the valuations?</h3>
+                <p className="text-muted-foreground">We pull real-time market data from trusted sources to give you the most accurate values possible.</p>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-6 space-y-2">
+                <h3 className="font-bold text-lg">Is my collection data secure?</h3>
+                <p className="text-muted-foreground">Absolutely. Your data is encrypted and stored securely. We never share your collection information with anyone.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <Card className="bg-gradient-primary text-white border-0 shadow-2xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24" />
-            
-            <CardContent className="py-16 px-8 text-center relative z-10">
-              <div className="max-w-3xl mx-auto space-y-8">
-                <h2 className="text-4xl lg:text-5xl font-bold">
-                  Ready to find everything you own?
-                </h2>
-                
-                <p className="text-xl text-white/90">
-                  Join thousands of organized homes and never lose track of your belongings again
-                </p>
-
-                <Button size="lg" variant="secondary" className="text-lg px-10 py-7 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all" onClick={() => navigate('/auth?mode=signup')}>
-                  <Camera className="mr-2 h-6 w-6" />
-                  Start Scanning Free
-                </Button>
-
-                <p className="text-sm text-white/80">
-                  Works on iPhone, Android, and web • No credit card required
-                </p>
-
-                <div className="flex flex-wrap justify-center gap-6 pt-4">
-                  {['Free forever plan', '10 cards total', 'AI-powered tagging', 'Multi-device sync'].map(feature => <div key={feature} className="flex items-center gap-2 text-white/90">
-                      <Check className="h-5 w-5" />
-                      <span>{feature}</span>
-                    </div>)}
-                </div>
+      <section className="relative py-20 bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-white rounded-full blur-2xl"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <div className="max-w-3xl mx-auto space-y-8">
+            <div className="flex items-center justify-center gap-1 mb-4">
+              <Star className="h-5 w-5 fill-current text-yellow-300" />
+              <Star className="h-5 w-5 fill-current text-yellow-300" />
+              <Star className="h-5 w-5 fill-current text-yellow-300" />
+              <Star className="h-5 w-5 fill-current text-yellow-300" />
+              <Star className="h-5 w-5 fill-current text-yellow-300" />
+            </div>
+            <p className="text-lg opacity-90 italic">
+              "Made my collection so much easier to track. Found cards I forgot I had!"
+            </p>
+            <h2 className="text-3xl md:text-5xl font-bold leading-tight">
+              Join thousands of collectors who've turned their boxes into smart portfolios.
+            </h2>
+            <Button 
+              size="lg" 
+              variant="secondary"
+              className="text-xl h-16 px-12 hover-scale shadow-xl"
+              onClick={() => navigate('/auth?mode=signup&source=sports-cards')}
+            >
+              Start Free Today
+            </Button>
+            <p className="text-sm opacity-90">
+              No credit card required · 10 free cards
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-8 pt-4">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                <span className="text-sm">Bank-level security</span>
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                <span className="text-sm">Your data stays private</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Trophy className="h-5 w-5" />
+                <span className="text-sm">5,000+ happy collectors</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
       <LandingFooter />
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
