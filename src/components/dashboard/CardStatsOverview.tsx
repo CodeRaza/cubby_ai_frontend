@@ -89,7 +89,7 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
     <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Weekly Portfolio Change - Hero Section */}
-        <div className="space-y-3">
+        <div className="space-y-3 flex flex-col items-center">
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-muted-foreground">Portfolio this week</span>
             <Badge 
