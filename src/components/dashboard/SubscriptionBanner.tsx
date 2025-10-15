@@ -20,7 +20,6 @@ export const SubscriptionBanner = ({ subscription }: SubscriptionBannerProps) =>
   const scansRemaining = Math.max(0, totalScans - scansUsed);
   const usagePercent = totalScans > 0 ? (scansUsed / totalScans) * 100 : 0;
   const isFree = subscription.plan_tier === 'free';
-  const progressToNext = isFree ? (scansUsed / 50) * 100 : 0;
 
   return (
     <div className="bg-card border-b">
@@ -41,48 +40,20 @@ export const SubscriptionBanner = ({ subscription }: SubscriptionBannerProps) =>
         </div>
         <Progress value={usagePercent} className="h-2" />
         
-        {/* Enhanced upgrade prompt for free tier */}
+        {/* Compact upgrade prompt */}
         {isFree && scansRemaining <= 10 && (
-          <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold">
-                    {scansRemaining === 0 ? '🚫 Out of scans!' : '⚠️ Almost out!'}
-                  </p>
-                  {isFree && scansUsed > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      {progressToNext.toFixed(0)}% to Starter
-                    </Badge>
-                  )}
-                </div>
-                
-                <p className="text-xs text-muted-foreground">
-                  Upgrade to unlock:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="text-xs gap-1">
-                    <Bell className="h-3 w-3" />
-                    Price alerts
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs gap-1">
-                    <TrendingUp className="h-3 w-3" />
-                    Real-time pricing
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs gap-1">
-                    <Infinity className="h-3 w-3" />
-                    More scans
-                  </Badge>
-                </div>
-              </div>
-              <Button 
-                size="sm" 
-                onClick={() => navigate('/subscription')}
-                className="flex-shrink-0"
-              >
-                Upgrade 🚀
-              </Button>
-            </div>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              {scansRemaining === 0 ? '⚠️ Almost out!' : '⚠️ Running low'}
+            </p>
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/subscription')}
+              className="h-7 text-xs"
+            >
+              Upgrade 🚀
+            </Button>
           </div>
         )}
 

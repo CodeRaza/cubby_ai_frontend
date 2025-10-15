@@ -88,8 +88,8 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
   return (
     <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
       <div className="container mx-auto px-4 py-4 space-y-3">
-        {/* Weekly Portfolio Change - Always Show */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm animate-fade-in">
+        {/* Weekly Portfolio Change - Left Aligned */}
+        <div className="flex flex-col gap-2 text-sm animate-fade-in">
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Portfolio this week:</span>
             <Badge 
@@ -107,12 +107,10 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
               </span>
             </Badge>
           </div>
-
-          <span className="hidden sm:inline text-muted-foreground">•</span>
           
           <div className="flex items-center gap-1 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <Flame className="h-4 w-4 text-orange-500 animate-pulse" />
-            <span className="font-medium">{biggestMover.name}</span>
+            <span className="font-medium text-sm">{biggestMover.name}</span>
             <Badge 
               variant={biggestMover.change_percent >= 0 ? "default" : "destructive"}
               className="text-xs"
