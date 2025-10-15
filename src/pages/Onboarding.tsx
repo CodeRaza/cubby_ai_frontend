@@ -51,6 +51,25 @@ const Onboarding = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check if user can create a location (free tier = 1 collection limit)
+      const { data: canCreate, error: checkError } = await supabase.rpc(
+        'can_user_create_location',
+        { p_user_id: user.id }
+      );
+
+      if (checkError) throw checkError;
+
+      if (!canCreate) {
+        toast({
+          title: "Collection limit reached",
+          description: "Free tier allows 1 collection. Upgrade to create more!",
+          variant: "destructive",
+        });
+        setCreating(false);
+        navigate('/subscription');
+        return;
+      }
+
       const { error } = await supabase.from("locations").insert({
         name: locationName,
         user_id: user.id,
@@ -375,8 +394,8 @@ const Onboarding = () => {
 
               <p className="text-xs text-center text-muted-foreground">
                 {source === 'sports-cards' 
-                  ? 'Free tier includes 50 cards per month • Upgrade anytime for unlimited'
-                  : 'Free tier includes 50 items per month • Upgrade anytime for more'
+                  ? 'Free tier includes 10 scans total • Upgrade anytime for unlimited'
+                  : 'Free tier includes 10 scans total • Upgrade anytime for more'
                 }
               </p>
             </CardContent>

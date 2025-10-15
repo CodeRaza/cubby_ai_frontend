@@ -472,6 +472,10 @@ export type Database = {
         Args: { p_item_count?: number; p_user_id: string }
         Returns: boolean
       }
+      can_user_create_location: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       get_admin_analytics: {
         Args: Record<PropertyKey, never>
         Returns: Json
