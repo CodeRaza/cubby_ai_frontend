@@ -543,34 +543,26 @@ const Dashboard = () => {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t py-3 z-50">
-        <div className="container mx-auto px-4 flex justify-around items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex flex-col items-center gap-1"
-            onClick={() => navigate("/dashboard")}
-          >
-            <Trophy className="h-5 w-5" />
-            <span className="text-xs">Home</span>
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t px-4 py-3 z-50">
+        <div className="container mx-auto flex items-center justify-around max-w-lg">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+            <div className="flex flex-col items-center gap-1">
+              <Trophy className="h-5 w-5" />
+              <span className="text-xs">Home</span>
+            </div>
           </Button>
           <Button
-            variant="ghost"
-            size="sm"
-            className="flex flex-col items-center gap-1"
+            size="icon"
+            className="h-14 w-14 rounded-full shadow-lg"
             onClick={() => navigate("/scan")}
           >
-            <Camera className="h-5 w-5" />
-            <span className="text-xs">Scan</span>
+            <Camera className="h-6 w-6" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex flex-col items-center gap-1"
-            onClick={() => navigate("/search")}
-          >
-            <Trophy className="h-5 w-5" />
-            <span className="text-xs">Search</span>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/search")}>
+            <div className="flex flex-col items-center gap-1">
+              <TrendingUp className="h-5 w-5" />
+              <span className="text-xs">Search</span>
+            </div>
           </Button>
         </div>
       </nav>
