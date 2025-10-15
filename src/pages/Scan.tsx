@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Camera, Upload, ArrowLeft, Loader2 } from "lucide-react";
+import { Camera, Upload, ArrowLeft, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cropImageFromBoundingBox } from "@/lib/imageCropping";
@@ -102,6 +102,23 @@ const Scan = () => {
     setImagePreviews([]);
     setSelectedFiles([]);
     setCaptureStep('front');
+  };
+
+  const handleDeletePhoto = (index: number) => {
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    
+    setImagePreviews(newPreviews);
+    setSelectedFiles(newFiles);
+    
+    // Update capture step based on remaining photos
+    if (newPreviews.length === 0) {
+      setCaptureStep('front');
+    } else if (newPreviews.length === 1) {
+      setCaptureStep('back');
+    } else {
+      setCaptureStep('ready');
+    }
   };
 
   const processImages = async (files: File[]) => {
@@ -421,11 +438,21 @@ const Scan = () => {
                     <p className="text-xs text-center text-muted-foreground font-medium">
                       {idx === 0 ? '✓ Front' : '✓ Back'}
                     </p>
-                    <img 
-                      src={preview} 
-                      alt={idx === 0 ? 'Front' : 'Back'}
-                      className="w-full aspect-[3/4] object-cover rounded-lg border-2 border-primary/20"
-                    />
+                    <div className="relative">
+                      <img 
+                        src={preview} 
+                        alt={idx === 0 ? 'Front' : 'Back'}
+                        className="w-full aspect-[3/4] object-cover rounded-lg border-2 border-primary/20"
+                      />
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-lg"
+                        onClick={() => handleDeletePhoto(idx)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
