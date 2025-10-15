@@ -10,11 +10,13 @@ export const MiniSparkline = ({ data, className = "" }: MiniSparklineProps) => {
   const min = Math.min(...data);
   const range = max - min || 1;
   
-  const normalize = (value: number) => ((value - min) / range) * 100;
+  const width = 100;
+  const height = 20;
+  const normalize = (value: number) => ((value - min) / range) * height;
   
   const points = data.map((value, index) => {
-    const x = (index / (data.length - 1)) * 100;
-    const y = 100 - normalize(value);
+    const x = (index / (data.length - 1)) * width;
+    const y = height - normalize(value);
     return `${x},${y}`;
   }).join(' ');
 
@@ -23,7 +25,7 @@ export const MiniSparkline = ({ data, className = "" }: MiniSparklineProps) => {
 
   return (
     <svg 
-      viewBox="0 0 100 20" 
+      viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none" 
       className={`${className}`}
       style={{ width: '100%', height: '24px' }}
@@ -32,7 +34,7 @@ export const MiniSparkline = ({ data, className = "" }: MiniSparklineProps) => {
         points={points}
         fill="none"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="1.5"
         vectorEffect="non-scaling-stroke"
       />
     </svg>
