@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Camera, Trophy, TrendingUp, Star, DollarSign } from "lucide-react";
+import { Plus, Camera, Trophy, TrendingUp, Star, DollarSign, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -560,7 +560,7 @@ const Dashboard = () => {
           </Button>
           <Button variant="ghost" size="icon" onClick={() => navigate("/search")}>
             <div className="flex flex-col items-center gap-1">
-              <TrendingUp className="h-5 w-5" />
+              <Search className="h-5 w-5" />
               <span className="text-xs">Search</span>
             </div>
           </Button>
