@@ -23,6 +23,9 @@ interface CardStats {
     name: string;
     change_percent: number;
   };
+  realized_gains: number;
+  unrealized_gains: number;
+  total_cost: number;
   sports_breakdown: Record<string, number>;
   top_cards: Array<{
     name: string;
@@ -165,6 +168,9 @@ export const useCardStats = (enabled: boolean) => {
           name,
           image_url,
           location_id,
+          cost,
+          sold,
+          sold_price,
           card_details!inner(
             estimated_value, 
             sport, 
@@ -182,7 +188,10 @@ export const useCardStats = (enabled: boolean) => {
         return { 
           total_cards: 0, 
           total_value: 0, 
-          graded_count: 0, 
+          graded_count: 0,
+          realized_gains: 0,
+          unrealized_gains: 0,
+          total_cost: 0,
           sports_breakdown: {},
           top_cards: []
         } as CardStats;
@@ -192,6 +201,9 @@ export const useCardStats = (enabled: boolean) => {
       const total_cards = items.length;
       let total_value = 0;
       let graded_count = 0;
+      let realized_gains = 0;
+      let unrealized_gains = 0;
+      let total_cost = 0;
       const sports_breakdown: Record<string, number> = {};
       const cardsWithValues: Array<{ 
         id: string; 
@@ -218,6 +230,20 @@ export const useCardStats = (enabled: boolean) => {
           
           if (cardDetail.sport) {
             sports_breakdown[cardDetail.sport] = (sports_breakdown[cardDetail.sport] || 0) + 1;
+          }
+
+          // Calculate P&L
+          const cost = Number(item.cost) || 0;
+          if (cost > 0) {
+            total_cost += cost;
+            
+            if (item.sold && item.sold_price) {
+              // Realized gains from sold items
+              realized_gains += Number(item.sold_price) - cost;
+            } else if (value > 0) {
+              // Unrealized gains from unsold items with estimated value
+              unrealized_gains += value - cost;
+            }
           }
 
           const trend_7d = Number(cardDetail.price_trend_7d) || 0;
@@ -259,6 +285,9 @@ export const useCardStats = (enabled: boolean) => {
         graded_count,
         weekly_change: Math.abs(weekly_change) > 0.01 ? weekly_change : 0,
         biggest_mover,
+        realized_gains,
+        unrealized_gains,
+        total_cost,
         sports_breakdown,
         top_cards 
       } as CardStats;

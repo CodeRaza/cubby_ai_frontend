@@ -1,4 +1,4 @@
-import { Trophy, TrendingUp, TrendingDown, Star, Flame } from "lucide-react";
+import { Trophy, TrendingUp, TrendingDown, Star, Flame, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
@@ -13,6 +13,9 @@ interface CardStatsOverviewProps {
       name: string;
       change_percent: number;
     };
+    realized_gains: number;
+    unrealized_gains: number;
+    total_cost: number;
   } | null;
   isLoading?: boolean;
 }
@@ -127,6 +130,48 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
             </Badge>
           </div>
         </div>
+
+        {/* P&L Section */}
+        {(cardStats.realized_gains !== 0 || cardStats.unrealized_gains !== 0) && (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 bg-muted/30 p-3 sm:p-4 rounded-lg">
+            {cardStats.realized_gains !== 0 && (
+              <div className="flex flex-col items-center">
+                <p className="text-xs text-muted-foreground mb-1">Realized P&L</p>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  {cardStats.realized_gains > 0 ? (
+                    <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                  )}
+                  <span className={`text-xl sm:text-2xl font-bold ${
+                    cardStats.realized_gains > 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {cardStats.realized_gains > 0 ? '+' : ''}
+                    <AnimatedNumber value={cardStats.realized_gains} prefix="$" decimals={2} />
+                  </span>
+                </div>
+              </div>
+            )}
+            {cardStats.unrealized_gains !== 0 && (
+              <div className="flex flex-col items-center">
+                <p className="text-xs text-muted-foreground mb-1">Unrealized P&L</p>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  {cardStats.unrealized_gains > 0 ? (
+                    <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                  )}
+                  <span className={`text-xl sm:text-2xl font-bold ${
+                    cardStats.unrealized_gains > 0 ? 'text-blue-600' : 'text-red-600'
+                  }`}>
+                    {cardStats.unrealized_gains > 0 ? '+' : ''}
+                    <AnimatedNumber value={cardStats.unrealized_gains} prefix="$" decimals={2} />
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Main Stats Grid - Balanced and Prominent */}
         <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-1 sm:pt-2">
