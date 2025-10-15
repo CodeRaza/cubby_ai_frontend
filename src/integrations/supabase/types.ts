@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      card_details: {
+        Row: {
+          card_number: string | null
+          card_year: number | null
+          condition: string | null
+          created_at: string | null
+          estimated_value: number | null
+          grade: number | null
+          grading_company: string | null
+          id: string
+          is_graded: boolean | null
+          item_id: string
+          player_name: string | null
+          set_brand: string | null
+          special_attributes: string[] | null
+          sport: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          card_number?: string | null
+          card_year?: number | null
+          condition?: string | null
+          created_at?: string | null
+          estimated_value?: number | null
+          grade?: number | null
+          grading_company?: string | null
+          id?: string
+          is_graded?: boolean | null
+          item_id: string
+          player_name?: string | null
+          set_brand?: string | null
+          special_attributes?: string[] | null
+          sport?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          card_number?: string | null
+          card_year?: number | null
+          condition?: string | null
+          created_at?: string | null
+          estimated_value?: number | null
+          grade?: number | null
+          grading_company?: string | null
+          id?: string
+          is_graded?: boolean | null
+          item_id?: string
+          player_name?: string | null
+          set_brand?: string | null
+          special_attributes?: string[] | null
+          sport?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_details_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: true
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       detections: {
         Row: {
           bbox_height: number | null
@@ -97,6 +159,7 @@ export type Database = {
           reminder_enabled: boolean | null
           reminder_interval_unit: string | null
           reminder_interval_value: number | null
+          source_context: string | null
           user_id: string
         }
         Insert: {
@@ -113,6 +176,7 @@ export type Database = {
           reminder_enabled?: boolean | null
           reminder_interval_unit?: string | null
           reminder_interval_value?: number | null
+          source_context?: string | null
           user_id: string
         }
         Update: {
@@ -129,6 +193,7 @@ export type Database = {
           reminder_enabled?: boolean | null
           reminder_interval_unit?: string | null
           reminder_interval_value?: number | null
+          source_context?: string | null
           user_id?: string
         }
         Relationships: [
