@@ -342,50 +342,50 @@ export const useCollectionStats = (enabled: boolean) => {
           }
         });
 
-        // Calculate percentages and generate sparkline data
-        Object.values(locationStats).forEach(stats => {
-          if (stats.total_value > 0) {
-            stats.weekly_change_percent = (stats.weekly_change / stats.total_value) * 100;
-          }
-          stats.sparkline_data = generateSparklineData(stats.total_value, stats.weekly_change_percent);
-        });
-      }
+      // Calculate percentages and generate sparkline data
+      Object.values(locationStats).forEach(stats => {
+        if (stats.total_value > 0) {
+          stats.weekly_change_percent = (stats.weekly_change / stats.total_value) * 100;
+        }
+        stats.sparkline_data = generateSparklineData(stats.total_value, stats.weekly_change_percent);
+      });
+    }
 
-      // Add dummy data for "Baseball Cards" collection if it exists
-      const baseballCardsLocation = locations?.find(loc => loc.name === "Baseball Cards");
-      if (baseballCardsLocation && !locationStats[baseballCardsLocation.id]) {
-        locationStats[baseballCardsLocation.id] = {
-          location_id: baseballCardsLocation.id,
-          total_value: 8720,
-          card_count: 31,
-          weekly_change: 215,
-          weekly_change_percent: 2.5,
-          top_mover: {
-            name: "Derek Jeter RC",
-            change_amount: 75
-          },
-          sparkline_data: generateSparklineData(8720, 2.5)
-        };
-      }
+    // Force dummy data for specific collections (overrides real data for demo purposes)
+    const baseballCardsLocation = locations?.find(loc => loc.name === "Baseball Cards");
+    if (baseballCardsLocation) {
+      locationStats[baseballCardsLocation.id] = {
+        location_id: baseballCardsLocation.id,
+        total_value: 8720,
+        card_count: 31,
+        weekly_change: 215,
+        weekly_change_percent: 2.5,
+        top_mover: {
+          name: "Derek Jeter RC",
+          change_amount: 75
+        },
+        sparkline_data: generateSparklineData(8720, 2.5)
+      };
+    }
 
-      // Add dummy data for "Basketball Cards" collection with negative performance
-      const basketballCardsLocation = locations?.find(loc => loc.name === "Basketball Cards");
-      if (basketballCardsLocation && !locationStats[basketballCardsLocation.id]) {
-        locationStats[basketballCardsLocation.id] = {
-          location_id: basketballCardsLocation.id,
-          total_value: 6450,
-          card_count: 24,
-          weekly_change: -185,
-          weekly_change_percent: -2.8,
-          top_mover: {
-            name: "LeBron James Base",
-            change_amount: -95
-          },
-          sparkline_data: generateSparklineData(6450, -2.8)
-        };
-      }
+    // Force dummy data for Basketball Cards collection with negative performance
+    const basketballCardsLocation = locations?.find(loc => loc.name === "Basketball Cards");
+    if (basketballCardsLocation) {
+      locationStats[basketballCardsLocation.id] = {
+        location_id: basketballCardsLocation.id,
+        total_value: 6450,
+        card_count: 24,
+        weekly_change: -185,
+        weekly_change_percent: -2.8,
+        top_mover: {
+          name: "LeBron James Base",
+          change_amount: -95
+        },
+        sparkline_data: generateSparklineData(6450, -2.8)
+      };
+    }
 
-      return Object.values(locationStats);
+    return Object.values(locationStats);
     },
     enabled,
     staleTime: 60000,
