@@ -8,7 +8,9 @@ const corsHeaders = {
 
 const EBAY_APP_ID = Deno.env.get('EBAY_APP_ID');
 const EBAY_SANDBOX = false;
-const BATCH_SIZE = 10; // Process up to 10 cards per run (respects rate limits)
+const BATCH_SIZE = 5; // Reduced batch size for better rate limit management
+const DAILY_CALL_LIMIT = 400; // Sandbox limit (~500, we use 400 to be safe)
+const DAILY_CALL_THRESHOLD = 0.8; // Stop at 80% of daily limit (320 calls)
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -22,6 +24,22 @@ serve(async (req) => {
     );
 
     console.log('[PROCESS-QUEUE] Starting batch processing');
+
+    // Check if we've hit daily quota before processing
+    const quotaCheck = await checkDailyQuota(supabase);
+    if (quotaCheck.limitReached) {
+      console.log('[PROCESS-QUEUE] Daily quota reached:', quotaCheck.todaysCalls, '/', quotaCheck.limit);
+      return new Response(
+        JSON.stringify({ 
+          message: 'Daily API quota reached. Try again tomorrow.',
+          todaysCalls: quotaCheck.todaysCalls,
+          limit: quotaCheck.limit
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[PROCESS-QUEUE] Quota check passed:', quotaCheck.todaysCalls, '/', quotaCheck.limit);
 
     // Fetch pending jobs ordered by priority
     const { data: jobs, error: fetchError } = await supabase
@@ -168,8 +186,8 @@ serve(async (req) => {
         processed++;
         console.log('[PROCESS-QUEUE] Successfully processed job', job.id);
 
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Longer delay to avoid rate limiting (2 seconds)
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
       } catch (error) {
         console.error('[PROCESS-QUEUE] Error processing job:', job.id, error);
@@ -220,7 +238,29 @@ serve(async (req) => {
   }
 });
 
-async function searchEbayListings(cardDetails: any, userId?: string, cardKey?: string, supabaseClient?: any) {
+async function checkDailyQuota(supabaseClient: any): Promise<{ limitReached: boolean; todaysCalls: number; limit: number }> {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Count successful calls today
+  const { data, error } = await supabaseClient
+    .from('ebay_api_usage')
+    .select('id', { count: 'exact', head: true })
+    .gte('created_at', `${today}T00:00:00`)
+    .eq('status', 'success');
+
+  if (error) {
+    console.error('[QUOTA-CHECK] Error checking quota:', error);
+    return { limitReached: false, todaysCalls: 0, limit: DAILY_CALL_LIMIT };
+  }
+
+  const todaysCalls = data || 0;
+  const threshold = Math.floor(DAILY_CALL_LIMIT * DAILY_CALL_THRESHOLD);
+  const limitReached = todaysCalls >= threshold;
+
+  return { limitReached, todaysCalls, limit: threshold };
+}
+
+async function searchEbayListings(cardDetails: any, userId?: string, cardKey?: string, supabaseClient?: any, retryCount = 0) {
   const searchParts = [
     cardDetails.card_year,
     cardDetails.brand,
@@ -266,6 +306,22 @@ async function searchEbayListings(cardDetails: any, userId?: string, cardKey?: s
       const errorText = await response.text();
       errorMessage = `eBay API error: ${response.statusText}`;
       console.error('[PROCESS-QUEUE] eBay API error:', errorText);
+      
+      // Check if it's a rate limit error
+      if (errorText.includes('rate') || errorText.includes('limit') || errorText.includes('exceeded')) {
+        console.error('[PROCESS-QUEUE] Rate limit detected, retry count:', retryCount);
+        
+        // Exponential backoff: 5s, 10s, 20s
+        if (retryCount < 3) {
+          const backoffDelay = 5000 * Math.pow(2, retryCount);
+          console.log('[PROCESS-QUEUE] Backing off for', backoffDelay, 'ms');
+          await new Promise(resolve => setTimeout(resolve, backoffDelay));
+          
+          // Retry the request
+          return searchEbayListings(cardDetails, userId, cardKey, supabaseClient, retryCount + 1);
+        }
+      }
+      
       throw new Error(errorMessage);
     }
 

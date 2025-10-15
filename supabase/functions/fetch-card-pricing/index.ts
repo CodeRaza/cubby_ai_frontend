@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const CACHE_DURATION_DAYS = 7; // Extended from 24 hours to 7 days
+const CACHE_DURATION_DAYS = 30; // Extended to 30 days for better rate limit management
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

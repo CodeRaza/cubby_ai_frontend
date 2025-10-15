@@ -34,8 +34,8 @@ Deno.serve(async (req) => {
     let refreshed = 0;
     let failed = 0;
 
-    // Refresh pricing for top cards in batches
-    const batchSize = 50;
+    // Refresh pricing for top cards in smaller batches for rate limiting
+    const batchSize = 25;
     for (let i = 0; i < topCards.length; i += batchSize) {
       const batch = topCards.slice(i, i + batchSize);
       
@@ -52,9 +52,9 @@ Deno.serve(async (req) => {
         })
       );
 
-      // Rate limit: wait between batches
+      // Longer rate limit delay between batches (5 seconds)
       if (i + batchSize < topCards.length) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
 
