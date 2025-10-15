@@ -1,9 +1,10 @@
 interface MiniSparklineProps {
   data: number[];
   className?: string;
+  isNeutral?: boolean;
 }
 
-export const MiniSparkline = ({ data, className = "" }: MiniSparklineProps) => {
+export const MiniSparkline = ({ data, className = "", isNeutral = false }: MiniSparklineProps) => {
   if (!data || data.length < 2) return null;
 
   const max = Math.max(...data);
@@ -21,7 +22,7 @@ export const MiniSparkline = ({ data, className = "" }: MiniSparklineProps) => {
   }).join(' ');
 
   const isPositive = data[data.length - 1] >= data[0];
-  const color = isPositive ? 'rgb(46, 204, 113)' : 'rgb(231, 76, 60)';
+  const color = isNeutral ? '#E0E0E0' : (isPositive ? '#4B9CE2' : '#E0E0E0');
 
   return (
     <svg 

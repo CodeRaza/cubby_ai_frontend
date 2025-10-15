@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { QrCode, Trash2, Pencil, TrendingUp, TrendingDown } from "lucide-react";
 import { getLocationIcon, getLocationEmoji } from "@/lib/locationTypes";
 import { MiniSparkline } from "@/components/MiniSparkline";
@@ -68,22 +69,31 @@ export const LocationCard = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-2xl font-bold">${collectionStats.total_value.toFixed(0)}</span>
                   {!isNeutral && (
-                    <Badge 
-                      variant="outline"
-                      className={`gap-1 text-xs border-none ${
-                        isPositive 
-                          ? 'bg-success/15 text-success' 
-                          : 'bg-danger/15 text-danger'
-                      }`}
-                    >
-                      {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      {isPositive ? '+' : ''}{collectionStats.weekly_change_percent.toFixed(1)}%
-                    </Badge>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge 
+                            variant="outline"
+                            className={`gap-1 text-xs border-none ${
+                              isPositive 
+                                ? 'bg-[#00C853]/15 text-[#00C853]' 
+                                : 'bg-[#D32F2F]/15 text-[#D32F2F]'
+                            }`}
+                          >
+                            {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                            {isPositive ? '+' : ''}{collectionStats.weekly_change_percent.toFixed(1)}%
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Change over last 7 days</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
-                  <span className="text-xs text-muted-foreground">
-                    ({collectionStats.card_count} cards)
-                  </span>
                 </div>
+                <span className="text-xs text-muted-foreground">
+                  {collectionStats.card_count} cards
+                </span>
                 {collectionStats.top_mover && (
                   <p className="text-xs text-muted-foreground">
                     Top: <span className="font-medium text-foreground">{collectionStats.top_mover.name}</span>
@@ -128,7 +138,7 @@ export const LocationCard = ({
         {/* Sparkline for sports cards */}
         {isSportsCards && collectionStats && collectionStats.sparkline_data.length > 0 && (
           <div className="mt-3 pt-3 border-t">
-            <MiniSparkline data={collectionStats.sparkline_data} />
+            <MiniSparkline data={collectionStats.sparkline_data} isNeutral={isNeutral} />
           </div>
         )}
       </CardContent>
