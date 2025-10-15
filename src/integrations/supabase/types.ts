@@ -14,6 +14,534 @@ export type Database = {
   }
   public: {
     Tables: {
+      archived_card_details: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          brand: string | null
+          card_number: string | null
+          card_year: number | null
+          condition: string | null
+          created_at: string | null
+          estimated_value: number | null
+          grade: number | null
+          grading_company: string | null
+          id: string
+          is_graded: boolean | null
+          item_id: string
+          last_price_update: string | null
+          last_sale_date: string | null
+          last_sale_price: number | null
+          player_name: string | null
+          price_trend_30d: number | null
+          price_trend_7d: number | null
+          set_name: string | null
+          special_attributes: string[] | null
+          sport: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          brand?: string | null
+          card_number?: string | null
+          card_year?: number | null
+          condition?: string | null
+          created_at?: string | null
+          estimated_value?: number | null
+          grade?: number | null
+          grading_company?: string | null
+          id: string
+          is_graded?: boolean | null
+          item_id: string
+          last_price_update?: string | null
+          last_sale_date?: string | null
+          last_sale_price?: number | null
+          player_name?: string | null
+          price_trend_30d?: number | null
+          price_trend_7d?: number | null
+          set_name?: string | null
+          special_attributes?: string[] | null
+          sport?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          brand?: string | null
+          card_number?: string | null
+          card_year?: number | null
+          condition?: string | null
+          created_at?: string | null
+          estimated_value?: number | null
+          grade?: number | null
+          grading_company?: string | null
+          id?: string
+          is_graded?: boolean | null
+          item_id?: string
+          last_price_update?: string | null
+          last_sale_date?: string | null
+          last_sale_price?: number | null
+          player_name?: string | null
+          price_trend_30d?: number | null
+          price_trend_7d?: number | null
+          set_name?: string | null
+          special_attributes?: string[] | null
+          sport?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      archived_detections: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          bbox_height: number | null
+          bbox_width: number | null
+          bbox_x: number | null
+          bbox_y: number | null
+          confidence: number | null
+          created_at: string
+          id: string
+          item_id: string
+          label: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          bbox_height?: number | null
+          bbox_width?: number | null
+          bbox_x?: number | null
+          bbox_y?: number | null
+          confidence?: number | null
+          created_at: string
+          id: string
+          item_id: string
+          label: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          bbox_height?: number | null
+          bbox_width?: number | null
+          bbox_x?: number | null
+          bbox_y?: number | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      archived_email_tracking: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          created_at: string
+          email_type: string
+          id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          created_at: string
+          email_type: string
+          id: string
+          sent_at: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          created_at?: string
+          email_type?: string
+          id?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_items: {
+        Row: {
+          acquired_date: string | null
+          archived_at: string
+          archived_reason: string
+          back_image_url: string | null
+          category: string | null
+          cost: number | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          image_url: string | null
+          location_id: string | null
+          name: string
+          quantity: number | null
+          sold: boolean | null
+          sold_date: string | null
+          sold_price: number | null
+          source_context: string | null
+          user_id: string
+        }
+        Insert: {
+          acquired_date?: string | null
+          archived_at?: string
+          archived_reason?: string
+          back_image_url?: string | null
+          category?: string | null
+          cost?: number | null
+          created_at: string
+          expiry_date?: string | null
+          id: string
+          image_url?: string | null
+          location_id?: string | null
+          name: string
+          quantity?: number | null
+          sold?: boolean | null
+          sold_date?: string | null
+          sold_price?: number | null
+          source_context?: string | null
+          user_id: string
+        }
+        Update: {
+          acquired_date?: string | null
+          archived_at?: string
+          archived_reason?: string
+          back_image_url?: string | null
+          category?: string | null
+          cost?: number | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          image_url?: string | null
+          location_id?: string | null
+          name?: string
+          quantity?: number | null
+          sold?: boolean | null
+          sold_date?: string | null
+          sold_price?: number | null
+          source_context?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_locations: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          created_at: string
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          name: string
+          share_token: string | null
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          created_at: string
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id: string
+          name: string
+          share_token?: string | null
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          created_at?: string
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          name?: string
+          share_token?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_price_alerts: {
+        Row: {
+          alert_type: string
+          archived_at: string
+          archived_reason: string
+          card_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          threshold_amount: number | null
+          threshold_percentage: number | null
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          archived_at?: string
+          archived_reason?: string
+          card_id: string
+          created_at?: string | null
+          id: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          threshold_amount?: number | null
+          threshold_percentage?: number | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          archived_at?: string
+          archived_reason?: string
+          card_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          threshold_amount?: number | null
+          threshold_percentage?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_scan_usage: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          bonus_items: number
+          created_at: string
+          id: string
+          items_detected: number
+          period_end: string | null
+          period_start: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          bonus_items: number
+          created_at: string
+          id: string
+          items_detected: number
+          period_end?: string | null
+          period_start: string
+          updated_at: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          bonus_items?: number
+          created_at?: string
+          id?: string
+          items_detected?: number
+          period_end?: string | null
+          period_start?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_shared_access: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          granted_at: string
+          id: string
+          location_id: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          granted_at: string
+          id: string
+          location_id: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          granted_at?: string
+          id?: string
+          location_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_support_requests: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          created_at: string
+          id: string
+          message: string
+          status: string
+          type: string
+          updated_at: string
+          user_email: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          created_at: string
+          id: string
+          message: string
+          status: string
+          type: string
+          updated_at: string
+          user_email: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          created_at?: string
+          id?: string
+          message?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_user_roles: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          created_at?: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_user_subscriptions: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_tier: Database["public"]["Enums"]["subscription_tier"]
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          created_at: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id: string
+          plan_tier: Database["public"]["Enums"]["subscription_tier"]
+          status: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_tier?: Database["public"]["Enums"]["subscription_tier"]
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      archived_users: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          created_at: string | null
+          email: string | null
+          id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          created_at?: string | null
+          email?: string | null
+          id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      archived_watchlist: {
+        Row: {
+          archived_at: string
+          archived_reason: string
+          card_id: string
+          card_name: string | null
+          created_at: string
+          id: string
+          player: string | null
+          sport: string | null
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_reason?: string
+          card_id: string
+          card_name?: string | null
+          created_at: string
+          id: string
+          player?: string | null
+          sport?: string | null
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_reason?: string
+          card_id?: string
+          card_name?: string | null
+          created_at?: string
+          id?: string
+          player?: string | null
+          sport?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       card_details: {
         Row: {
           brand: string | null
