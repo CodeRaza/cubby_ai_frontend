@@ -94,6 +94,63 @@ export type Database = {
           },
         ]
       }
+      card_pricing_cache: {
+        Row: {
+          average_sale_price: number | null
+          brand: string | null
+          card_key: string
+          card_number: string | null
+          card_year: number | null
+          condition: string | null
+          created_at: string | null
+          estimated_value: number | null
+          id: string
+          is_graded: boolean | null
+          last_ebay_fetch: string | null
+          player_name: string | null
+          sale_count: number | null
+          set_name: string | null
+          sport: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_sale_price?: number | null
+          brand?: string | null
+          card_key: string
+          card_number?: string | null
+          card_year?: number | null
+          condition?: string | null
+          created_at?: string | null
+          estimated_value?: number | null
+          id?: string
+          is_graded?: boolean | null
+          last_ebay_fetch?: string | null
+          player_name?: string | null
+          sale_count?: number | null
+          set_name?: string | null
+          sport?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_sale_price?: number | null
+          brand?: string | null
+          card_key?: string
+          card_number?: string | null
+          card_year?: number | null
+          condition?: string | null
+          created_at?: string | null
+          estimated_value?: number | null
+          id?: string
+          is_graded?: boolean | null
+          last_ebay_fetch?: string | null
+          player_name?: string | null
+          sale_count?: number | null
+          set_name?: string | null
+          sport?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       detections: {
         Row: {
           bbox_height: number | null
@@ -342,6 +399,50 @@ export type Database = {
           },
         ]
       }
+      pricing_queue: {
+        Row: {
+          card_details_id: string
+          card_key: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          priority: number | null
+          processed_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          card_details_id: string
+          card_key: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          priority?: number | null
+          processed_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          card_details_id?: string
+          card_key?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          priority?: number | null
+          processed_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_queue_card_details_id_fkey"
+            columns: ["card_details_id"]
+            isOneToOne: false
+            referencedRelation: "card_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scan_usage: {
         Row: {
           bonus_items: number
@@ -514,6 +615,16 @@ export type Database = {
       can_user_create_location: {
         Args: { p_user_id: string }
         Returns: boolean
+      }
+      generate_card_key: {
+        Args: {
+          p_brand: string
+          p_number: string
+          p_player: string
+          p_sport: string
+          p_year: number
+        }
+        Returns: string
       }
       get_admin_analytics: {
         Args: Record<PropertyKey, never>
