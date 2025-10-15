@@ -356,12 +356,14 @@ const Subscription = () => {
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-start gap-2 text-sm">
                           <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span className="flex-grow">{feature.text}</span>
-                          {!feature.available && (
-                            <Badge variant="outline" className="text-xs h-5 px-1.5">
-                              Coming Soon
-                            </Badge>
-                          )}
+                          <div className="flex-grow flex items-center justify-between gap-2">
+                            <span>{feature.text}</span>
+                            {!feature.available && (
+                              <Badge variant="outline" className="text-xs h-5 px-1.5 flex-shrink-0">
+                                Coming Soon
+                              </Badge>
+                            )}
+                          </div>
                         </li>
                       ))}
                     </ul>
