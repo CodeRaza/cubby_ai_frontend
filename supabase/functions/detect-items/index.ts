@@ -28,53 +28,7 @@ serve(async (req) => {
 
     // Build system prompt based on context
     const systemPrompt = isSportsCards 
-      ? `You are a sports memorabilia expert specialized in trading card identification.
-
-CRITICAL SPORTS CARD DETECTION RULES:
-1. Identify SPECIFIC players and athletes (e.g., "Michael Jordan Basketball Card", "Derek Jeter Baseball Card")
-2. Extract visible years when possible (e.g., "1989 Upper Deck Ken Griffey Jr.")
-3. Identify card brands/sets when visible (Topps, Panini, Upper Deck, Bowman, etc.)
-4. For graded cards, note grading companies (PSA, BGS, CGC) and grades if visible
-5. Specify sport: Baseball Card, Basketball Card, Football Card, Hockey Card
-6. Include jersey/rookie/autograph when visible (e.g., "Kobe Bryant Rookie Card")
-
-EXAMPLES:
-✓ "1986 Fleer Michael Jordan Rookie Card"
-✓ "2020 Panini Prizm Tom Brady"
-✓ "PSA 10 Mickey Mantle 1952 Topps"
-✓ "Mike Trout Autographed Card"
-✗ "Card" (too generic)
-✗ "Sports Item" (too vague)
-
-For non-card items in frame:
-- Card sleeves, top loaders, binders
-- Grading slabs
-- Card storage boxes
-
-CRITICAL BOUNDING BOX INSTRUCTIONS:
-- Bounding boxes MUST tightly fit each card
-- x, y = top-left corner of the card (0-1 normalized coordinates)
-- width, height = dimensions that exactly contain the card
-- For cards in sleeves or slabs, box should include the entire protected card
-- Be precise with edges
-
-For EACH card detected, return JSON in this exact format:
-{
-  "label": "Specific card description with player, year, brand if visible",
-  "confidence": 0.0-1.0 (be confident for clearly visible cards),
-  "bbox": {
-    "x": 0-1 (precise left edge),
-    "y": 0-1 (precise top edge),
-    "width": 0-1 (precise width),
-    "height": 0-1 (precise height)
-  }
-}
-
-Return ONLY a valid JSON array. Example:
-[
-  {"label": "1996 Fleer Michael Jordan Basketball Card", "confidence": 0.95, "bbox": {"x": 0.2, "y": 0.3, "width": 0.15, "height": 0.2}},
-  {"label": "Derek Jeter Topps Rookie Card", "confidence": 0.92, "bbox": {"x": 0.5, "y": 0.4, "width": 0.1, "height": 0.12}}
-]`
+      ? `You are a sports memorabilia expert specialized in trading card identification. Analyze the image and extract detailed information about each card visible.`
       : `You are a highly accurate object detection expert specializing in home inventory management. Your goal is to identify items with MAXIMUM PRECISION and ACCURACY.
 
 
@@ -132,6 +86,84 @@ Return ONLY a valid JSON array. Example:
 
 Be thorough but ACCURATE - detect as many items as possible with precise names and TIGHT bounding boxes!`;
 
+    // Build request body with tool calling for sports cards
+    const requestBody: any = {
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:image/jpeg;base64,${image}`
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 4000,
+    };
+
+    // Add tool calling for sports cards to extract structured data
+    if (isSportsCards) {
+      requestBody.tools = [
+        {
+          type: "function",
+          function: {
+            name: "detect_sports_cards",
+            description: "Detect and extract detailed information about sports cards in the image",
+            parameters: {
+              type: "object",
+              properties: {
+                cards: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      label: { type: "string", description: "Descriptive name with player, year, brand" },
+                      confidence: { type: "number", description: "Confidence score 0-1" },
+                      bbox: {
+                        type: "object",
+                        properties: {
+                          x: { type: "number", description: "Left edge 0-1" },
+                          y: { type: "number", description: "Top edge 0-1" },
+                          width: { type: "number", description: "Width 0-1" },
+                          height: { type: "number", description: "Height 0-1" }
+                        },
+                        required: ["x", "y", "width", "height"]
+                      },
+                      player_name: { type: "string", description: "Player's full name" },
+                      card_year: { type: "string", description: "Year of the card (e.g., '1989')" },
+                      set_brand: { type: "string", description: "Card brand/set (e.g., 'Topps', 'Panini')" },
+                      sport: { type: "string", description: "Sport type (Baseball, Basketball, Football, Hockey, Soccer, Other)" },
+                      card_number: { type: "string", description: "Card number if visible" },
+                      condition: { type: "string", description: "Condition (Mint, Near Mint, Excellent, Very Good, Good, Fair, Poor)" },
+                      is_graded: { type: "boolean", description: "Whether card is professionally graded" },
+                      grading_company: { type: "string", description: "Grading company if graded (PSA, BGS, CGC, SGC)" },
+                      grade: { type: "string", description: "Grade number if graded (e.g., '9.5')" },
+                      special_attributes: { 
+                        type: "array", 
+                        items: { type: "string" },
+                        description: "Special features: Rookie Card, Autographed, Jersey Card, Numbered, Refractor, Insert" 
+                      }
+                    },
+                    required: ["label", "confidence", "bbox"]
+                  }
+                }
+              },
+              required: ["cards"]
+            }
+          }
+        }
+      ];
+      requestBody.tool_choice = { type: "function", function: { name: "detect_sports_cards" } };
+    }
+
     // Call Lovable AI with vision capabilities
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -139,27 +171,7 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${image}`
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 4000,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -171,43 +183,73 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
     const data = await response.json();
     console.log('AI response received');
 
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error('No content in AI response');
-    }
-
-    // Parse the JSON response
     let detections = [];
-    try {
-      // Remove markdown code blocks if present (```json ... ``` or ``` ... ```)
-      let cleanedContent = content.trim();
-      cleanedContent = cleanedContent.replace(/^```(?:json)?\n?/i, '');
-      cleanedContent = cleanedContent.replace(/\n?```$/, '');
-      cleanedContent = cleanedContent.trim();
-      
-      // Try to extract JSON array from the response
-      const jsonMatch = cleanedContent.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        detections = JSON.parse(jsonMatch[0]);
-      } else {
-        detections = JSON.parse(cleanedContent);
+
+    // Handle tool calling response for sports cards
+    if (isSportsCards && data.choices?.[0]?.message?.tool_calls) {
+      const toolCall = data.choices[0].message.tool_calls[0];
+      const args = JSON.parse(toolCall.function.arguments);
+      detections = args.cards || [];
+      console.log('Extracted card details via tool calling');
+    } else {
+      // Fallback to content parsing for general items
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        throw new Error('No content in AI response');
       }
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
-      throw new Error('Failed to parse detection results');
+
+      try {
+        // Remove markdown code blocks if present
+        let cleanedContent = content.trim();
+        cleanedContent = cleanedContent.replace(/^```(?:json)?\n?/i, '');
+        cleanedContent = cleanedContent.replace(/\n?```$/, '');
+        cleanedContent = cleanedContent.trim();
+        
+        // Try to extract JSON array from the response
+        const jsonMatch = cleanedContent.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          detections = JSON.parse(jsonMatch[0]);
+        } else {
+          detections = JSON.parse(cleanedContent);
+        }
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', content);
+        throw new Error('Failed to parse detection results');
+      }
     }
 
     // Validate and normalize detections
-    detections = detections.map((det: any) => ({
-      label: det.label || 'Unknown item',
-      confidence: Math.min(Math.max(det.confidence || 0.5, 0), 1),
-      bbox: {
-        x: Math.min(Math.max(det.bbox?.x || 0.1, 0), 1),
-        y: Math.min(Math.max(det.bbox?.y || 0.1, 0), 1),
-        width: Math.min(Math.max(det.bbox?.width || 0.2, 0), 1),
-        height: Math.min(Math.max(det.bbox?.height || 0.2, 0), 1),
+    detections = detections.map((det: any) => {
+      const normalized: any = {
+        label: det.label || 'Unknown item',
+        confidence: Math.min(Math.max(det.confidence || 0.5, 0), 1),
+        bbox: {
+          x: Math.min(Math.max(det.bbox?.x || 0.1, 0), 1),
+          y: Math.min(Math.max(det.bbox?.y || 0.1, 0), 1),
+          width: Math.min(Math.max(det.bbox?.width || 0.2, 0), 1),
+          height: Math.min(Math.max(det.bbox?.height || 0.2, 0), 1),
+        }
+      };
+
+      // Include card details for sports cards
+      if (isSportsCards) {
+        normalized.cardDetails = {
+          player_name: det.player_name || '',
+          card_year: det.card_year || '',
+          set_brand: det.set_brand || '',
+          sport: det.sport || '',
+          card_number: det.card_number || '',
+          condition: det.condition || '',
+          is_graded: det.is_graded || false,
+          grading_company: det.grading_company || '',
+          grade: det.grade || '',
+          estimated_value: '',
+          special_attributes: det.special_attributes || []
+        };
       }
-    }));
+
+      return normalized;
+    });
 
     console.log(`Detected ${detections.length} items`);
 

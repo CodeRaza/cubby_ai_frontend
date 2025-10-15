@@ -80,7 +80,7 @@ const Review = () => {
 
     if (detections.length > 0) {
       setItems(
-        detections.map((d: Detection) => ({
+        detections.map((d: any) => ({
           ...d,
           name: d.label,
           category: "",
@@ -89,9 +89,10 @@ const Review = () => {
           reminder_enabled: false,
           reminder_interval_value: 1,
           reminder_interval_unit: "months",
+          // Use AI-extracted card details if available, otherwise create empty structure
           ...(userSource === 'sports-cards' && {
-            cardDetails: {
-              player_name: d.label.includes('Card') ? d.label.replace(/Card$/i, '').trim() : '',
+            cardDetails: d.cardDetails || {
+              player_name: '',
               card_year: '',
               set_brand: '',
               sport: '',
