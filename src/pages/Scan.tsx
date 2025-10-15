@@ -152,16 +152,19 @@ const Scan = () => {
       }
 
       // Crop individual cards from bulk scan if bounding boxes are available
-      const croppedImageUrls: string[] = [];
+      const croppedFrontUrls: string[] = [];
+      const croppedBackUrls: string[] = [];
       const detections = data.detections || [];
+      const isSportsCards = userSource === 'sports-cards';
       
       for (let i = 0; i < detections.length; i++) {
         const detection = detections[i];
         
+        // Crop from front image (first uploaded image)
         if (detection.bbox && imageUrls[0]) {
           try {
             const croppedBlob = await cropImageFromBoundingBox(imageUrls[0], detection.bbox);
-            const fileName = `${user.id}/${Date.now()}_${i}_cropped.jpg`;
+            const fileName = `${user.id}/${Date.now()}_${i}_front.jpg`;
             
             const { error: uploadError } = await supabase.storage
               .from("item-images")
@@ -174,25 +177,56 @@ const Scan = () => {
               const { data: { publicUrl } } = supabase.storage
                 .from("item-images")
                 .getPublicUrl(fileName);
-              croppedImageUrls.push(publicUrl);
+              croppedFrontUrls.push(publicUrl);
             } else {
-              croppedImageUrls.push(imageUrls[0]); // Fallback to original
+              croppedFrontUrls.push(imageUrls[0]); // Fallback
             }
           } catch (cropError) {
-            console.error("Failed to crop image:", cropError);
-            croppedImageUrls.push(imageUrls[0]); // Fallback to original
+            console.error("Failed to crop front image:", cropError);
+            croppedFrontUrls.push(imageUrls[0]);
           }
         } else {
-          croppedImageUrls.push(imageUrls[0]); // No bbox, use original
+          croppedFrontUrls.push(imageUrls[0]);
+        }
+
+        // Crop from back image (second uploaded image) for sports cards
+        if (isSportsCards && detection.bbox && imageUrls[1]) {
+          try {
+            const croppedBlob = await cropImageFromBoundingBox(imageUrls[1], detection.bbox);
+            const fileName = `${user.id}/${Date.now()}_${i}_back.jpg`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from("item-images")
+              .upload(fileName, croppedBlob, {
+                contentType: "image/jpeg",
+                upsert: false,
+              });
+
+            if (!uploadError) {
+              const { data: { publicUrl } } = supabase.storage
+                .from("item-images")
+                .getPublicUrl(fileName);
+              croppedBackUrls.push(publicUrl);
+            } else {
+              croppedBackUrls.push(imageUrls[1]); // Fallback
+            }
+          } catch (cropError) {
+            console.error("Failed to crop back image:", cropError);
+            croppedBackUrls.push(imageUrls[1]);
+          }
+        } else if (isSportsCards && imageUrls[1]) {
+          croppedBackUrls.push(imageUrls[1]);
         }
       }
 
-      // Navigate to review with detection results and cropped image URLs
+      // Navigate to review with both original full scan and cropped images
       navigate('/review', { 
         state: { 
           detections: detections,
-          imageUrls: croppedImageUrls.length > 0 ? croppedImageUrls : imageUrls, // Use cropped if available
-          imageUrl: croppedImageUrls[0] || imageUrls[0] // Backwards compatibility
+          originalImageUrls: imageUrls, // Full scan images for display
+          croppedFrontUrls: croppedFrontUrls, // Individual card fronts
+          croppedBackUrls: croppedBackUrls, // Individual card backs
+          imageUrl: imageUrls[0] // Backwards compatibility
         } 
       });
 

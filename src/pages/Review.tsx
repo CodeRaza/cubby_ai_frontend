@@ -63,7 +63,14 @@ const Review = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { detections = [], imageUrl = "", imageUrls = [] } = location.state || {};
+  const { 
+    detections = [], 
+    imageUrl = "", 
+    imageUrls = [],
+    originalImageUrls = [],
+    croppedFrontUrls = [],
+    croppedBackUrls = []
+  } = location.state || {};
   
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
@@ -231,30 +238,12 @@ const Review = () => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         
-        // For sports cards with multiple images: 
-        // - If 2 images total: [0]=front, [1]=back
-        // - If 2N images for N cards: first N images are fronts, second N images are backs
-        const isSportsCard = source === 'sports-cards';
-        const totalImages = imageUrls.length || 1;
-        const numCards = items.length;
-        
-        let frontImageUrl = imageUrl; // default to single image
+        // Use pre-cropped images from scan if available
+        let frontImageUrl = croppedFrontUrls[i] || imageUrl;
         let backImageUrl = null;
         
-        if (isSportsCard && totalImages >= 2) {
-          if (numCards === 1) {
-            // Single card: first image is front, second is back
-            frontImageUrl = imageUrls[0];
-            backImageUrl = imageUrls[1];
-          } else {
-            // Multiple cards: first half are fronts, second half are backs
-            const halfPoint = Math.floor(totalImages / 2);
-            frontImageUrl = imageUrls[i] || imageUrls[0];
-            backImageUrl = imageUrls[halfPoint + i] || null;
-          }
-        } else if (imageUrls.length > i) {
-          // Use already cropped image from scan
-          frontImageUrl = imageUrls[i];
+        if (source === 'sports-cards' && croppedBackUrls.length > i) {
+          backImageUrl = croppedBackUrls[i];
         }
         
         const { data: insertedItem, error: itemError } = await supabase
@@ -371,22 +360,22 @@ const Review = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Show front and back images for sports cards */}
-        {source === 'sports-cards' && imageUrls.length >= 2 ? (
+        {/* Show original full scan images for sports cards */}
+        {source === 'sports-cards' && originalImageUrls.length >= 2 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
             <div className="space-y-2">
               <p className="text-sm font-medium text-center text-muted-foreground">Front</p>
               <img
-                src={imageUrls[0]}
-                alt="Card Front"
+                src={originalImageUrls[0]}
+                alt="All Cards Front"
                 className="w-full rounded-xl shadow-lg"
               />
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-center text-muted-foreground">Back</p>
               <img
-                src={imageUrls[1]}
-                alt="Card Back"
+                src={originalImageUrls[1]}
+                alt="All Cards Back"
                 className="w-full rounded-xl shadow-lg"
               />
             </div>
