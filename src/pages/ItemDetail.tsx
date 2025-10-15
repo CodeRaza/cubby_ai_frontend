@@ -9,6 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import { CardDetailsForm } from "@/components/CardDetailsForm";
 import { formatCardTitle, formatCardSubtitle, getCardBadges } from "@/lib/cardFormatting";
+import { PriceTrend } from "@/components/PriceTrend";
+import { PriceHistoryChart } from "@/components/PriceHistoryChart";
+import { RecentSales } from "@/components/RecentSales";
+import { PriceAlertDialog } from "@/components/PriceAlertDialog";
+import { RefreshCw } from "lucide-react";
+import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +71,7 @@ interface ItemDetails {
     bbox_height: number | null;
   }>;
   card_details?: {
+    id?: string;
     player_name: string;
     card_year: number;
     brand: string;
@@ -76,6 +84,10 @@ interface ItemDetails {
     grade: number;
     estimated_value: number;
     special_attributes: string[];
+    price_trend_7d?: number;
+    price_trend_30d?: number;
+    last_sale_price?: number;
+    last_sale_date?: string;
   };
 }
 
@@ -106,7 +118,7 @@ const ItemDetail = () => {
           *,
           location:locations(name),
           detections(label, confidence, bbox_x, bbox_y, bbox_width, bbox_height),
-          card_details(player_name, card_year, brand, set_name, sport, card_number, condition, is_graded, grading_company, grade, estimated_value, special_attributes)
+          card_details(id, player_name, card_year, brand, set_name, sport, card_number, condition, is_graded, grading_company, grade, estimated_value, special_attributes, price_trend_7d, price_trend_30d, last_sale_price, last_sale_date, last_price_update)
         `)
         .eq("id", id)
         .single();
@@ -505,6 +517,108 @@ const ItemDetail = () => {
             {item.card_details && (
               <>
                 <Separator />
+                
+                {/* Pricing Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      Market Value
+                    </h3>
+                    <PriceAlertDialog cardId={item.card_details.id!} />
+                  </div>
+                  
+                  {item.card_details.estimated_value ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className="bg-muted/30">
+                        <CardContent className="p-4">
+                          <p className="text-sm text-muted-foreground mb-1">Current Value</p>
+                          <p className="text-3xl font-bold text-primary">
+                            ${Number(item.card_details.estimated_value).toFixed(2)}
+                          </p>
+                        </CardContent>
+                      </Card>
+                      
+                      {item.card_details.price_trend_7d !== null && item.card_details.price_trend_7d !== undefined && (
+                        <Card className="bg-muted/30">
+                          <CardContent className="p-4">
+                            <p className="text-sm text-muted-foreground mb-1">7-Day Trend</p>
+                            <PriceTrend value={item.card_details.price_trend_7d} showIcon className="text-2xl" />
+                          </CardContent>
+                        </Card>
+                      )}
+                      
+                      {item.card_details.last_sale_price && (
+                        <Card className="bg-muted/30">
+                          <CardContent className="p-4">
+                            <p className="text-sm text-muted-foreground mb-1">Last Sale</p>
+                            <p className="text-2xl font-bold">
+                              ${Number(item.card_details.last_sale_price).toFixed(2)}
+                            </p>
+                            {item.card_details.last_sale_date && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {format(new Date(item.card_details.last_sale_date), 'MMM dd, yyyy')}
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center p-6 bg-muted/30 rounded-lg">
+                      <p className="text-muted-foreground mb-3">No pricing data available yet</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const { error } = await supabase.functions.invoke('fetch-card-pricing', {
+                              body: { 
+                                cardId: item.card_details?.id,
+                                cardDetails: item.card_details 
+                              }
+                            });
+                            if (error) throw error;
+                            toast({ title: "Pricing data fetched successfully" });
+                            loadItem();
+                          } catch (error: any) {
+                            toast({
+                              title: "Error fetching pricing",
+                              description: error.message,
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Fetch Market Data
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Price History Charts */}
+                {item.card_details.estimated_value && (
+                  <div className="space-y-4">
+                    <Tabs defaultValue="7d">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="7d">7 Days</TabsTrigger>
+                        <TabsTrigger value="30d">30 Days</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="7d">
+                        <PriceHistoryChart cardId={item.card_details.id!} days={7} />
+                      </TabsContent>
+                      <TabsContent value="30d">
+                        <PriceHistoryChart cardId={item.card_details.id!} days={30} />
+                      </TabsContent>
+                    </Tabs>
+                    
+                    <RecentSales cardId={item.card_details.id!} />
+                  </div>
+                )}
+                
+                <Separator />
+                
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg">Card Details</h3>
                   <div className="space-y-3 p-4 bg-muted/30 rounded-lg">

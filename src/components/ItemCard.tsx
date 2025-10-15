@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Package } from "lucide-react";
 import { formatCardTitle, formatCardSubtitle, getCardBadges } from "@/lib/cardFormatting";
+import { PriceTrend } from "@/components/PriceTrend";
 
 interface ItemCardProps {
   name: string;
@@ -21,6 +22,8 @@ interface ItemCardProps {
     grading_company?: string;
     grade?: number;
     special_attributes?: string[];
+    estimated_value?: number;
+    price_trend_7d?: number;
   };
 }
 
@@ -81,6 +84,17 @@ export const ItemCard = ({
               </p>
             )}
           </div>
+          {/* Price and trend for sports cards */}
+          {cardDetails?.estimated_value && (
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-bold text-primary">
+                ${Number(cardDetails.estimated_value).toFixed(2)}
+              </span>
+              {cardDetails.price_trend_7d !== null && cardDetails.price_trend_7d !== undefined && (
+                <PriceTrend value={cardDetails.price_trend_7d} />
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-2 flex-wrap">
             {category && !cardDetails && (
               <Badge variant="secondary" className="text-xs">
