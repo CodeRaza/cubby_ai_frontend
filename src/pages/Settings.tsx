@@ -18,8 +18,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Mail, Lock, Trash2, LogOut, Crown, ExternalLink } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, Lock, Trash2, LogOut, Crown, ExternalLink, MessageSquare } from "lucide-react";
 import { z } from "zod";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
 const emailSchema = z.string().email("Invalid email address");
@@ -36,6 +37,8 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [subscription, setSubscription] = useState<any>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const [supportMessage, setSupportMessage] = useState("");
+  const [supportType, setSupportType] = useState<"feature" | "support">("feature");
 
   useEffect(() => {
     checkUser();
@@ -193,6 +196,44 @@ const Settings = () => {
     navigate("/auth");
   };
 
+  const handleSupportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!supportMessage.trim()) {
+        throw new Error("Please enter a message");
+      }
+
+      // Save to database
+      const { error } = await supabase
+        .from('support_requests')
+        .insert({
+          user_id: user.id,
+          type: supportType,
+          message: supportMessage.trim(),
+          user_email: user.email,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Request submitted",
+        description: `Your ${supportType === "feature" ? "feature request" : "support request"} has been received. We'll get back to you soon!`,
+      });
+
+      setSupportMessage("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-lg border-b">
@@ -340,6 +381,65 @@ const Settings = () => {
               <Button type="submit" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Update Password
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Support & Feature Requests */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              <CardTitle>Support & Feature Requests</CardTitle>
+            </div>
+            <CardDescription>
+              Request a feature or get help with any issues you're experiencing
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSupportSubmit} className="space-y-4">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={supportType === "feature" ? "default" : "outline"}
+                  onClick={() => setSupportType("feature")}
+                  className="flex-1"
+                >
+                  Feature Request
+                </Button>
+                <Button
+                  type="button"
+                  variant={supportType === "support" ? "default" : "outline"}
+                  onClick={() => setSupportType("support")}
+                  className="flex-1"
+                >
+                  Support
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="supportMessage">
+                  {supportType === "feature" ? "Describe the feature you'd like" : "Describe your issue"}
+                </Label>
+                <Textarea
+                  id="supportMessage"
+                  value={supportMessage}
+                  onChange={(e) => setSupportMessage(e.target.value)}
+                  placeholder={supportType === "feature" 
+                    ? "I'd like to see a feature that..." 
+                    : "I'm experiencing an issue with..."}
+                  disabled={loading}
+                  required
+                  rows={5}
+                  maxLength={1000}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {supportMessage.length}/1000 characters
+                </p>
+              </div>
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Submit {supportType === "feature" ? "Feature Request" : "Support Request"}
               </Button>
             </form>
           </CardContent>
