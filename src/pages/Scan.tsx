@@ -1,10 +1,23 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cropImageFromBoundingBox } from "@/lib/imageCropping";
+
+const SPORTS_FACTS = [
+  "⚾ The 1952 Topps Mickey Mantle is one of the most valuable baseball cards ever!",
+  "🏀 A Michael Jordan rookie card sold for $738,000 in 2021!",
+  "🏈 The T206 Honus Wagner is nicknamed 'The Holy Grail' of baseball cards.",
+  "⚾ Topps has been making baseball cards since 1951.",
+  "🎯 Card condition can dramatically affect value - PSA 10 cards are worth way more!",
+  "🏀 Ken Griffey Jr.'s 1989 Upper Deck is an iconic rookie card.",
+  "⚾ The first baseball cards were printed in the 1860s!",
+  "🔥 Rookie cards are typically the most valuable in a player's career.",
+  "💎 Some cards have serial numbers making them ultra-rare!",
+  "📈 Sports card collecting has been booming since 2020!",
+];
 
 const Scan = () => {
   const navigate = useNavigate();
@@ -13,6 +26,18 @@ const Scan = () => {
   const [uploading, setUploading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [currentFactIndex, setCurrentFactIndex] = useState(0);
+
+  // Rotate fun facts while analyzing
+  useEffect(() => {
+    if (!uploading) return;
+    
+    const interval = setInterval(() => {
+      setCurrentFactIndex((prev) => (prev + 1) % SPORTS_FACTS.length);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [uploading]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -268,12 +293,33 @@ const Scan = () => {
       <main className="container mx-auto px-4 py-8 space-y-8">
         {uploading ? (
           <div className="space-y-6">
-            <div className="text-center space-y-4 py-8">
-              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-              <div>
-                <p className="font-semibold text-lg">Analyzing images...</p>
+            <div className="text-center space-y-6 py-8">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-full bg-primary/20 animate-ping" />
+                </div>
+                <div className="relative">
+                  <Loader2 className="h-16 w-16 animate-spin mx-auto text-primary drop-shadow-lg" />
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <p className="font-bold text-2xl bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent animate-pulse">
+                  Analyzing Your Cards...
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  AI is detecting items and extracting details
+                  🔍 AI is detecting cards and extracting details
+                </p>
+              </div>
+
+              {/* Rotating Fun Facts */}
+              <div className="max-w-md mx-auto mt-8 p-4 bg-primary/5 rounded-lg border border-primary/10">
+                <p className="text-xs font-semibold text-primary mb-2">DID YOU KNOW?</p>
+                <p 
+                  key={currentFactIndex}
+                  className="text-sm text-foreground font-medium animate-fade-in"
+                >
+                  {SPORTS_FACTS[currentFactIndex]}
                 </p>
               </div>
             </div>
