@@ -150,11 +150,12 @@ const Scan = () => {
         return;
       }
 
-      // Navigate to review with detection results (use first image URL for display)
+      // Navigate to review with detection results and all image URLs
       navigate('/review', { 
         state: { 
           detections: data.detections || [],
-          imageUrl: imageUrls[0] // Primary image for display
+          imageUrls: imageUrls, // Pass all uploaded images
+          imageUrl: imageUrls[0] // Backwards compatibility
         } 
       });
 

@@ -62,7 +62,7 @@ const Review = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { detections = [], imageUrl = "" } = location.state || {};
+  const { detections = [], imageUrl = "", imageUrls = [] } = location.state || {};
   
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
@@ -227,7 +227,32 @@ const Review = () => {
         return;
       }
 
-      for (const item of items) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        
+        // For sports cards with multiple images: 
+        // - If 2 images total: [0]=front, [1]=back
+        // - If 2N images for N cards: first N images are fronts, second N images are backs
+        const isSportsCard = source === 'sports-cards';
+        const totalImages = imageUrls.length || 1;
+        const numCards = items.length;
+        
+        let frontImageUrl = imageUrl; // default to single image
+        let backImageUrl = null;
+        
+        if (isSportsCard && totalImages >= 2) {
+          if (numCards === 1) {
+            // Single card: first image is front, second is back
+            frontImageUrl = imageUrls[0];
+            backImageUrl = imageUrls[1];
+          } else {
+            // Multiple cards: first half are fronts, second half are backs
+            const halfPoint = Math.floor(totalImages / 2);
+            frontImageUrl = imageUrls[i] || imageUrls[0];
+            backImageUrl = imageUrls[halfPoint + i] || null;
+          }
+        }
+        
         const { data: insertedItem, error: itemError } = await supabase
           .from("items")
           .insert({
@@ -238,7 +263,9 @@ const Review = () => {
             quantity: item.quantity,
             acquired_date: item.acquired_date || null,
             cost: item.cost ? parseFloat(item.cost) : null,
-            image_url: imageUrl,
+            image_url: frontImageUrl,
+            back_image_url: backImageUrl,
+            source_context: source || null,
           })
           .select()
           .single();

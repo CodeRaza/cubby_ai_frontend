@@ -150,6 +150,7 @@ export type Database = {
       items: {
         Row: {
           acquired_date: string | null
+          back_image_url: string | null
           category: string | null
           cost: number | null
           created_at: string
@@ -164,6 +165,7 @@ export type Database = {
         }
         Insert: {
           acquired_date?: string | null
+          back_image_url?: string | null
           category?: string | null
           cost?: number | null
           created_at?: string
@@ -178,6 +180,7 @@ export type Database = {
         }
         Update: {
           acquired_date?: string | null
+          back_image_url?: string | null
           category?: string | null
           cost?: number | null
           created_at?: string

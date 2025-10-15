@@ -38,7 +38,9 @@ interface ItemDetails {
   acquired_date: string | null;
   cost: number | null;
   image_url: string | null;
+  back_image_url: string | null;
   created_at: string;
+  source_context: string | null;
   location: {
     name: string;
   } | null;
@@ -50,6 +52,20 @@ interface ItemDetails {
     bbox_width: number | null;
     bbox_height: number | null;
   }>;
+  card_details?: {
+    player_name: string;
+    card_year: number;
+    brand: string;
+    set_name: string;
+    sport: string;
+    card_number: string;
+    condition: string;
+    is_graded: boolean;
+    grading_company: string;
+    grade: number;
+    estimated_value: number;
+    special_attributes: string[];
+  };
 }
 
 const ItemDetail = () => {
@@ -76,7 +92,8 @@ const ItemDetail = () => {
         .select(`
           *,
           location:locations(name),
-          detections(label, confidence, bbox_x, bbox_y, bbox_width, bbox_height)
+          detections(label, confidence, bbox_x, bbox_y, bbox_width, bbox_height),
+          card_details(player_name, card_year, brand, set_name, sport, card_number, condition, is_graded, grading_company, grade, estimated_value, special_attributes)
         `)
         .eq("id", id)
         .single();
@@ -268,7 +285,30 @@ const ItemDetail = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {item.image_url && item.detections && item.detections.length > 0 && (
+        {/* Display front and back images for sports cards */}
+        {item.source_context === 'sports-cards' && item.image_url && item.back_image_url && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-center text-muted-foreground">Front</p>
+              <img
+                src={item.image_url}
+                alt={`${item.name} - Front`}
+                className="w-full rounded-xl shadow-lg"
+              />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-center text-muted-foreground">Back</p>
+              <img
+                src={item.back_image_url}
+                alt={`${item.name} - Back`}
+                className="w-full rounded-xl shadow-lg"
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Display with bounding boxes for non-sports items */}
+        {item.source_context !== 'sports-cards' && item.image_url && item.detections && item.detections.length > 0 && (
           <ImageWithBoundingBoxes 
             imageUrl={item.image_url}
             detections={item.detections.map(d => ({
@@ -284,7 +324,9 @@ const ItemDetail = () => {
             className="w-full max-w-2xl mx-auto"
           />
         )}
-        {item.image_url && (!item.detections || item.detections.length === 0) && (
+        
+        {/* Default single image display */}
+        {item.source_context !== 'sports-cards' && item.image_url && (!item.detections || item.detections.length === 0) && (
           <img
             src={item.image_url}
             alt={item.name}
@@ -333,6 +375,94 @@ const ItemDetail = () => {
                 <span>Added: {new Date(item.created_at).toLocaleDateString()}</span>
               </div>
             </div>
+
+            {/* Card Details Section */}
+            {item.card_details && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Card Details</h3>
+                  <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4">
+                      {item.card_details.player_name && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Player</p>
+                          <p className="font-medium">{item.card_details.player_name}</p>
+                        </div>
+                      )}
+                      {item.card_details.card_year && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Year</p>
+                          <p className="font-medium">{item.card_details.card_year}</p>
+                        </div>
+                      )}
+                      {item.card_details.brand && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Brand</p>
+                          <p className="font-medium">{item.card_details.brand}</p>
+                        </div>
+                      )}
+                      {item.card_details.set_name && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Set</p>
+                          <p className="font-medium">{item.card_details.set_name}</p>
+                        </div>
+                      )}
+                      {item.card_details.sport && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Sport</p>
+                          <p className="font-medium">{item.card_details.sport}</p>
+                        </div>
+                      )}
+                      {item.card_details.card_number && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Card #</p>
+                          <p className="font-medium">{item.card_details.card_number}</p>
+                        </div>
+                      )}
+                      {item.card_details.condition && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Condition</p>
+                          <p className="font-medium">{item.card_details.condition}</p>
+                        </div>
+                      )}
+                      {item.card_details.is_graded && (
+                        <>
+                          {item.card_details.grading_company && (
+                            <div>
+                              <p className="text-sm text-muted-foreground">Graded By</p>
+                              <p className="font-medium">{item.card_details.grading_company}</p>
+                            </div>
+                          )}
+                          {item.card_details.grade && (
+                            <div>
+                              <p className="text-sm text-muted-foreground">Grade</p>
+                              <p className="font-medium">{item.card_details.grade}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {item.card_details.estimated_value && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Est. Value</p>
+                          <p className="font-medium">${item.card_details.estimated_value.toFixed(2)}</p>
+                        </div>
+                      )}
+                    </div>
+                    {item.card_details.special_attributes && item.card_details.special_attributes.length > 0 && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Special Attributes</p>
+                        <div className="flex flex-wrap gap-2">
+                          {item.card_details.special_attributes.map((attr, i) => (
+                            <Badge key={i} variant="secondary">{attr}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </main>
