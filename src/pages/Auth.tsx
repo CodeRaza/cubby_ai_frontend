@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
@@ -9,8 +9,20 @@ import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [source, setSource] = useState("");
 
   useEffect(() => {
+    // Get and store source parameter
+    const sourceParam = searchParams.get('source');
+    const storedSource = sessionStorage.getItem('user_source') || '';
+    
+    if (sourceParam) {
+      sessionStorage.setItem('user_source', sourceParam);
+      setSource(sourceParam);
+    } else if (storedSource) {
+      setSource(storedSource);
+    }
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -67,10 +79,13 @@ const Auth = () => {
         </div>
         <div>
           <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Cubby
+            {source === 'sports-cards' ? 'Cubby for Collectors' : 'Cubby'}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Your smart home inventory
+            {source === 'sports-cards' 
+              ? 'Catalog and track your card collection with AI'
+              : 'Your smart home inventory'
+            }
           </p>
         </div>
       </div>
