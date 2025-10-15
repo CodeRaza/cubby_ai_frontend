@@ -356,10 +356,10 @@ const Review = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <Label>Location</Label>
+              <Label>{source === 'sports-cards' ? 'Collection' : 'Location'}</Label>
               <Select value={selectedLocation} onValueChange={setSelectedLocation}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select location" />
+                  <SelectValue placeholder={source === 'sports-cards' ? 'Select collection' : 'Select location'} />
                 </SelectTrigger>
                 <SelectContent className="bg-background">
                   <Button
@@ -368,7 +368,7 @@ const Review = () => {
                     onClick={() => setShowNewLocationDialog(true)}
                   >
                     <Plus className="h-4 w-4" />
-                    Create New Location
+                    {source === 'sports-cards' ? 'Create New Collection' : 'Create New Location'}
                   </Button>
                   {locations.map((loc) => (
                     <SelectItem key={loc.id} value={loc.id}>
@@ -463,16 +463,26 @@ const Review = () => {
       <Dialog open={showNewLocationDialog} onOpenChange={setShowNewLocationDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Location</DialogTitle>
+            <DialogTitle>
+              {source === 'sports-cards' ? 'Create New Collection' : 'Create New Location'}
+            </DialogTitle>
             <DialogDescription>
-              Add a new location to organize your items.
+              {source === 'sports-cards' 
+                ? 'Add a new collection to organize your cards.'
+                : 'Add a new location to organize your items.'
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="location-name">Location Name</Label>
+            <Label htmlFor="location-name">
+              {source === 'sports-cards' ? 'Collection Name' : 'Location Name'}
+            </Label>
             <Input
               id="location-name"
-              placeholder="e.g., Kitchen, Garage, Bedroom"
+              placeholder={source === 'sports-cards' 
+                ? 'e.g., Baseball Cards, Rookie Cards, Vintage Collection'
+                : 'e.g., Kitchen, Garage, Bedroom'
+              }
               value={newLocationName}
               onChange={(e) => setNewLocationName(e.target.value)}
               onKeyDown={(e) => {
@@ -487,7 +497,7 @@ const Review = () => {
               Cancel
             </Button>
             <Button onClick={handleCreateLocation}>
-              Create Location
+              {source === 'sports-cards' ? 'Create Collection' : 'Create Location'}
             </Button>
           </DialogFooter>
         </DialogContent>
