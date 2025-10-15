@@ -910,12 +910,30 @@ const Dashboard = () => {
                           fill="hsl(var(--primary))"
                           dataKey="value"
                         >
-                          {Object.entries(cardStats.sports_breakdown).map((_, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={`hsl(var(--primary) / ${1 - (index * 0.15)})`}
-                            />
-                          ))}
+                          {Object.entries(cardStats.sports_breakdown).map(([sport], index) => {
+                            // Modern vibrant color palette for different sports
+                            const sportColors: Record<string, string> = {
+                              'Baseball': 'hsl(220, 90%, 56%)', // Blue
+                              'Basketball': 'hsl(25, 95%, 53%)', // Orange
+                              'Football': 'hsl(142, 76%, 36%)', // Green
+                              'Hockey': 'hsl(0, 84%, 60%)', // Red
+                              'Soccer': 'hsl(280, 80%, 55%)', // Purple
+                              'Golf': 'hsl(45, 93%, 47%)', // Gold
+                            };
+                            const defaultColors = [
+                              'hsl(262, 83%, 58%)', // Purple
+                              'hsl(339, 90%, 51%)', // Pink
+                              'hsl(173, 80%, 40%)', // Teal
+                              'hsl(36, 100%, 50%)', // Amber
+                              'hsl(201, 96%, 32%)', // Blue
+                            ];
+                            return (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={sportColors[sport] || defaultColors[index % defaultColors.length]}
+                              />
+                            );
+                          })}
                         </Pie>
                         <Tooltip />
                         <Legend />
@@ -982,8 +1000,31 @@ const Dashboard = () => {
                         tick={{ fontSize: 12 }}
                       />
                       <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          background: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                      />
+                      <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                        {cardStats.top_cards.map((_, index) => {
+                          // Gradient colors from high to low value
+                          const colors = [
+                            'hsl(142, 76%, 36%)', // Green for highest
+                            'hsl(45, 93%, 47%)',  // Gold
+                            'hsl(25, 95%, 53%)',  // Orange
+                            'hsl(220, 90%, 56%)', // Blue
+                            'hsl(262, 83%, 58%)', // Purple
+                          ];
+                          return (
+                            <Cell 
+                              key={`bar-${index}`}
+                              fill={colors[index % colors.length]}
+                            />
+                          );
+                        })}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
