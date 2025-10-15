@@ -3,6 +3,7 @@ import { Crown, Shield, Settings as SettingsIcon, LogOut, TrendingUp, Star } fro
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { PWAInstallButton } from "@/components/PWAInstallButton";
 
 interface DashboardHeaderProps {
   source: string;
@@ -42,6 +43,7 @@ export const DashboardHeader = ({ source, isAdmin, planName }: DashboardHeaderPr
       <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
         <h1 className="text-lg sm:text-xl font-bold">{source === 'sports-cards' ? 'Card Collection' : 'Cubby'}</h1>
         <div className="flex items-center gap-1 sm:gap-2">
+          <PWAInstallButton />
           {isAdmin && (
             <Button 
               variant="outline" 

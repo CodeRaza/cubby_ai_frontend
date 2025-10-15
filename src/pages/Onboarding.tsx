@@ -86,7 +86,6 @@ const Onboarding = () => {
       // Mark onboarding as completed
       sessionStorage.setItem('onboarding_completed', 'true');
       
-      toast({ title: "Location created!" });
       setStep(3);
     } catch (error: any) {
       toast({
