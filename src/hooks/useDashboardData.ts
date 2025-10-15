@@ -114,10 +114,10 @@ export const useSubscription = () => {
 
       const planTier = subData?.plan_tier || 'free';
       const itemLimits: Record<string, number> = {
-        free: 50,
-        starter: 250,
+        free: 10,
+        starter: 100,
         pro: 1000,
-        power: 5000
+        investor: 5000
       };
 
       return {
