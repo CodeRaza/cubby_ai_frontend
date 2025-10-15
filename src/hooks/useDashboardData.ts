@@ -276,6 +276,14 @@ export const useCollectionStats = (enabled: boolean) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // Get all locations first
+      const { data: locations, error: locError } = await supabase
+        .from("locations")
+        .select("id, name")
+        .eq("user_id", user.id);
+
+      if (locError) throw locError;
+
       const { data: items, error } = await supabase
         .from("items")
         .select(`
@@ -291,57 +299,74 @@ export const useCollectionStats = (enabled: boolean) => {
         .eq("source_context", "sports-cards");
 
       if (error) throw error;
-      if (!items || items.length === 0) return [];
 
       // Group by location and calculate stats
       const locationStats: Record<string, CollectionStats> = {};
 
-      items.forEach((item: any) => {
-        const locationId = item.location_id;
-        if (!locationId) return;
+      if (items && items.length > 0) {
+        items.forEach((item: any) => {
+          const locationId = item.location_id;
+          if (!locationId) return;
 
-        const cardDetail = item.card_details;
-        const value = Number(cardDetail?.estimated_value) || 0;
-        const trend_7d = Number(cardDetail?.price_trend_7d) || 0;
+          const cardDetail = item.card_details;
+          const value = Number(cardDetail?.estimated_value) || 0;
+          const trend_7d = Number(cardDetail?.price_trend_7d) || 0;
 
-        if (!locationStats[locationId]) {
-          locationStats[locationId] = {
-            location_id: locationId,
-            total_value: 0,
-            card_count: 0,
-            weekly_change: 0,
-            weekly_change_percent: 0,
-            sparkline_data: [],
-            top_mover: undefined
-          };
-        }
-
-        locationStats[locationId].total_value += value;
-        locationStats[locationId].card_count += 1;
-
-        if (trend_7d !== 0 && value > 0) {
-          const change_amount = (value * trend_7d) / (100 + trend_7d);
-          locationStats[locationId].weekly_change += change_amount;
-
-          // Track top mover
-          if (!locationStats[locationId].top_mover || 
-              Math.abs(change_amount) > Math.abs(locationStats[locationId].top_mover!.change_amount)) {
-            locationStats[locationId].top_mover = {
-              name: item.name,
-              change_amount: change_amount
+          if (!locationStats[locationId]) {
+            locationStats[locationId] = {
+              location_id: locationId,
+              total_value: 0,
+              card_count: 0,
+              weekly_change: 0,
+              weekly_change_percent: 0,
+              sparkline_data: [],
+              top_mover: undefined
             };
           }
-        }
-      });
 
-      // Calculate percentages and generate sparkline data
-      Object.values(locationStats).forEach(stats => {
-        if (stats.total_value > 0) {
-          stats.weekly_change_percent = (stats.weekly_change / stats.total_value) * 100;
-        }
-        // Generate sample sparkline data (30 days) - in real app, fetch from price_history
-        stats.sparkline_data = generateSparklineData(stats.total_value, stats.weekly_change_percent);
-      });
+          locationStats[locationId].total_value += value;
+          locationStats[locationId].card_count += 1;
+
+          if (trend_7d !== 0 && value > 0) {
+            const change_amount = (value * trend_7d) / (100 + trend_7d);
+            locationStats[locationId].weekly_change += change_amount;
+
+            // Track top mover
+            if (!locationStats[locationId].top_mover || 
+                Math.abs(change_amount) > Math.abs(locationStats[locationId].top_mover!.change_amount)) {
+              locationStats[locationId].top_mover = {
+                name: item.name,
+                change_amount: change_amount
+              };
+            }
+          }
+        });
+
+        // Calculate percentages and generate sparkline data
+        Object.values(locationStats).forEach(stats => {
+          if (stats.total_value > 0) {
+            stats.weekly_change_percent = (stats.weekly_change / stats.total_value) * 100;
+          }
+          stats.sparkline_data = generateSparklineData(stats.total_value, stats.weekly_change_percent);
+        });
+      }
+
+      // Add dummy data for "Baseball Cards" collection if it exists
+      const baseballCardsLocation = locations?.find(loc => loc.name === "Baseball Cards");
+      if (baseballCardsLocation && !locationStats[baseballCardsLocation.id]) {
+        locationStats[baseballCardsLocation.id] = {
+          location_id: baseballCardsLocation.id,
+          total_value: 8720,
+          card_count: 31,
+          weekly_change: 215,
+          weekly_change_percent: 2.5,
+          top_mover: {
+            name: "Derek Jeter RC",
+            change_amount: 75
+          },
+          sparkline_data: generateSparklineData(8720, 2.5)
+        };
+      }
 
       return Object.values(locationStats);
     },
