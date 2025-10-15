@@ -31,6 +31,7 @@ import Property from "./pages/landing/Property";
 import SportsCards from "./pages/landing/SportsCards";
 import TermsOfService from "./pages/legal/TermsOfService";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import Market from "./pages/Market";
 
 import Onboarding from "./pages/Onboarding";
 
@@ -63,6 +64,7 @@ const App = () => (
           
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/empty" element={<DashboardEmpty />} />
+          <Route path="/market" element={<Market />} />
           <Route path="/scan" element={<Scan />} />
           <Route path="/review" element={<Review />} />
           <Route path="/search" element={<Search />} />

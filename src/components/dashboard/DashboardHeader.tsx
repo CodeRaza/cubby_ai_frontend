@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Crown, Shield, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { Crown, Shield, Settings as SettingsIcon, LogOut, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,6 +31,17 @@ export const DashboardHeader = ({ source, isAdmin, planName }: DashboardHeaderPr
             >
               <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline text-xs sm:text-sm">Admin</span>
+            </Button>
+          )}
+          {source === 'sports-cards' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/market')}
+              className="gap-1.5 h-8 sm:h-9 px-2 sm:px-3 bg-[#00C46C]/10 hover:bg-[#00C46C]/20 border-[#00C46C]/30"
+            >
+              <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00C46C]" />
+              <span className="hidden sm:inline text-xs sm:text-sm text-[#00C46C]">Market</span>
             </Button>
           )}
           <Button 
