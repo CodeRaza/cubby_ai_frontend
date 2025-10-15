@@ -2,10 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Camera, Home, Search, QrCode, CheckSquare, Square, FolderInput } from "lucide-react";
+import { ArrowLeft, Camera, Home, Search, QrCode, CheckSquare, Square, FolderInput, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { CollectionHeader } from "@/components/collection/CollectionHeader";
+import { CollectionPortfolioChart } from "@/components/collection/CollectionPortfolioChart";
+import { CollectionTopMovers } from "@/components/collection/CollectionTopMovers";
+import { CollectionDistribution } from "@/components/collection/CollectionDistribution";
+import { useCollectionDetails } from "@/hooks/useCollectionDetails";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +64,10 @@ const LocationItems = () => {
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [targetLocationId, setTargetLocationId] = useState<string>("");
+  const [isSportsCards, setIsSportsCards] = useState(false);
+  
+  // Fetch collection details for sports cards
+  const { data: collectionDetails } = useCollectionDetails(locationId, isSportsCards);
 
   useEffect(() => {
     checkAuthAndAccess();
@@ -131,6 +140,9 @@ const LocationItems = () => {
 
       if (itemsData) {
         setItems(itemsData);
+        // Check if this is a sports cards collection
+        const hasSportsCards = itemsData.some(item => item.source_context === "sports-cards");
+        setIsSportsCards(hasSportsCards);
       }
 
       // Load available locations for moving items
@@ -303,15 +315,42 @@ const LocationItems = () => {
         )}
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 space-y-6">
         {!isOwner && (
-          <div className="mb-4 p-4 bg-muted rounded-lg text-center">
+          <div className="p-4 bg-muted rounded-lg text-center">
             <p className="text-sm text-muted-foreground">
               You have view-only access to this location
             </p>
           </div>
         )}
 
+        {/* Sports Cards Collection Insights */}
+        {isSportsCards && collectionDetails && (
+          <div className="space-y-6">
+            <CollectionHeader
+              name={locationName}
+              totalValue={collectionDetails.totalValue}
+              weeklyChange={collectionDetails.weeklyChange}
+              weeklyChangePercent={collectionDetails.weeklyChangePercent}
+              monthlyChange={collectionDetails.monthlyChange}
+              monthlyChangePercent={collectionDetails.monthlyChangePercent}
+              cardCount={collectionDetails.cardCount}
+            />
+
+            <CollectionPortfolioChart data={collectionDetails.chartData} />
+
+            <CollectionTopMovers movers={collectionDetails.topMovers} />
+
+            <CollectionDistribution
+              byPlayer={collectionDetails.distribution.byPlayer}
+              byYear={collectionDetails.distribution.byYear}
+              byCardType={collectionDetails.distribution.byCardType}
+              byGrading={collectionDetails.distribution.byGrading}
+            />
+          </div>
+        )}
+
+        {/* Items Grid */}
         {items.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-4">No items in this location yet</p>
@@ -323,28 +362,35 @@ const LocationItems = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {items.map((item) => (
-              <div key={item.id} className="relative">
-                {selectionMode && (
-                  <div className="absolute top-2 left-2 z-10">
-                    <Checkbox
-                      checked={selectedItems.has(item.id)}
-                      onCheckedChange={() => toggleItemSelection(item.id)}
-                      className="bg-background border-2 shadow-lg"
-                    />
-                  </div>
-                )}
-                <ItemCard
-                  name={item.name}
-                  category={item.category || undefined}
-                  quantity={item.quantity}
-                  imageUrl={item.image_url || undefined}
-                  onClick={() => !selectionMode && navigate(`/item/${item.id}`)}
-                  cardDetails={item.card_details || undefined}
-                />
+          <div>
+            {isSportsCards && collectionDetails && (
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">All Cards</h2>
               </div>
-            ))}
+            )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {items.map((item) => (
+                <div key={item.id} className="relative">
+                  {selectionMode && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <Checkbox
+                        checked={selectedItems.has(item.id)}
+                        onCheckedChange={() => toggleItemSelection(item.id)}
+                        className="bg-background border-2 shadow-lg"
+                      />
+                    </div>
+                  )}
+                  <ItemCard
+                    name={item.name}
+                    category={item.category || undefined}
+                    quantity={item.quantity}
+                    imageUrl={item.image_url || undefined}
+                    onClick={() => !selectionMode && navigate(`/item/${item.id}`)}
+                    cardDetails={item.card_details || undefined}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </main>
