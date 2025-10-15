@@ -189,21 +189,33 @@ async function refreshCardPricing(supabase: any, card: TopCard) {
     return;
   }
 
-  // Calculate average from recent sales
-  const prices = listings
-    .filter((item: any) => item.sellingStatus?.[0]?.currentPrice?.[0]?.__value__)
-    .map((item: any) => parseFloat(item.sellingStatus[0].currentPrice[0].__value__));
+  // Get sale prices and dates, sort by most recent, take only 10 most recent
+  const salesData = listings
+    .filter((item: any) => 
+      item.sellingStatus?.[0]?.currentPrice?.[0]?.__value__ &&
+      item.listingInfo?.[0]?.endTime?.[0]
+    )
+    .map((item: any) => ({
+      price: parseFloat(item.sellingStatus[0].currentPrice[0].__value__),
+      endTime: new Date(item.listingInfo[0].endTime[0])
+    }))
+    .sort((a: { price: number; endTime: Date }, b: { price: number; endTime: Date }) => 
+      b.endTime.getTime() - a.endTime.getTime()
+    )
+    .slice(0, 10); // Take only the 10 most recent sales
 
-  if (prices.length === 0) {
+  if (salesData.length === 0) {
     const basePrice = calculateBasePrice(card);
     await updateCache(supabase, card, basePrice, 0);
     return;
   }
 
-  const averagePrice = prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length;
+  const averagePrice = salesData.reduce((sum: number, sale: { price: number; endTime: Date }) => 
+    sum + sale.price, 0
+  ) / salesData.length;
   
   // Update cache with fresh data
-  await updateCache(supabase, card, averagePrice, prices.length);
+  await updateCache(supabase, card, averagePrice, salesData.length);
 }
 
 async function searchEbayListings(appId: string, card: TopCard) {

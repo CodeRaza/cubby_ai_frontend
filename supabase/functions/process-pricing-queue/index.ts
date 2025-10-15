@@ -87,10 +87,20 @@ serve(async (req) => {
 
         console.log('[PROCESS-QUEUE] Found', items.length, 'eBay listings');
 
+        // Sort by end time (most recent first) and take only the 10 most recent
+        const sortedItems = items
+          .filter((item: any) => item.listingInfo?.[0]?.endTime?.[0])
+          .sort((a: any, b: any) => {
+            const dateA = new Date(a.listingInfo[0].endTime[0]).getTime();
+            const dateB = new Date(b.listingInfo[0].endTime[0]).getTime();
+            return dateB - dateA; // Most recent first
+          })
+          .slice(0, 10);
+
         const recentSales = [];
         let totalPrice = 0;
 
-        for (const item of items.slice(0, 10)) {
+        for (const item of sortedItems) {
           const sellingStatus = item.sellingStatus?.[0];
           const price = parseFloat(sellingStatus?.currentPrice?.[0]?.__value__ || '0');
           
@@ -241,7 +251,7 @@ async function searchEbayListings(cardDetails: any) {
     'itemFilter(0).name': 'SoldItemsOnly',
     'itemFilter(0).value': 'true',
     'sortOrder': 'EndTimeSoonest',
-    'paginationInput.entriesPerPage': '10',
+    'paginationInput.entriesPerPage': '20', // Fetch 20 to ensure we have 10 valid recent sales
   });
 
   const response = await fetch(`${findingUrl}?${params}`);
