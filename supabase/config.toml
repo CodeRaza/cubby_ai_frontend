@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.fetch-card-pricing]
 verify_jwt = true
 
+[functions.process-pricing-queue]
+verify_jwt = false
+
 [functions.send-welcome-email]
 verify_jwt = false
 

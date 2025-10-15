@@ -6,59 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const EBAY_APP_ID = Deno.env.get('EBAY_APP_ID');
-const EBAY_CERT_ID = Deno.env.get('EBAY_CERT_ID');
-const EBAY_SANDBOX = false; // Production API enabled
-
-// Note: Finding Service API doesn't use OAuth - it uses App ID directly
-async function searchEbayListings(cardDetails: any) {
-  // Build search query from card details - prioritize specific details
-  const searchParts = [
-    cardDetails.card_year,
-    cardDetails.brand,
-    cardDetails.player_name,
-    cardDetails.card_number?.replace('#', ''), // Remove # symbol
-    cardDetails.set_name,
-  ].filter(Boolean);
-
-  // For rookie cards, add that to search
-  if (cardDetails.special_attributes?.includes('Rookie Card')) {
-    searchParts.push('Rookie');
-  }
-
-  const searchTerms = searchParts.join(' ');
-
-  console.log('[FETCH-PRICING] Searching eBay for:', searchTerms);
-
-  const findingUrl = EBAY_SANDBOX
-    ? 'https://svcs.sandbox.ebay.com/services/search/FindingService/v1'
-    : 'https://svcs.ebay.com/services/search/FindingService/v1';
-
-  const params = new URLSearchParams({
-    'OPERATION-NAME': 'findCompletedItems',
-    'SERVICE-VERSION': '1.0.0',
-    'SECURITY-APPNAME': EBAY_APP_ID!,
-    'RESPONSE-DATA-FORMAT': 'JSON',
-    'REST-PAYLOAD': '',
-    'keywords': searchTerms,
-    'itemFilter(0).name': 'SoldItemsOnly',
-    'itemFilter(0).value': 'true',
-    'sortOrder': 'EndTimeSoonest',
-    'paginationInput.entriesPerPage': '10',
-  });
-
-  const response = await fetch(`${findingUrl}?${params}`);
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('[FETCH-PRICING] eBay API error response:', errorText);
-    throw new Error(`eBay API error: ${response.statusText} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  console.log('[FETCH-PRICING] eBay response:', JSON.stringify(data).substring(0, 500));
-  return data;
-}
+const CACHE_DURATION_DAYS = 7; // Extended from 24 hours to 7 days
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -71,128 +19,124 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      throw new Error('Unauthorized');
+    }
+
     const { cardId, cardDetails, force_refresh } = await req.json();
 
     if (!cardId || !cardDetails) {
       throw new Error('Missing required fields');
     }
 
-    console.log('[FETCH-PRICING] Fetching pricing for card:', cardDetails, 'force_refresh:', force_refresh);
+    console.log('[FETCH-PRICING] Request for card:', cardDetails.player_name, cardDetails.card_year);
 
-    // Check if we have recent pricing data (last 24 hours) unless force refresh is requested
-    if (!force_refresh) {
-      const { data: existingCard } = await supabase
+    // Generate card key for shared cache lookup
+    const cardKey = generateCardKey(cardDetails);
+    console.log('[FETCH-PRICING] Card key:', cardKey);
+
+    // Check shared pricing cache first
+    const { data: cachedPrice } = await supabase
+      .from('card_pricing_cache')
+      .select('*')
+      .eq('card_key', cardKey)
+      .single();
+
+    const now = new Date();
+    const cacheAgeHours = cachedPrice?.last_ebay_fetch 
+      ? (now.getTime() - new Date(cachedPrice.last_ebay_fetch).getTime()) / (1000 * 60 * 60)
+      : null;
+
+    // If cache exists and is fresh (< 7 days) and not force refresh, use it
+    if (cachedPrice && cacheAgeHours !== null && cacheAgeHours < (CACHE_DURATION_DAYS * 24) && !force_refresh) {
+      console.log('[FETCH-PRICING] Using cached price, age:', cacheAgeHours.toFixed(1), 'hours');
+      
+      // Update user's card with cached pricing
+      await supabase
         .from('card_details')
-        .select('estimated_value, last_price_update')
-        .eq('id', cardId)
-        .single();
+        .update({
+          estimated_value: cachedPrice.estimated_value || cachedPrice.average_sale_price,
+          last_price_update: cachedPrice.last_ebay_fetch
+        })
+        .eq('id', cardId);
 
-      if (existingCard?.last_price_update) {
-        const lastUpdate = new Date(existingCard.last_price_update);
-        const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60);
-        
-        if (hoursSinceUpdate < 24 && existingCard.estimated_value) {
-          console.log('[FETCH-PRICING] Using cached price from', hoursSinceUpdate.toFixed(1), 'hours ago');
-          return new Response(
-            JSON.stringify({
-              success: true,
-              currentPrice: existingCard.estimated_value,
-              recentSales: 0,
-              cached: true,
-              cacheAge: hoursSinceUpdate.toFixed(1)
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-      }
+      return new Response(
+        JSON.stringify({
+          success: true,
+          currentPrice: cachedPrice.estimated_value || cachedPrice.average_sale_price,
+          cached: true,
+          cacheAge: cacheAgeHours.toFixed(1),
+          sharedCache: true
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    let recentSales = [];
-    let totalPrice = 0;
-    let isRateLimited = false;
+    // Cache is stale or missing - queue a background job
+    console.log('[FETCH-PRICING] Cache stale or missing, queueing background job');
 
-    try {
-      // Search eBay for sold listings (Finding Service uses App ID, not OAuth)
-      const ebayData = await searchEbayListings(cardDetails);
-      
-      // Parse eBay response
-      const searchResult = ebayData?.findCompletedItemsResponse?.[0];
-      const items = searchResult?.searchResult?.[0]?.item || [];
-      
-      console.log('[FETCH-PRICING] Found', items.length, 'eBay listings');
+    // Calculate priority based on estimated card value
+    const priority = calculatePriority(cardDetails);
 
-      for (const item of items.slice(0, 10)) {
-        const sellingStatus = item.sellingStatus?.[0];
-        const price = parseFloat(sellingStatus?.currentPrice?.[0]?.__value__ || '0');
-        
-        if (price > 0) {
-          recentSales.push({
-            card_id: cardId,
-            price: Number(price.toFixed(2)),
-            source: 'ebay',
-            condition: cardDetails.condition || 'raw',
-            date_of_sale: item.listingInfo?.[0]?.endTime?.[0] || new Date().toISOString(),
-            sale_url: item.viewItemURL?.[0] || null
-          });
-          totalPrice += price;
-        }
-      }
-    } catch (ebayError) {
-      // Check if it's a rate limit error
-      if (ebayError instanceof Error && ebayError.message.includes('exceeded the number of times')) {
-        console.log('[FETCH-PRICING] eBay rate limit reached, using base price calculation');
-        isRateLimited = true;
-      } else {
-        // Re-throw non-rate-limit errors
-        throw ebayError;
-      }
+    // Check if already queued
+    const { data: existingJob } = await supabase
+      .from('pricing_queue')
+      .select('id, status')
+      .eq('card_details_id', cardId)
+      .in('status', ['pending', 'processing'])
+      .single();
+
+    if (!existingJob) {
+      // Queue the pricing job
+      await supabase
+        .from('pricing_queue')
+        .insert({
+          card_details_id: cardId,
+          user_id: user.id,
+          card_key: cardKey,
+          priority: priority,
+          status: 'pending'
+        });
+
+      console.log('[FETCH-PRICING] Job queued with priority:', priority);
+    } else {
+      console.log('[FETCH-PRICING] Job already queued, status:', existingJob.status);
     }
 
-    // Calculate average price
-    const currentPrice = recentSales.length > 0 
-      ? totalPrice / recentSales.length 
-      : calculateBasePrice(cardDetails);
+    // Return current cached or estimated value immediately
+    const currentValue = cachedPrice?.estimated_value || 
+                        cachedPrice?.average_sale_price || 
+                        calculateBasePrice(cardDetails);
 
-    console.log('[FETCH-PRICING] Calculated price:', currentPrice, isRateLimited ? '(base price - rate limited)' : '(from eBay)');
-
-    // Insert price history only if we got eBay data
-    if (recentSales.length > 0) {
-      const { error: historyError } = await supabase
-        .from('price_history')
-        .insert(recentSales);
-
-      if (historyError) {
-        console.error('[FETCH-PRICING] Error inserting price history:', historyError);
-        // Don't throw - continue with price update
-      }
-    }
-
-    // Update card details with latest pricing
-    const { error: updateError } = await supabase
+    // Update user's card with current value
+    await supabase
       .from('card_details')
       .update({
-        estimated_value: Number(currentPrice.toFixed(2)),
-        last_price_update: new Date().toISOString()
+        estimated_value: currentValue,
+        last_price_update: cachedPrice?.last_ebay_fetch || now.toISOString()
       })
       .eq('id', cardId);
-
-    if (updateError) {
-      console.error('[FETCH-PRICING] Error updating card details:', updateError);
-      throw updateError;
-    }
-
-    console.log('[FETCH-PRICING] Successfully updated pricing for card');
 
     return new Response(
       JSON.stringify({
         success: true,
-        currentPrice: Number(currentPrice.toFixed(2)),
-        recentSales: recentSales.length,
-        isEstimated: isRateLimited,
-        message: isRateLimited ? 'eBay rate limit reached. Price estimated based on card attributes.' : undefined
+        currentPrice: currentValue,
+        queued: !existingJob,
+        status: existingJob?.status || 'pending',
+        message: 'Pricing update queued. Refresh in a few minutes for live data.',
+        sharedCache: !!cachedPrice
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error) {
     console.error('[FETCH-PRICING] Error:', error);
     return new Response(
@@ -205,21 +149,50 @@ serve(async (req) => {
   }
 });
 
-function calculateBasePrice(cardDetails: any): number {
-  let basePrice = 2; // Start very low
+function generateCardKey(cardDetails: any): string {
+  return [
+    cardDetails.card_year || 'unknown',
+    cardDetails.brand?.trim() || 'unknown',
+    cardDetails.player_name?.trim() || 'unknown',
+    cardDetails.card_number?.replace('#', '').trim() || 'unknown',
+    cardDetails.sport?.trim() || 'unknown'
+  ].join('-').toLowerCase();
+}
 
-  // Adjust for year (older cards often more valuable, but 1980s-90s are common)
+function calculatePriority(cardDetails: any): number {
+  // Base priority on estimated card value for smart refresh
+  let priority = 50; // default
+
+  // High-value cards get higher priority
+  if (cardDetails.estimated_value) {
+    const value = Number(cardDetails.estimated_value);
+    if (value >= 1000) priority = 100; // Very high value
+    else if (value >= 100) priority = 80;  // High value
+    else if (value >= 10) priority = 60;   // Medium value
+    else priority = 40; // Low value
+  }
+
+  // Boost priority for special attributes
+  if (cardDetails.special_attributes?.includes('Rookie Card')) priority += 10;
+  if (cardDetails.special_attributes?.includes('Autograph')) priority += 15;
+  if (cardDetails.is_graded) priority += 10;
+
+  return Math.min(priority, 100);
+}
+
+function calculateBasePrice(cardDetails: any): number {
+  let basePrice = 2;
+
   const currentYear = new Date().getFullYear();
   const cardAge = currentYear - (cardDetails.card_year || currentYear);
   
-  if (cardAge > 50) basePrice += 20; // Pre-1975
-  else if (cardAge > 40) basePrice += 10; // 1975-1985
-  else if (cardAge > 30) basePrice += 3; // 1985-1995 (junk wax era)
-  else if (cardAge > 20) basePrice += 5; // 1995-2005
-  else if (cardAge > 10) basePrice += 8; // 2005-2015
-  else basePrice += 10; // Modern cards
+  if (cardAge > 50) basePrice += 20;
+  else if (cardAge > 40) basePrice += 10;
+  else if (cardAge > 30) basePrice += 3;
+  else if (cardAge > 20) basePrice += 5;
+  else if (cardAge > 10) basePrice += 8;
+  else basePrice += 10;
 
-  // Adjust for brand (additive, not multiplicative)
   const premiumBrands = ['Topps Chrome', 'Bowman Chrome', 'Panini Prizm', 'Select'];
   const modernBrands = ['Topps', 'Bowman', 'Upper Deck'];
   const vintageBrands = ['Fleer', 'Donruss', 'Score'];
@@ -232,7 +205,6 @@ function calculateBasePrice(cardDetails: any): number {
     basePrice += 2;
   }
 
-  // Player multiplier (multiplicative for major impact)
   const legendaryPlayers = ['Jeter', 'Jordan', 'Brady', 'Gretzky', 'Ruth', 'Mantle', 'Williams', 'Mays', 'Montana'];
   const superstarPlayers = ['Trout', 'Ohtani', 'Mahomes', 'Wembanyama', 'Judge'];
   const starPlayers = ['Bonds', 'Griffey', 'Rodriguez', 'Pujols', 'Soto', 'Tatum'];
@@ -244,26 +216,22 @@ function calculateBasePrice(cardDetails: any): number {
   } else if (starPlayers.some(name => cardDetails.player_name?.includes(name))) {
     basePrice *= 3;
   } else {
-    basePrice *= 1.5; // Common players
+    basePrice *= 1.5;
   }
 
-  // Rookie cards get multiplier
   if (cardDetails.special_attributes?.includes('Rookie Card')) {
     basePrice *= 2.5;
   }
   
-  // Autograph cards
   if (cardDetails.special_attributes?.includes('Autograph')) {
     basePrice *= 6;
   }
   
-  // Special insert cards
   if (cardDetails.special_attributes?.some((attr: string) => 
     ['Refractor', 'Prizm', 'Parallel', 'Serial Numbered'].includes(attr))) {
     basePrice *= 2;
   }
 
-  // Adjust for grading
   if (cardDetails.is_graded) {
     const grade = Number(cardDetails.grade) || 7;
     if (grade >= 10) basePrice *= 8;
@@ -272,7 +240,6 @@ function calculateBasePrice(cardDetails: any): number {
     else if (grade >= 8) basePrice *= 2;
     else if (grade >= 7) basePrice *= 1.3;
   } else {
-    // Condition adjustment for raw cards (smaller impact)
     const condition = cardDetails.condition?.toLowerCase() || '';
     if (condition.includes('gem mint') || condition.includes('pristine')) basePrice *= 1.8;
     else if (condition.includes('mint')) basePrice *= 1.5;
@@ -282,5 +249,5 @@ function calculateBasePrice(cardDetails: any): number {
     else if (condition.includes('poor')) basePrice *= 0.4;
   }
 
-  return Math.max(Math.round(basePrice * 100) / 100, 0.5); // Round to 2 decimals, minimum 50 cents
+  return Math.max(Math.round(basePrice * 100) / 100, 0.5);
 }
