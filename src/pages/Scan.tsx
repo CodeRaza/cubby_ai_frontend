@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Camera, Upload, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cropImageFromBoundingBox } from "@/lib/imageCropping";
 
 const Scan = () => {
   const navigate = useNavigate();
@@ -150,12 +151,48 @@ const Scan = () => {
         return;
       }
 
-      // Navigate to review with detection results and all image URLs
+      // Crop individual cards from bulk scan if bounding boxes are available
+      const croppedImageUrls: string[] = [];
+      const detections = data.detections || [];
+      
+      for (let i = 0; i < detections.length; i++) {
+        const detection = detections[i];
+        
+        if (detection.bbox && imageUrls[0]) {
+          try {
+            const croppedBlob = await cropImageFromBoundingBox(imageUrls[0], detection.bbox);
+            const fileName = `${user.id}/${Date.now()}_${i}_cropped.jpg`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from("item-images")
+              .upload(fileName, croppedBlob, {
+                contentType: "image/jpeg",
+                upsert: false,
+              });
+
+            if (!uploadError) {
+              const { data: { publicUrl } } = supabase.storage
+                .from("item-images")
+                .getPublicUrl(fileName);
+              croppedImageUrls.push(publicUrl);
+            } else {
+              croppedImageUrls.push(imageUrls[0]); // Fallback to original
+            }
+          } catch (cropError) {
+            console.error("Failed to crop image:", cropError);
+            croppedImageUrls.push(imageUrls[0]); // Fallback to original
+          }
+        } else {
+          croppedImageUrls.push(imageUrls[0]); // No bbox, use original
+        }
+      }
+
+      // Navigate to review with detection results and cropped image URLs
       navigate('/review', { 
         state: { 
-          detections: data.detections || [],
-          imageUrls: imageUrls, // Pass all uploaded images
-          imageUrl: imageUrls[0] // Backwards compatibility
+          detections: detections,
+          imageUrls: croppedImageUrls.length > 0 ? croppedImageUrls : imageUrls, // Use cropped if available
+          imageUrl: croppedImageUrls[0] || imageUrls[0] // Backwards compatibility
         } 
       });
 

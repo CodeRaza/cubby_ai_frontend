@@ -252,32 +252,9 @@ const Review = () => {
             frontImageUrl = imageUrls[i] || imageUrls[0];
             backImageUrl = imageUrls[halfPoint + i] || null;
           }
-        }
-
-        // Crop individual card from full scan image if bbox available
-        const detectionForCrop = detections.find(d => d.label === item.label);
-        if (detectionForCrop?.bbox && frontImageUrl) {
-          try {
-            const croppedBlob = await cropImageFromBoundingBox(frontImageUrl, detectionForCrop.bbox);
-            const fileName = `${user.id}/${Date.now()}_${i}_cropped.jpg`;
-            
-            const { error: uploadError } = await supabase.storage
-              .from("item-images")
-              .upload(fileName, croppedBlob, {
-                contentType: "image/jpeg",
-                upsert: false,
-              });
-
-            if (!uploadError) {
-              const { data: { publicUrl } } = supabase.storage
-                .from("item-images")
-                .getPublicUrl(fileName);
-              frontImageUrl = publicUrl;
-            }
-          } catch (cropError) {
-            console.error("Failed to crop image:", cropError);
-            // Fall back to original image URL
-          }
+        } else if (imageUrls.length > i) {
+          // Use already cropped image from scan
+          frontImageUrl = imageUrls[i];
         }
         
         const { data: insertedItem, error: itemError } = await supabase
@@ -319,14 +296,15 @@ const Review = () => {
         }
 
         // Save detection data with bounding boxes
+        const detectionForBbox = detections.find(d => d.label === item.label);
         await supabase.from("detections").insert({
           item_id: insertedItem.id,
           label: item.label,
           confidence: item.confidence,
-          bbox_x: detectionForCrop?.bbox?.x || null,
-          bbox_y: detectionForCrop?.bbox?.y || null,
-          bbox_width: detectionForCrop?.bbox?.width || null,
-          bbox_height: detectionForCrop?.bbox?.height || null,
+          bbox_x: detectionForBbox?.bbox?.x || null,
+          bbox_y: detectionForBbox?.bbox?.y || null,
+          bbox_width: detectionForBbox?.bbox?.width || null,
+          bbox_height: detectionForBbox?.bbox?.height || null,
         });
       }
 
