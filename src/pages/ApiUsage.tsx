@@ -305,9 +305,17 @@ export default function ApiUsage() {
                     <div>
                       <p className="text-sm font-semibold mb-1">Rate Limiting</p>
                       <div className="flex gap-2 flex-wrap">
-                        <Badge variant="secondary" className="text-xs">500ms delay</Badge>
-                        <Badge variant="secondary" className="text-xs">Batch size: 10</Badge>
+                        <Badge variant="secondary" className="text-xs">2 second delay</Badge>
+                        <Badge variant="secondary" className="text-xs">Batch size: 100</Badge>
                       </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Schedule</p>
+                      <Badge variant="outline" className="text-xs">Daily at 3 AM</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Daily Quota</p>
+                      <Badge className="text-xs bg-blue-500/20 text-blue-700 border-blue-500/30">Stops at 90% (360 calls)</Badge>
                     </div>
                     <div>
                       <p className="text-sm font-semibold mb-1">Priority Logic</p>
@@ -496,12 +504,12 @@ export default function ApiUsage() {
                       </p>
                       <div className="grid gap-2">
                         <div className="flex justify-between items-center p-2 bg-muted rounded">
-                          <span>Queue Processing</span>
-                          <Badge variant="secondary">500ms delay</Badge>
+                          <span>Queue Processing (between cards)</span>
+                          <Badge variant="secondary">2 second delay</Badge>
                         </div>
                         <div className="flex justify-between items-center p-2 bg-muted rounded">
-                          <span>Top Cards Refresh</span>
-                          <Badge variant="secondary">2000ms delay</Badge>
+                          <span>Top Cards Refresh (between cards)</span>
+                          <Badge variant="secondary">2 second delay</Badge>
                         </div>
                       </div>
                     </AccordionContent>
@@ -548,7 +556,11 @@ export default function ApiUsage() {
                       <div className="grid gap-2">
                         <div className="flex justify-between items-center p-2 bg-muted rounded">
                           <span>Queue Processing Batch Size</span>
-                          <Badge variant="secondary">10 cards</Badge>
+                          <Badge variant="secondary">100 cards/day</Badge>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-muted rounded">
+                          <span>Queue Processing Schedule</span>
+                          <Badge variant="secondary">Daily at 3 AM</Badge>
                         </div>
                         <div className="flex justify-between items-center p-2 bg-muted rounded">
                           <span>Top Cards Refresh Batch Size</span>
