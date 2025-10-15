@@ -474,6 +474,33 @@ const Scan = () => {
                   </span>
                 </Button>
 
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  </div>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-28 flex-col gap-3 text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
+                  onClick={() => {
+                    const input = fileInputRef.current;
+                    if (input) {
+                      input.removeAttribute('capture');
+                      input.click();
+                      // Re-add capture after click
+                      setTimeout(() => input.setAttribute('capture', 'environment'), 100);
+                    }
+                  }}
+                >
+                  <Upload className="h-10 w-10" />
+                  <span>Upload from Gallery</span>
+                </Button>
+
                 {imagePreviews.length > 0 && (
                   <Button
                     variant="outline"
