@@ -9,7 +9,7 @@ interface CollectionBreakdownProps {
   isLoading?: boolean;
 }
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['hsl(var(--success))', 'hsl(150 45% 45%)', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export const CollectionBreakdown = ({ sportsBreakdown, totalValue, isLoading }: CollectionBreakdownProps) => {
   if (isLoading) {
@@ -96,7 +96,7 @@ export const CollectionBreakdown = ({ sportsBreakdown, totalValue, isLoading }: 
                   className="w-3 h-3 rounded-full flex-shrink-0" 
                   style={{ backgroundColor: COLORS[index % COLORS.length] }}
                 />
-                <span className="text-sm font-medium truncate">{item.name}</span>
+                <span className="text-sm font-semibold text-foreground truncate">{item.name}</span>
               </div>
               <Badge variant="secondary" className="ml-2">
                 {item.value}
