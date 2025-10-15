@@ -145,10 +145,6 @@ const Review = () => {
 
   const handleCreateLocation = async () => {
     if (!newLocationName.trim()) {
-      toast({
-        title: "Please enter a location name",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -171,25 +167,13 @@ const Review = () => {
       setSelectedLocation(newLocation.id);
       setNewLocationName("");
       setShowNewLocationDialog(false);
-      
-      toast({
-        title: "Location created successfully",
-      });
     } catch (error: any) {
-      toast({
-        title: "Error creating location",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error creating collection:", error);
     }
   };
 
   const handleSave = async () => {
     if (!selectedLocation) {
-      toast({
-        title: "Please select a location",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -319,14 +303,10 @@ const Review = () => {
       // Invalidate subscription query to refresh usage counter immediately
       queryClient.invalidateQueries({ queryKey: ['dashboard-subscription'] });
 
-      toast({ title: `${items.length} items saved successfully!` });
+      
       navigate("/dashboard");
     } catch (error: any) {
-      toast({
-        title: "Error saving items",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error saving items:", error);
     } finally {
       setSaving(false);
     }
@@ -547,7 +527,7 @@ const Review = () => {
           </DialogHeader>
           <div className="space-y-2">
             <Label htmlFor="location-name">
-              {source === 'sports-cards' ? 'Collection Name' : 'Location Name'}
+              Collection Name
             </Label>
             <Input
               id="location-name"

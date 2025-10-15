@@ -78,19 +78,11 @@ const Scan = () => {
       setImagePreviews([preview]);
       setSelectedFiles([file]);
       setCaptureStep('back');
-      toast({
-        title: "Front captured! ✓",
-        description: "Now capture the back of your cards in the same order",
-      });
     } else if (captureStep === 'back') {
       // Store second image
       setImagePreviews([...imagePreviews, preview]);
       setSelectedFiles([...selectedFiles, file]);
       setCaptureStep('ready');
-      toast({
-        title: "Back captured! ✓",
-        description: "Ready to scan your cards",
-      });
     }
   };
 

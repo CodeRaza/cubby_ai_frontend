@@ -65,18 +65,10 @@ export const PriceAlertDialog = ({ cardId }: PriceAlertDialogProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['price-alert', cardId] });
-      toast({
-        title: "Alert created",
-        description: "You'll be notified when the price changes."
-      });
       setOpen(false);
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
+      console.error("Error creating alert:", error);
     }
   });
 
@@ -93,17 +85,9 @@ export const PriceAlertDialog = ({ cardId }: PriceAlertDialogProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['price-alert', cardId] });
-      toast({
-        title: "Alert removed",
-        description: "You'll no longer receive price notifications."
-      });
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
+      console.error("Error removing alert:", error);
     }
   });
 

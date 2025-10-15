@@ -38,11 +38,6 @@ const Onboarding = () => {
 
   const handleCreateLocation = async () => {
     if (!locationName.trim()) {
-      toast({
-        title: "Location name required",
-        description: "Please enter a name for your first location",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -60,11 +55,6 @@ const Onboarding = () => {
       if (checkError) throw checkError;
 
       if (!canCreate) {
-        toast({
-          title: "Collection limit reached",
-          description: "Free tier allows 1 collection. Upgrade to create more!",
-          variant: "destructive",
-        });
         setCreating(false);
         navigate('/subscription');
         return;
@@ -88,11 +78,7 @@ const Onboarding = () => {
       
       setStep(3);
     } catch (error: any) {
-      toast({
-        title: "Error creating location",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error creating collection:", error);
     } finally {
       setCreating(false);
     }
@@ -235,7 +221,7 @@ const Onboarding = () => {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="location-name">
-                  {source === 'sports-cards' ? 'Collection Name' : 'Location Name'}
+                  Collection Name
                 </Label>
                 <Input
                   id="location-name"

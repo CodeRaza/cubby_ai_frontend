@@ -31,7 +31,6 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
           password,
         });
         if (error) throw error;
-        toast({ title: "Welcome back!" });
         onSuccess();
       } else {
         const { error, data } = await supabase.auth.signUp({
@@ -59,18 +58,10 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
           }
         }
         
-        toast({ 
-          title: "Account created!", 
-          description: "Check your email for a welcome message!"
-        });
         onSuccess();
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Auth error:", error);
     } finally {
       setLoading(false);
     }

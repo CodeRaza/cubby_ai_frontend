@@ -249,7 +249,7 @@ const ItemDetail = () => {
         if (cardError) throw cardError;
       }
 
-      toast({ title: "Item updated!" });
+      
       setEditDialogOpen(false);
       loadItem();
     } catch (error: any) {
@@ -266,7 +266,7 @@ const ItemDetail = () => {
       const { error } = await supabase.from("items").delete().eq("id", id);
       if (error) throw error;
 
-      toast({ title: "Item deleted" });
+      
       navigate("/dashboard");
     } catch (error: any) {
       toast({
@@ -697,7 +697,7 @@ const ItemDetail = () => {
                                 }
                               });
                               if (error) throw error;
-                              toast({ title: "Pricing refreshed!" });
+                              
                               loadItem();
                             } catch (error: any) {
                               toast({
@@ -811,7 +811,7 @@ const ItemDetail = () => {
                               }
                             });
                             if (error) throw error;
-                            toast({ title: "Pricing data fetched successfully" });
+                            
                             loadItem();
                           } catch (error: any) {
                             toast({

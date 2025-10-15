@@ -150,7 +150,7 @@ const Dashboard = () => {
 
       if (error) throw error;
 
-      toast({ title: "Location created!" });
+      
       setNewLocationName("");
       setDialogOpen(false);
       
@@ -160,11 +160,7 @@ const Dashboard = () => {
       
       refetchLocations();
     } catch (error: any) {
-      toast({
-        title: "Error creating location",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error creating collection:", error);
     }
   };
 
@@ -180,17 +176,13 @@ const Dashboard = () => {
 
       if (error) throw error;
 
-      toast({ title: "Location renamed!" });
+      
       setRenameLocationId(null);
       setRenameLocationName("");
       setRenameDialogOpen(false);
       refetchLocations();
     } catch (error: any) {
-      toast({
-        title: "Error renaming location",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error renaming collection:", error);
     }
   };
 
@@ -205,16 +197,12 @@ const Dashboard = () => {
 
       if (error) throw error;
 
-      toast({ title: "Location deleted" });
+      
       setDeleteLocationId(null);
       setDeleteLocationName("");
       refetchLocations();
     } catch (error: any) {
-      toast({
-        title: "Error deleting location",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error deleting collection:", error);
     }
   };
 
@@ -410,7 +398,7 @@ const Dashboard = () => {
               <div className="space-y-4 pb-2">
                 <div className="space-y-2">
                   <Label htmlFor="quick-location-name">
-                    {source === 'sports-cards' ? 'Collection Name' : 'Location Name'}
+                    Collection Name
                   </Label>
                   <Input
                     id="quick-location-name"
@@ -487,14 +475,14 @@ const Dashboard = () => {
         <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Rename Location</DialogTitle>
+              <DialogTitle>Rename Collection</DialogTitle>
               <DialogDescription>
-                Enter a new name for this location
+                Enter a new name for this collection
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleRenameLocation} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="rename-location">Location Name</Label>
+                <Label htmlFor="rename-location">Collection Name</Label>
                 <Input
                   id="rename-location"
                   value={renameLocationName}
@@ -523,9 +511,9 @@ const Dashboard = () => {
         <AlertDialog open={!!deleteLocationId} onOpenChange={(open) => !open && setDeleteLocationId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Location?</AlertDialogTitle>
+              <AlertDialogTitle>Delete Collection?</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete "{deleteLocationName}"? This will also delete all items in this location. This action cannot be undone.
+                Are you sure you want to delete "{deleteLocationName}"? This will also delete all cards in this collection. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

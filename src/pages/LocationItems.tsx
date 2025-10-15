@@ -205,10 +205,6 @@ const LocationItems = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Items moved!",
-        description: `${selectedItems.size} item(s) moved successfully.`,
-      });
 
       // Reload items and reset state
       await loadLocationAndItems();
@@ -236,10 +232,6 @@ const LocationItems = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Items deleted!",
-        description: `${selectedItems.size} item(s) deleted successfully.`,
-      });
 
       // Reload items and reset state
       await loadLocationAndItems();
@@ -274,7 +266,7 @@ const LocationItems = () => {
             <div>
               <h1 className="text-xl font-bold">{locationName}</h1>
               <p className="text-sm text-muted-foreground">
-                {selectionMode ? `${selectedItems.size} selected` : `${items.length} ${items.length === 1 ? 'item' : 'items'}`}
+                {selectionMode ? `${selectedItems.size} selected` : `${items.length} ${items.length === 1 ? 'card' : 'cards'}`}
               </p>
             </div>
           </div>
@@ -341,7 +333,7 @@ const LocationItems = () => {
           <div className="border-t bg-card">
             <div className="container mx-auto px-4 py-3 flex items-center justify-between">
               <span className="text-sm font-medium">
-                {selectedItems.size} item(s) selected
+                {selectedItems.size} card(s) selected
               </span>
               <div className="flex items-center gap-2">
                 <Button
@@ -370,7 +362,7 @@ const LocationItems = () => {
         {!isOwner && (
           <div className="p-4 bg-muted rounded-lg text-center">
             <p className="text-sm text-muted-foreground">
-              You have view-only access to this location
+              You have view-only access to this collection
             </p>
           </div>
         )}
@@ -404,11 +396,11 @@ const LocationItems = () => {
         {/* Items Grid */}
         {items.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No items in this location yet</p>
+            <p className="text-muted-foreground mb-4">No cards in this collection yet</p>
             {isOwner && (
               <Button onClick={() => navigate("/scan")}>
                 <Camera className="h-4 w-4 mr-2" />
-                Scan Items
+                Scan Cards
               </Button>
             )}
           </div>
@@ -452,7 +444,7 @@ const LocationItems = () => {
           <DialogHeader>
             <DialogTitle>Move Items</DialogTitle>
             <DialogDescription>
-              Select a collection to move {selectedItems.size} item(s) to.
+              Select a collection to move {selectedItems.size} card(s) to.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -495,9 +487,9 @@ const LocationItems = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Items?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Cards?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectedItems.size} item(s)? This action cannot be undone.
+              Are you sure you want to delete {selectedItems.size} card(s)? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
