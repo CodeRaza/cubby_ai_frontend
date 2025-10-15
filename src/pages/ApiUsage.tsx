@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, TrendingUp, Clock, AlertCircle, RefreshCw } from "lucide-react";
+import { Activity, TrendingUp, Clock, AlertCircle, RefreshCw, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,28 @@ export default function ApiUsage() {
     if (!roles) {
       toast.error("Admin access required");
       navigate("/dashboard");
+    }
+  };
+
+  const triggerTestPricing = async () => {
+    try {
+      toast.loading("Triggering pricing update...");
+      
+      const { data, error } = await supabase.functions.invoke('trigger-pricing-update', {
+        body: { cardDetailsId: '51da81bc-9ac7-4d72-8bd5-e681098d0a4a' } // Junior Caminero card
+      });
+
+      if (error) throw error;
+
+      toast.success("Pricing update triggered! Refreshing data in 5 seconds...");
+      
+      // Wait and refresh
+      setTimeout(() => {
+        fetchData(true);
+      }, 5000);
+    } catch (error) {
+      console.error("Error triggering pricing:", error);
+      toast.error("Failed to trigger pricing update");
     }
   };
 
@@ -152,10 +174,16 @@ export default function ApiUsage() {
             <h1 className="text-4xl font-bold mb-2">eBay API Usage</h1>
             <p className="text-muted-foreground">Monitor your eBay Finding Service API calls</p>
           </div>
-          <Button onClick={() => fetchData(true)} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={triggerTestPricing} variant="outline" disabled={loading}>
+              <Zap className="h-4 w-4 mr-2" />
+              Test Pricing Call
+            </Button>
+            <Button onClick={() => fetchData(true)} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}
