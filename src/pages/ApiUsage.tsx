@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, TrendingUp, Clock, AlertCircle } from "lucide-react";
+import { Activity, TrendingUp, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 interface ApiCall {
   id: string;
@@ -69,7 +70,7 @@ export default function ApiUsage() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = async (showToast = false) => {
     setLoading(true);
     try {
       // Fetch recent calls (last 100)
@@ -110,6 +111,10 @@ export default function ApiUsage() {
         failed,
         avgResponseTime: Math.round(avgTime)
       });
+
+      if (showToast) {
+        toast.success("Usage data refreshed");
+      }
     } catch (error) {
       console.error("Error fetching API usage:", error);
       toast.error("Failed to load API usage data");
@@ -142,9 +147,15 @@ export default function ApiUsage() {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">eBay API Usage</h1>
-          <p className="text-muted-foreground">Monitor your eBay Finding Service API calls</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">eBay API Usage</h1>
+            <p className="text-muted-foreground">Monitor your eBay Finding Service API calls</p>
+          </div>
+          <Button onClick={() => fetchData(true)} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
 
         {/* Summary Cards */}
