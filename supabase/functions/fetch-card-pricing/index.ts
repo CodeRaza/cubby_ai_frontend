@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const EBAY_APP_ID = Deno.env.get('EBAY_APP_ID');
 const EBAY_CERT_ID = Deno.env.get('EBAY_CERT_ID');
-const EBAY_SANDBOX = true; // Set to false for production
+const EBAY_SANDBOX = false; // Production API enabled
 
 async function getEbayAccessToken() {
   const credentials = `${EBAY_APP_ID}:${EBAY_CERT_ID}`;
