@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, MapPin, QrCode, Search, Sparkles } from "lucide-react";
-import { PREDEFINED_LOCATIONS } from "@/lib/locationTypes";
+import { PREDEFINED_LOCATIONS, SPORTS_COLLECTIONS } from "@/lib/locationTypes";
 import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 
 const Onboarding = () => {
@@ -240,17 +240,11 @@ const Onboarding = () => {
                 <Label className="text-sm text-muted-foreground">Quick Presets</Label>
                 <div className="grid grid-cols-3 gap-2">
                   {(source === 'sports-cards' 
-                    ? [
-                        { id: 'baseball', name: 'Baseball Cards', icon: MapPin },
-                        { id: 'basketball', name: 'Basketball Cards', icon: MapPin },
-                        { id: 'football', name: 'Football Cards', icon: MapPin },
-                        { id: 'hockey', name: 'Hockey Cards', icon: MapPin },
-                        { id: 'rookie', name: 'Rookie Cards', icon: MapPin },
-                        { id: 'graded', name: 'Graded Cards', icon: MapPin },
-                      ]
+                    ? SPORTS_COLLECTIONS.slice(0, 6)
                     : PREDEFINED_LOCATIONS.slice(0, 6)
                   ).map((locationType) => {
                     const IconComponent = locationType.icon;
+                    const emoji = 'emoji' in locationType ? locationType.emoji : undefined;
                     return (
                       <Button
                         key={locationType.id}
@@ -258,7 +252,11 @@ const Onboarding = () => {
                         className="h-auto py-3 flex flex-col items-center gap-2"
                         onClick={() => setLocationName(locationType.name)}
                       >
-                        <IconComponent className="h-4 w-4" />
+                        {emoji ? (
+                          <span className="text-2xl">{emoji}</span>
+                        ) : (
+                          <IconComponent className="h-4 w-4" />
+                        )}
                         <span className="text-xs">{locationType.name}</span>
                       </Button>
                     );
