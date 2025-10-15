@@ -439,6 +439,32 @@ const Review = () => {
                   </Button>
                 </div>
 
+                {/* Show cropped card images */}
+                {source === 'sports-cards' && (croppedFrontUrls[index] || croppedBackUrls[index]) && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {croppedFrontUrls[index] && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-center text-muted-foreground">Front</p>
+                        <img
+                          src={croppedFrontUrls[index]}
+                          alt={`${item.name} - Front`}
+                          className="w-full rounded-lg shadow-md"
+                        />
+                      </div>
+                    )}
+                    {croppedBackUrls[index] && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-center text-muted-foreground">Back</p>
+                        <img
+                          src={croppedBackUrls[index]}
+                          alt={`${item.name} - Back`}
+                          className="w-full rounded-lg shadow-md"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label>Name</Label>
                   <Input
