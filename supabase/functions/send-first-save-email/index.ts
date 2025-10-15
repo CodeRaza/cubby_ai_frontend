@@ -17,71 +17,60 @@ const getFirstSaveEmailHtml = (userName: string, itemCount: number) => `
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Congratulations on Your First Save!</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; background-color: #f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0f172a;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0f172a; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; border: 1px solid #334155;">
           <tr>
-            <td style="padding: 40px 40px 30px 40px;">
-              <div style="text-align: center; font-size: 60px; margin-bottom: 20px;">
-                🎉
-              </div>
+            <td style="padding: 40px;">
+              <div style="text-align: center; font-size: 80px; margin-bottom: 20px;">🎉</div>
               
-              <h1 style="color: #333333; font-size: 28px; font-weight: bold; margin: 0 0 20px 0; text-align: center;">
-                Awesome! You saved your first ${itemCount} item${itemCount > 1 ? 's' : ''}!
+              <h1 style="color: #f8fafc; font-size: 32px; font-weight: bold; margin: 0 0 16px; text-align: center;">
+                First Card${itemCount > 1 ? 's' : ''} Added!
               </h1>
               
-              <p style="color: #666666; font-size: 16px; line-height: 24px; margin: 0 0 20px 0;">
-                Hey ${userName}, you're on your way to never losing track of your stuff again! 🙌
+              <p style="color: #cbd5e1; font-size: 18px; line-height: 26px; margin: 0 0 24px; text-align: center;">
+                Hey ${userName}, you just added ${itemCount} card${itemCount > 1 ? 's' : ''} to your portfolio! 🙌
               </p>
               
-              <div style="background-color: #f0fdf4; border-radius: 6px; padding: 20px; margin: 20px 0; border-left: 4px solid #10b981;">
-                <h2 style="color: #065f46; font-size: 18px; font-weight: 600; margin: 0 0 15px 0;">
+              <div style="background: rgba(16, 185, 129, 0.1); border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid rgba(16, 185, 129, 0.2);">
+                <h2 style="color: #10b981; font-size: 20px; font-weight: 600; margin: 0 0 16px;">
                   What's next?
                 </h2>
-                <ul style="color: #047857; font-size: 15px; line-height: 22px; margin: 0; padding-left: 20px;">
-                  <li style="margin-bottom: 10px;">Keep scanning items to build your inventory</li>
-                  <li style="margin-bottom: 10px;">Add expiry dates to get reminders before things go bad</li>
-                  <li style="margin-bottom: 10px;">Use the search to instantly find anything</li>
-                  <li style="margin-bottom: 10px;">Share locations with family members</li>
-                </ul>
+                <p style="color: #cbd5e1; font-size: 15px; line-height: 26px; margin: 0;">
+                  ✨ Keep scanning to build your portfolio<br/>
+                  💰 Watch your cards' values update daily<br/>
+                  📊 Check your dashboard for insights<br/>
+                  🔔 Set price alerts on valuable cards<br/>
+                  📈 Track which cards are gaining value
+                </p>
               </div>
               
-              <div style="background-color: #fef3c7; border-radius: 6px; padding: 20px; margin: 20px 0;">
-                <h2 style="color: #92400e; font-size: 18px; font-weight: 600; margin: 0 0 15px 0;">
+              <div style="background: rgba(139, 92, 246, 0.1); border-radius: 12px; padding: 24px; margin: 24px 0;">
+                <h2 style="color: #8b5cf6; font-size: 18px; font-weight: 600; margin: 0 0 16px;">
                   💡 Pro Tips:
                 </h2>
-                <ul style="color: #92400e; font-size: 14px; line-height: 20px; margin: 0; padding-left: 20px;">
-                  <li style="margin-bottom: 8px;">Scan multiple items at once - just take a photo of a shelf!</li>
-                  <li style="margin-bottom: 8px;">Create separate locations for different rooms or storage areas</li>
-                  <li style="margin-bottom: 8px;">Set reminders for items that expire or need checking</li>
-                </ul>
+                <p style="color: #cbd5e1; font-size: 14px; line-height: 22px; margin: 0;">
+                  • Scan multiple cards at once - just line them up!<br/>
+                  • Add grading info (PSA, BGS) for accurate values<br/>
+                  • Create separate collections by player or team<br/>
+                  • Update card conditions for precise pricing
+                </p>
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://getcubby.ai/scan"
-                   style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600; margin-right: 10px;">
-                  Scan More Items
+                <a href="https://getcubby.ai/scan" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; margin-right: 10px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                  Scan More Cards
                 </a>
-                <a href="https://getcubby.ai/dashboard"
-                   style="display: inline-block; background-color: #ffffff; color: #6366f1; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600; border: 2px solid #6366f1;">
-                  View Dashboard
+                <a href="https://getcubby.ai/dashboard" style="display: inline-block; background: rgba(59, 130, 246, 0.1); color: #3b82f6; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; border: 2px solid #3b82f6;">
+                  View Portfolio
                 </a>
               </div>
               
-              <p style="color: #999999; font-size: 14px; line-height: 20px; margin: 30px 0 0 0; text-align: center;">
-                Have questions or feedback? Just reply to this email!
-              </p>
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="padding: 20px 40px; border-top: 1px solid #e5e7eb;">
-              <p style="color: #999999; font-size: 12px; line-height: 18px; margin: 0; text-align: center;">
-                © ${new Date().getFullYear()} Cubby. All rights reserved.
+              <p style="color: #64748b; font-size: 14px; text-align: center; margin: 30px 0 0;">
+                Have questions? Just reply to this email!
               </p>
             </td>
           </tr>
@@ -94,13 +83,32 @@ const getFirstSaveEmailHtml = (userName: string, itemCount: number) => `
 `;
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     console.log("Received first save email request");
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Check if emails are enabled
+    const { data: emailSettings } = await supabase
+      .from('email_settings')
+      .select('emails_enabled')
+      .limit(1)
+      .single();
+    
+    if (emailSettings && !emailSettings.emails_enabled) {
+      console.log("Emails are disabled, skipping first save email");
+      return new Response(
+        JSON.stringify({ message: "Emails are currently disabled" }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     const { email, name, userId, itemCount } = await req.json();
 
@@ -111,21 +119,16 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending first save email to: ${email}`);
 
     // Send email via Resend
-    const emailResponse = await resend.emails.send({
-      from: "Cubby <hello@getcubby.ai>",
+    await resend.emails.send({
+      from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [email],
-      subject: `🎉 You saved your first ${itemCount} item${itemCount > 1 ? 's' : ''} in Cubby!`,
+      subject: `🎉 You added your first ${itemCount} card${itemCount > 1 ? 's' : ''}!`,
       html: getFirstSaveEmailHtml(name || email.split('@')[0], itemCount),
     });
 
-    if (emailResponse.error) {
-      throw emailResponse.error;
-    }
+    console.log("First save email sent successfully");
 
-    console.log("First save email sent successfully to:", email);
-
-    // Track the email in the database
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Track the email
     const { error: trackingError } = await supabase
       .from('email_tracking')
       .insert({
@@ -136,9 +139,6 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (trackingError) {
       console.error("Error tracking email:", trackingError);
-      // Don't throw - email was sent successfully
-    } else {
-      console.log("Email tracked in database");
     }
 
     return new Response(
@@ -149,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error("Error in send-first-save-email function:", error);
+    console.error("Error in first save email function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

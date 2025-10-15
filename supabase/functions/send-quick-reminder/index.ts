@@ -17,49 +17,36 @@ const get2HourReminderHtml = () => `
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your location is ready!</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; background-color: #f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0f172a;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0f172a; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; border: 1px solid #334155;">
           <tr>
-            <td style="padding: 40px 40px 30px 40px;">
-              <h1 style="color: #333333; font-size: 28px; font-weight: bold; margin: 0 0 20px 0;">
-                📦 Your location is ready!
+            <td style="padding: 40px;">
+              <div style="text-align: center; font-size: 64px; margin-bottom: 16px;">⚡</div>
+              <h1 style="color: #f8fafc; font-size: 28px; font-weight: bold; margin: 0 0 16px; text-align: center;">
+                Your Collection is Ready!
               </h1>
-              
-              <p style="color: #666666; font-size: 16px; line-height: 24px; margin: 0 0 20px 0;">
-                Great job creating your location! Now let's add your first item in just 30 seconds.
+              <p style="color: #cbd5e1; font-size: 16px; line-height: 24px; margin: 0 0 24px; text-align: center;">
+                Great job creating your collection! Now let's add your first card and see what it's worth.
               </p>
-              
-              <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0;">
-                <p style="color: #065f46; font-size: 15px; line-height: 22px; margin: 0;">
-                  💡 <strong>Quick tip:</strong> Take a photo of a shelf and let our AI detect all items at once. It's like magic! 🪄
+              <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <p style="color: #cbd5e1; font-size: 15px; line-height: 22px; margin: 0;">
+                  💡 <strong style="color: #10b981;">Quick tip:</strong> Take a clear photo of your card and our AI will automatically identify the player, year, brand, and current market value!
                 </p>
               </div>
-              
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://getcubby.ai/scan"
-                   style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 6px; font-size: 18px; font-weight: 600;">
-                  Scan Your First Item
+                <a href="https://getcubby.ai/scan" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 18px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                  Scan Your First Card
                 </a>
               </div>
-              
-              <div style="background-color: #f8f9fa; border-radius: 6px; padding: 15px; margin: 20px 0; text-align: center;">
-                <p style="color: #666666; font-size: 14px; line-height: 20px; margin: 0;">
-                  ⚡ Most users scan 10+ items in their first session
+              <div style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center;">
+                <p style="color: #94a3b8; font-size: 14px; margin: 0;">
+                  ⚡ Most users scan 10+ cards in their first 5 minutes
                 </p>
               </div>
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="padding: 20px 40px; border-top: 1px solid #e5e7eb;">
-              <p style="color: #999999; font-size: 12px; line-height: 18px; margin: 0; text-align: center;">
-                © ${new Date().getFullYear()} Cubby. All rights reserved.
-              </p>
             </td>
           </tr>
         </table>
@@ -71,7 +58,6 @@ const get2HourReminderHtml = () => `
 `;
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -80,6 +66,21 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Starting 2-hour quick reminder job...");
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Check if emails are enabled
+    const { data: emailSettings } = await supabase
+      .from('email_settings')
+      .select('emails_enabled')
+      .limit(1)
+      .single();
+    
+    if (emailSettings && !emailSettings.emails_enabled) {
+      console.log("Emails are disabled, skipping quick reminder");
+      return new Response(
+        JSON.stringify({ message: "Emails are currently disabled" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
     
     // Get users who created location within last 2-3 hours but have no items yet
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
@@ -105,7 +106,6 @@ const handler = async (req: Request): Promise<Response> => {
     const processedUsers = new Set();
     
     for (const location of locations) {
-      // Skip if already processed this user
       if (processedUsers.has(location.user_id)) continue;
       processedUsers.add(location.user_id);
       
@@ -116,9 +116,9 @@ const handler = async (req: Request): Promise<Response> => {
           .select('*', { count: 'exact', head: true })
           .eq('user_id', location.user_id);
         
-        if (itemCount && itemCount > 0) continue; // Skip if user already has items
+        if (itemCount && itemCount > 0) continue;
         
-        // Check if we already sent this reminder type
+        // Check if we already sent this reminder
         const { data: existingEmail } = await supabase
           .from('email_tracking')
           .select('*')
@@ -126,21 +126,21 @@ const handler = async (req: Request): Promise<Response> => {
           .eq('email_type', '2hour_reminder')
           .maybeSingle();
         
-        if (existingEmail) continue; // Already sent
+        if (existingEmail) continue;
         
         // Get user email
         const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(location.user_id);
         if (userError || !user?.email) continue;
         
         // Send email
-        const emailResponse = await resend.emails.send({
-          from: "Cubby <hello@getcubby.ai>",
+        await resend.emails.send({
+          from: "Cubby Sports Cards <cards@getcubby.ai>",
           to: [user.email],
-          subject: "⚡ Your location is ready - scan your first item!",
+          subject: "⚡ Collection ready - scan your first card!",
           html: get2HourReminderHtml(),
         });
         
-        console.log(`Sent 2-hour reminder to ${user.email}:`, emailResponse);
+        console.log(`Sent 2-hour reminder to ${user.email}`);
         
         // Track the email
         await supabase
@@ -162,10 +162,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Quick reminder job complete:", results);
     
     return new Response(
-      JSON.stringify({ 
-        message: "Quick reminder emails processed",
-        results 
-      }),
+      JSON.stringify({ message: "Quick reminders processed", results }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -173,7 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
     
   } catch (error: any) {
-    console.error("Error in send-quick-reminder function:", error);
+    console.error("Error in quick reminder function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

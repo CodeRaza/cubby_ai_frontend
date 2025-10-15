@@ -739,6 +739,7 @@ export type Database = {
           email: string
           has_items: boolean
           has_location: boolean
+          item_count: number
           last_email_type: string
           user_id: string
         }[]
