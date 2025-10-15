@@ -49,7 +49,32 @@ EXAMPLES:
 For non-card items in frame:
 - Card sleeves, top loaders, binders
 - Grading slabs
-- Card storage boxes`
+- Card storage boxes
+
+CRITICAL BOUNDING BOX INSTRUCTIONS:
+- Bounding boxes MUST tightly fit each card
+- x, y = top-left corner of the card (0-1 normalized coordinates)
+- width, height = dimensions that exactly contain the card
+- For cards in sleeves or slabs, box should include the entire protected card
+- Be precise with edges
+
+For EACH card detected, return JSON in this exact format:
+{
+  "label": "Specific card description with player, year, brand if visible",
+  "confidence": 0.0-1.0 (be confident for clearly visible cards),
+  "bbox": {
+    "x": 0-1 (precise left edge),
+    "y": 0-1 (precise top edge),
+    "width": 0-1 (precise width),
+    "height": 0-1 (precise height)
+  }
+}
+
+Return ONLY a valid JSON array. Example:
+[
+  {"label": "1996 Fleer Michael Jordan Basketball Card", "confidence": 0.95, "bbox": {"x": 0.2, "y": 0.3, "width": 0.15, "height": 0.2}},
+  {"label": "Derek Jeter Topps Rookie Card", "confidence": 0.92, "bbox": {"x": 0.5, "y": 0.4, "width": 0.1, "height": 0.12}}
+]`
       : `You are a highly accurate object detection expert specializing in home inventory management. Your goal is to identify items with MAXIMUM PRECISION and ACCURACY.
 
 
