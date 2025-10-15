@@ -146,53 +146,44 @@ export type Database = {
       }
       items: {
         Row: {
+          acquired_date: string | null
           category: string | null
+          cost: number | null
           created_at: string
           expiry_date: string | null
           id: string
           image_url: string | null
-          last_reminder_sent: string | null
           location_id: string | null
           name: string
-          next_reminder_date: string | null
           quantity: number | null
-          reminder_enabled: boolean | null
-          reminder_interval_unit: string | null
-          reminder_interval_value: number | null
           source_context: string | null
           user_id: string
         }
         Insert: {
+          acquired_date?: string | null
           category?: string | null
+          cost?: number | null
           created_at?: string
           expiry_date?: string | null
           id?: string
           image_url?: string | null
-          last_reminder_sent?: string | null
           location_id?: string | null
           name: string
-          next_reminder_date?: string | null
           quantity?: number | null
-          reminder_enabled?: boolean | null
-          reminder_interval_unit?: string | null
-          reminder_interval_value?: number | null
           source_context?: string | null
           user_id: string
         }
         Update: {
+          acquired_date?: string | null
           category?: string | null
+          cost?: number | null
           created_at?: string
           expiry_date?: string | null
           id?: string
           image_url?: string | null
-          last_reminder_sent?: string | null
           location_id?: string | null
           name?: string
-          next_reminder_date?: string | null
           quantity?: number | null
-          reminder_enabled?: boolean | null
-          reminder_interval_unit?: string | null
-          reminder_interval_value?: number | null
           source_context?: string | null
           user_id?: string
         }

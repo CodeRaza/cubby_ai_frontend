@@ -3,11 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, Bell } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
-import { ReminderSettings } from "@/components/ReminderSettings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,13 +35,10 @@ interface ItemDetails {
   name: string;
   category: string | null;
   quantity: number;
-  expiry_date: string | null;
+  acquired_date: string | null;
+  cost: number | null;
   image_url: string | null;
   created_at: string;
-  reminder_enabled: boolean | null;
-  reminder_interval_value: number | null;
-  reminder_interval_unit: string | null;
-  next_reminder_date: string | null;
   location: {
     name: string;
   } | null;
@@ -66,10 +62,8 @@ const ItemDetail = () => {
   const [editedName, setEditedName] = useState("");
   const [editedCategory, setEditedCategory] = useState("");
   const [editedQuantity, setEditedQuantity] = useState(1);
-  const [editedExpiryDate, setEditedExpiryDate] = useState("");
-  const [editedReminderEnabled, setEditedReminderEnabled] = useState(false);
-  const [editedReminderValue, setEditedReminderValue] = useState(1);
-  const [editedReminderUnit, setEditedReminderUnit] = useState("months");
+  const [editedAcquiredDate, setEditedAcquiredDate] = useState("");
+  const [editedCost, setEditedCost] = useState("");
 
   useEffect(() => {
     loadItem();
@@ -92,10 +86,8 @@ const ItemDetail = () => {
       setEditedName(data.name);
       setEditedCategory(data.category || "");
       setEditedQuantity(data.quantity);
-      setEditedExpiryDate(data.expiry_date || "");
-      setEditedReminderEnabled(data.reminder_enabled || false);
-      setEditedReminderValue(data.reminder_interval_value || 1);
-      setEditedReminderUnit(data.reminder_interval_unit || "months");
+      setEditedAcquiredDate(data.acquired_date || "");
+      setEditedCost(data.cost?.toString() || "");
     } catch (error: any) {
       toast({
         title: "Error loading item",
@@ -116,10 +108,8 @@ const ItemDetail = () => {
           name: editedName,
           category: editedCategory || null,
           quantity: editedQuantity,
-          expiry_date: editedExpiryDate || null,
-          reminder_enabled: editedReminderEnabled,
-          reminder_interval_value: editedReminderEnabled ? editedReminderValue : null,
-          reminder_interval_unit: editedReminderEnabled ? editedReminderUnit : null,
+          acquired_date: editedAcquiredDate || null,
+          cost: editedCost ? parseFloat(editedCost) : null,
         })
         .eq("id", id);
 
@@ -181,7 +171,7 @@ const ItemDetail = () => {
                 <DialogHeader>
                   <DialogTitle>Edit Item</DialogTitle>
                   <DialogDescription>
-                    Update item details and reminder settings
+                    Update item details
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -214,24 +204,29 @@ const ItemDetail = () => {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-expiry">Expiry Date</Label>
-                    <Input
-                      id="edit-expiry"
-                      type="date"
-                      value={editedExpiryDate}
-                      onChange={(e) => setEditedExpiryDate(e.target.value)}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-acquired">Acquired Date</Label>
+                      <Input
+                        id="edit-acquired"
+                        type="date"
+                        value={editedAcquiredDate}
+                        onChange={(e) => setEditedAcquiredDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-cost">Cost</Label>
+                      <Input
+                        id="edit-cost"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={editedCost}
+                        onChange={(e) => setEditedCost(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <Separator />
-                  <ReminderSettings
-                    enabled={editedReminderEnabled}
-                    intervalValue={editedReminderValue}
-                    intervalUnit={editedReminderUnit}
-                    onEnabledChange={setEditedReminderEnabled}
-                    onIntervalValueChange={setEditedReminderValue}
-                    onIntervalUnitChange={setEditedReminderUnit}
-                  />
                   <div className="flex gap-2 pt-4">
                     <Button 
                       type="button" 
@@ -319,10 +314,17 @@ const ItemDetail = () => {
                 </div>
               )}
 
-              {item.expiry_date && (
+              {item.acquired_date && (
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <Calendar className="h-5 w-5" />
-                  <span>Expires: {new Date(item.expiry_date).toLocaleDateString()}</span>
+                  <span>Acquired: {new Date(item.acquired_date).toLocaleDateString()}</span>
+                </div>
+              )}
+
+              {item.cost && (
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <DollarSign className="h-5 w-5" />
+                  <span>Cost: ${item.cost.toFixed(2)}</span>
                 </div>
               )}
 
@@ -330,19 +332,6 @@ const ItemDetail = () => {
                 <Calendar className="h-4 w-4" />
                 <span>Added: {new Date(item.created_at).toLocaleDateString()}</span>
               </div>
-
-              {item.reminder_enabled && item.next_reminder_date && (
-                <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg">
-                  <Bell className="h-5 w-5 text-primary" />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">Reminder Active</p>
-                    <p className="text-xs text-muted-foreground">
-                      Next: {new Date(item.next_reminder_date).toLocaleDateString()} 
-                      {" "}(every {item.reminder_interval_value} {item.reminder_interval_unit})
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

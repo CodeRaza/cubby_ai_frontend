@@ -8,7 +8,6 @@ import { ArrowLeft, Check, Loader2, X, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
-import { ReminderSettings } from "@/components/ReminderSettings";
 import { CardDetailsForm } from "@/components/CardDetailsForm";
 import {
   Select,
@@ -41,10 +40,8 @@ interface ReviewItem extends Detection {
   name: string;
   category: string;
   quantity: number;
-  expiry_date: string;
-  reminder_enabled: boolean;
-  reminder_interval_value: number;
-  reminder_interval_unit: string;
+  acquired_date: string;
+  cost: string;
   cardDetails?: {
     player_name: string;
     card_year: string;
@@ -85,10 +82,8 @@ const Review = () => {
           name: d.label,
           category: "",
           quantity: 1,
-          expiry_date: "",
-          reminder_enabled: false,
-          reminder_interval_value: 1,
-          reminder_interval_unit: "months",
+          acquired_date: "",
+          cost: "",
           // Use AI-extracted card details if available, otherwise create empty structure
           ...(userSource === 'sports-cards' && {
             cardDetails: d.cardDetails || {
@@ -239,11 +234,9 @@ const Review = () => {
             name: item.name,
             category: item.category || null,
             quantity: item.quantity,
-            expiry_date: item.expiry_date || null,
+            acquired_date: item.acquired_date || null,
+            cost: item.cost ? parseFloat(item.cost) : null,
             image_url: imageUrl,
-            reminder_enabled: item.reminder_enabled,
-            reminder_interval_value: item.reminder_enabled ? item.reminder_interval_value : null,
-            reminder_interval_unit: item.reminder_enabled ? item.reminder_interval_unit : null,
           })
           .select()
           .single();
@@ -431,23 +424,27 @@ const Review = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Expiry Date (Optional)</Label>
-                  <Input
-                    type="date"
-                    value={item.expiry_date}
-                    onChange={(e) => updateItem(index, "expiry_date", e.target.value)}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Acquired Date (Optional)</Label>
+                    <Input
+                      type="date"
+                      value={item.acquired_date}
+                      onChange={(e) => updateItem(index, "acquired_date", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Cost (Optional)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={item.cost}
+                      onChange={(e) => updateItem(index, "cost", e.target.value)}
+                    />
+                  </div>
                 </div>
-
-                <ReminderSettings
-                  enabled={item.reminder_enabled}
-                  intervalValue={item.reminder_interval_value}
-                  intervalUnit={item.reminder_interval_unit}
-                  onEnabledChange={(enabled) => updateItem(index, "reminder_enabled", enabled)}
-                  onIntervalValueChange={(value) => updateItem(index, "reminder_interval_value", value)}
-                  onIntervalUnitChange={(unit) => updateItem(index, "reminder_interval_unit", unit)}
-                />
 
                 {source === 'sports-cards' && item.cardDetails && (
                   <CardDetailsForm
