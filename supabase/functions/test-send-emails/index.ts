@@ -595,7 +595,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "⚾ TEST DAY 0: Welcome to Your Card Portfolio",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">Welcome Email - See actual production email for full template</p></body></html>`,
+      html: getWelcomeEmailHtml(),
     });
     results.push("welcome");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -606,7 +606,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "⚡ TEST: 2-Hour Reminder - Scan Your First Card",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">2-Hour Reminder - See actual production email for full template</p></body></html>`,
+      html: get2HourEmailHtml(),
     });
     results.push("2hour");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -617,7 +617,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "⚾ TEST DAY 1: Create Your First Collection",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">Day 1 Email - See actual production email for full template</p></body></html>`,
+      html: getDay1EmailHtml(),
     });
     results.push("day1");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -628,7 +628,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "📸 TEST DAY 3: Start Tracking Card Values",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">Day 3 Email - See actual production email for full template</p></body></html>`,
+      html: getDay3EmailHtml(),
     });
     results.push("day3");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -639,7 +639,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "💰 TEST DAY 5: 5 Tips for Accurate Pricing",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">Day 5 Email - See actual production email for full template</p></body></html>`,
+      html: getDay5EmailHtml(),
     });
     results.push("day5");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -650,7 +650,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "📊 TEST DAY 7: Your Portfolio Insights",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">Day 7 Email - See actual production email for full template</p></body></html>`,
+      html: getDay7EmailHtml(),
     });
     results.push("day7");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -661,7 +661,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "🤝 TEST DAY 10: Share Your Collection",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">Day 10 Email - See actual production email for full template</p></body></html>`,
+      html: getDay10EmailHtml(),
     });
     results.push("day10");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -672,7 +672,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "🚀 TEST DAY 14: Master Your Portfolio",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">Day 14 Email - See actual production email for full template</p></body></html>`,
+      html: getDay14EmailHtml(),
     });
     results.push("day14");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -683,7 +683,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [testEmail],
       subject: "🎉 TEST: First Card Added!",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a"><p style="color:#cbd5e1;text-align:center;padding:40px">First Save Email - See actual production email for full template</p></body></html>`,
+      html: getFirstSaveEmailHtml(),
     });
     results.push("first_save");
 
