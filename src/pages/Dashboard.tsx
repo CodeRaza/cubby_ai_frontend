@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationCard } from "@/components/LocationCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield, Settings as SettingsIcon, Home } from "lucide-react";
+import { Plus, LogOut, Camera, Search, Sparkles, Crown, Shield, Settings as SettingsIcon, Home, Trophy, TrendingUp, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PREDEFINED_LOCATIONS } from "@/lib/locationTypes";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Location {
   id: string;
@@ -41,6 +41,13 @@ interface SubscriptionStatus {
   scans_used: number;
   scans_limit: number;
   bonus_credits: number;
+}
+
+interface CardStats {
+  total_cards: number;
+  total_value: number;
+  graded_count: number;
+  sports_breakdown: Record<string, number>;
 }
 
 const Dashboard = () => {
@@ -61,8 +68,14 @@ const Dashboard = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [showFirstScanPrompt, setShowFirstScanPrompt] = useState(false);
   const [totalItemsScanned, setTotalItemsScanned] = useState(0);
+  const [source, setSource] = useState("");
+  const [cardStats, setCardStats] = useState<CardStats | null>(null);
 
   useEffect(() => {
+    // Get source from sessionStorage
+    const userSource = sessionStorage.getItem('user_source') || '';
+    setSource(userSource);
+
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -76,6 +89,10 @@ const Dashboard = () => {
         await loadLocations();
         await loadSubscription();
         await checkAdminStatus();
+        
+        if (userSource === 'sports-cards') {
+          await loadCardStats();
+        }
       } catch (error) {
         console.error("Auth initialization error:", error);
         setAuthChecked(true);
@@ -228,6 +245,52 @@ const Dashboard = () => {
     }
   };
 
+  const loadCardStats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get all items for the user
+      const { data: items, error: itemsError } = await supabase
+        .from("items")
+        .select("id, source_context")
+        .eq("user_id", user.id)
+        .eq("source_context", "sports-cards");
+
+      if (itemsError) throw itemsError;
+
+      // Get card details for all items
+      const itemIds = items?.map(i => i.id) || [];
+      if (itemIds.length === 0) {
+        setCardStats({ total_cards: 0, total_value: 0, graded_count: 0, sports_breakdown: {} });
+        return;
+      }
+
+      const { data: cardDetails, error: detailsError } = await supabase
+        .from("card_details")
+        .select("*")
+        .in("item_id", itemIds);
+
+      if (detailsError) throw detailsError;
+
+      // Calculate stats
+      const total_cards = items?.length || 0;
+      const total_value = cardDetails?.reduce((sum, card) => sum + (Number(card.estimated_value) || 0), 0) || 0;
+      const graded_count = cardDetails?.filter(card => card.is_graded).length || 0;
+      
+      const sports_breakdown: Record<string, number> = {};
+      cardDetails?.forEach(card => {
+        if (card.sport) {
+          sports_breakdown[card.sport] = (sports_breakdown[card.sport] || 0) + 1;
+        }
+      });
+
+      setCardStats({ total_cards, total_value, graded_count, sports_breakdown });
+    } catch (error) {
+      console.error("Error loading card stats:", error);
+    }
+  };
+
   const handleCreateLocation = async (locationName: string) => {
     if (!locationName.trim()) return;
 
@@ -253,6 +316,11 @@ const Dashboard = () => {
       }
       
       loadLocations();
+      
+      // Reload card stats for sports cards users
+      if (source === 'sports-cards') {
+        loadCardStats();
+      }
     } catch (error: any) {
       toast({
         title: "Error creating location",
@@ -364,7 +432,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-lg border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Cubby</h1>
+          <h1 className="text-xl font-bold">{source === 'sports-cards' ? 'Card Collection' : 'Cubby'}</h1>
           <div className="flex items-center gap-2">
             {isAdmin && (
               <Button 
@@ -433,8 +501,39 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Progress Gamification Banner */}
-      {locations.length > 0 && totalItemsScanned < 10 && (
+      {/* Card Stats for Sports Cards Users */}
+      {source === 'sports-cards' && cardStats && cardStats.total_cards > 0 && (
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Trophy className="h-4 w-4 text-primary" />
+                  <span className="text-2xl font-bold">{cardStats.total_cards}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Total Cards</p>
+              </div>
+              <div className="text-center border-x border-border">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span className="text-2xl font-bold">${cardStats.total_value.toFixed(0)}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Est. Value</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Star className="h-4 w-4 text-primary" />
+                  <span className="text-2xl font-bold">{cardStats.graded_count}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Graded</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Progress Gamification Banner for non-sports-cards users */}
+      {source !== 'sports-cards' && locations.length > 0 && totalItemsScanned < 10 && (
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-4">
@@ -502,9 +601,19 @@ const Dashboard = () => {
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <p className="text-sm font-medium">✨ What you can do:</p>
               <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                <li>Scan multiple items at once with AI</li>
-                <li>Add expiry dates & reminders</li>
-                <li>Search your inventory instantly</li>
+                {source === 'sports-cards' ? (
+                  <>
+                    <li>Scan multiple cards at once with AI</li>
+                    <li>Track card values & conditions</li>
+                    <li>Search by player, year, or brand</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Scan multiple items at once with AI</li>
+                    <li>Add expiry dates & reminders</li>
+                    <li>Search your inventory instantly</li>
+                  </>
+                )}
               </ul>
             </div>
             <div className="flex flex-col gap-2">
@@ -534,30 +643,37 @@ const Dashboard = () => {
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Locations</h2>
-            <p className="text-muted-foreground">Organize items by location</p>
+            <h2 className="text-2xl font-bold">{source === 'sports-cards' ? 'Collections' : 'Locations'}</h2>
+            <p className="text-muted-foreground">
+              {source === 'sports-cards' ? 'Organize your cards by collection' : 'Organize items by location'}
+            </p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Location
+                {source === 'sports-cards' ? 'Add Collection' : 'Add Location'}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add Location</DialogTitle>
+                <DialogTitle>{source === 'sports-cards' ? 'Add Collection' : 'Add Location'}</DialogTitle>
                 <DialogDescription>
-                  Select a preset or enter your own name
+                  {source === 'sports-cards' ? 'Create a collection for your cards' : 'Select a preset or enter your own name'}
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4 pb-2">
                 <div className="space-y-2">
-                  <Label htmlFor="quick-location-name">Location Name</Label>
+                  <Label htmlFor="quick-location-name">
+                    {source === 'sports-cards' ? 'Collection Name' : 'Location Name'}
+                  </Label>
                   <Input
                     id="quick-location-name"
-                    placeholder="Type your own or click a preset below"
+                    placeholder={source === 'sports-cards' 
+                      ? 'e.g., Baseball Cards, Rookie Cards...' 
+                      : 'Type your own or click a preset below'
+                    }
                     value={newLocationName}
                     onChange={(e) => setNewLocationName(e.target.value)}
                     autoFocus
@@ -567,7 +683,14 @@ const Dashboard = () => {
                 <div className="space-y-2">
                   <Label className="text-sm text-muted-foreground">Quick Presets</Label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {PREDEFINED_LOCATIONS.map((locationType) => {
+                    {(source === 'sports-cards' ? [
+                      { id: 'baseball', name: 'Baseball Cards', icon: Trophy },
+                      { id: 'basketball', name: 'Basketball Cards', icon: Trophy },
+                      { id: 'football', name: 'Football Cards', icon: Trophy },
+                      { id: 'hockey', name: 'Hockey Cards', icon: Trophy },
+                      { id: 'rookie', name: 'Rookie Cards', icon: Star },
+                      { id: 'graded', name: 'Graded Cards', icon: Shield },
+                    ] : PREDEFINED_LOCATIONS).map((locationType) => {
                       const IconComponent = locationType.icon;
                       return (
                         <Button
@@ -594,7 +717,7 @@ const Dashboard = () => {
                     className="w-full"
                     disabled={!newLocationName.trim()}
                   >
-                    Add Location
+                    {source === 'sports-cards' ? 'Add Collection' : 'Add Location'}
                   </Button>
                 </div>
               </div>
@@ -606,16 +729,24 @@ const Dashboard = () => {
           <Card className="border-dashed">
             <div className="text-center py-12 px-6">
               <div className="mb-4">
-                <Home className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                {source === 'sports-cards' ? (
+                  <Trophy className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                ) : (
+                  <Home className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                )}
               </div>
-              <h3 className="text-lg font-semibold mb-2">No locations yet</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                {source === 'sports-cards' ? 'No collections yet' : 'No locations yet'}
+              </h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Create your first location to start organizing and scanning items. 
-                Locations help you track where everything is stored.
+                {source === 'sports-cards' 
+                  ? 'Create your first collection to start cataloging your cards. Collections help you organize by sport, set, or type.'
+                  : 'Create your first location to start organizing and scanning items. Locations help you track where everything is stored.'
+                }
               </p>
               <Button onClick={() => setDialogOpen(true)} size="lg">
                 <Plus className="h-4 w-4 mr-2" />
-                Create Your First Location
+                {source === 'sports-cards' ? 'Create Your First Collection' : 'Create Your First Location'}
               </Button>
             </div>
           </Card>
