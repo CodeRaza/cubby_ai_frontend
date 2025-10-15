@@ -50,12 +50,12 @@ export const LocationCard = ({
   
   return (
     <Card 
-      className="cursor-pointer card-shadow"
+      className="cursor-pointer card-shadow border-border/50 hover:border-border transition-colors"
       onClick={onClick}
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4 mb-4">
-          <div className="p-3 rounded-xl bg-primary/10 flex items-center justify-center">
+          <div className="p-3 rounded-2xl bg-secondary flex items-center justify-center">
             {emoji ? (
               <span className="text-3xl">{emoji}</span>
             ) : (
@@ -77,8 +77,8 @@ export const LocationCard = ({
                               variant="outline"
                               className={`gap-1 text-sm border-none ${
                                 isPositive 
-                                  ? 'bg-[#00C853]/15 text-[#00C853]' 
-                                  : 'bg-[#D32F2F]/15 text-[#D32F2F]'
+                                  ? 'bg-success/15 text-success' 
+                                  : 'bg-danger/15 text-danger'
                               }`}
                             >
                               {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
@@ -139,7 +139,7 @@ export const LocationCard = ({
         
         {/* Sparkline for sports cards */}
         {isSportsCards && collectionStats && collectionStats.sparkline_data.length > 0 && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3 pt-3 border-t border-border/50">
             <MiniSparkline data={collectionStats.sparkline_data} isNeutral={isNeutral} />
           </div>
         )}

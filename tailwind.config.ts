@@ -76,6 +76,7 @@ export default {
         'gradient-card': 'var(--gradient-card)',
         'gradient-premium': 'var(--gradient-premium)',
         'gradient-success': 'var(--gradient-success)',
+        'gradient-chart': 'var(--gradient-chart)',
       },
       fontFamily: {
         'poppins': ['Poppins', 'sans-serif'],

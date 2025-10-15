@@ -50,8 +50,8 @@ export const CollectionHeader = ({
                       variant="outline"
                       className={`gap-1 border-none ${
                         isWeeklyPositive
-                          ? "bg-[#00C853]/15 text-[#00C853]"
-                          : "bg-[#D32F2F]/15 text-[#D32F2F]"
+                          ? "bg-success/15 text-success"
+                          : "bg-danger/15 text-danger"
                       }`}
                     >
                       {isWeeklyPositive ? (
@@ -89,8 +89,8 @@ export const CollectionHeader = ({
                       variant="outline"
                       className={`gap-1 border-none ${
                         isMonthlyPositive
-                          ? "bg-[#00C853]/15 text-[#00C853]"
-                          : "bg-[#D32F2F]/15 text-[#D32F2F]"
+                          ? "bg-success/15 text-success"
+                          : "bg-danger/15 text-danger"
                       }`}
                     >
                       {isMonthlyPositive ? (

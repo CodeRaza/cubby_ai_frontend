@@ -30,60 +30,61 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 30 20% 98%;
-    --foreground: 25 15% 25%;
+    --background: 0 0% 99%;
+    --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 15% 25%;
+    --card-foreground: 0 0% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 15% 25%;
+    --popover-foreground: 0 0% 15%;
 
-    --primary: 186 85% 48%;
+    --primary: 150 65% 52%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 95% 60%;
-    --secondary-foreground: 25 15% 25%;
+    --secondary: 150 55% 95%;
+    --secondary-foreground: 150 65% 25%;
 
-    --muted: 30 15% 95%;
-    --muted-foreground: 25 10% 50%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 200 85% 55%;
+    --accent: 150 60% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* Value Movement Colors */
-    --success: 145 63% 49%;
+    --success: 150 65% 52%;
     --success-foreground: 0 0% 100%;
     
     --danger: 4 90% 58%;
     --danger-foreground: 0 0% 100%;
     
     --warning: 38 92% 50%;
-    --warning-foreground: 25 15% 25%;
+    --warning-foreground: 0 0% 15%;
 
-    --border: 30 15% 88%;
-    --input: 30 15% 88%;
-    --ring: 186 85% 48%;
+    --border: 0 0% 92%;
+    --input: 0 0% 95%;
+    --ring: 150 65% 52%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(186 85% 48%), hsl(200 85% 55%));
-    --gradient-warm: linear-gradient(135deg, hsl(45 95% 60%), hsl(35 95% 55%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(30 20% 98%));
-    --gradient-premium: linear-gradient(135deg, hsl(186 85% 48%) 0%, hsl(200 85% 55%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(145 63% 49%) 0%, hsl(160 70% 45%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(150 65% 52%), hsl(160 60% 55%));
+    --gradient-warm: linear-gradient(180deg, hsl(150 40% 97%), hsl(150 45% 93%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 99%));
+    --gradient-premium: linear-gradient(135deg, hsl(150 65% 52%) 0%, hsl(160 60% 55%) 100%);
+    --gradient-success: linear-gradient(180deg, hsl(150 40% 97%) 0%, hsl(150 50% 85%) 100%);
+    --gradient-chart: linear-gradient(180deg, hsl(150 50% 90% / 0.5) 0%, hsl(150 50% 90% / 0) 100%);
     
     /* Shadows */
-    --shadow-sm: 0 2px 8px hsl(186 85% 48% / 0.08);
-    --shadow-md: 0 4px 16px hsl(186 85% 48% / 0.12);
-    --shadow-lg: 0 8px 24px hsl(186 85% 48% / 0.15);
-    --shadow-xl: 0 12px 32px hsl(186 85% 48% / 0.18);
-    --shadow-card: 0 2px 12px hsl(220 20% 20% / 0.08);
-    --shadow-card-hover: 0 8px 24px hsl(220 20% 20% / 0.12);
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.04);
+    --shadow-md: 0 2px 8px hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 4px 16px hsl(0 0% 0% / 0.08);
+    --shadow-xl: 0 8px 24px hsl(0 0% 0% / 0.10);
+    --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.05), 0 1px 2px hsl(0 0% 0% / 0.03);
+    --shadow-card-hover: 0 4px 12px hsl(0 0% 0% / 0.08), 0 2px 6px hsl(0 0% 0% / 0.04);
     
     /* Transitions */
     --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);

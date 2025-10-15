@@ -34,14 +34,14 @@ export const CollectionDistribution = ({
         {items.map((item, index) => (
           <div
             key={index}
-            className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
+            className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/30 hover:border-border/50 transition-colors"
           >
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">{item.name}</p>
-              <p className="text-sm text-muted-foreground">{item.count} cards</p>
+              <p className="font-medium truncate text-sm">{item.name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{item.count} cards</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold">${item.value.toFixed(0)}</p>
+              <p className="font-semibold text-success">${item.value.toFixed(0)}</p>
             </div>
           </div>
         ))}
@@ -50,16 +50,16 @@ export const CollectionDistribution = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
+    <Card className="border-border/50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
           <span className="text-xl">🧮</span>
           Value Distribution
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-4">
         <Tabs defaultValue="player" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4 bg-muted/50">
             <TabsTrigger value="player" className="text-xs">
               Player
             </TabsTrigger>

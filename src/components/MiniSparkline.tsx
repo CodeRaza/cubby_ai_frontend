@@ -22,7 +22,7 @@ export const MiniSparkline = ({ data, className = "", isNeutral = false }: MiniS
   }).join(' ');
 
   const isPositive = data[data.length - 1] >= data[0];
-  const color = isNeutral ? '#E0E0E0' : (isPositive ? '#4B9CE2' : '#E0E0E0');
+  const color = isNeutral ? 'hsl(var(--muted-foreground))' : (isPositive ? 'hsl(var(--success))' : 'hsl(var(--danger))');
 
   return (
     <svg 
@@ -35,7 +35,7 @@ export const MiniSparkline = ({ data, className = "", isNeutral = false }: MiniS
         points={points}
         fill="none"
         stroke={color}
-        strokeWidth="1.5"
+        strokeWidth="2"
         vectorEffect="non-scaling-stroke"
       />
     </svg>

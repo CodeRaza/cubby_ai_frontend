@@ -22,41 +22,43 @@ export const CollectionTopMovers = ({ movers }: CollectionTopMoversProps) => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
+    <Card className="border-border/50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
           <span className="text-xl">🔥</span>
           Top Movers
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="pb-4">
+        <div className="space-y-2">
           {movers.map((mover) => {
             const isPositive = mover.changeAmount >= 0;
             return (
               <div
                 key={mover.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                className="flex items-center justify-between p-3 rounded-xl bg-card hover:bg-muted/30 cursor-pointer transition-all border border-border/30 hover:border-border/50"
                 onClick={() => navigate(`/item/${mover.id}`)}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{mover.name}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium truncate text-sm">{mover.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     ${mover.currentValue.toFixed(0)}
                   </p>
                 </div>
                 <div
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-sm font-medium ${
-                    isPositive ? "text-[#00C853]" : "text-[#D32F2F]"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-semibold text-sm ${
+                    isPositive ? "text-success bg-success/10" : "text-danger bg-danger/10"
                   }`}
                 >
                   {isPositive ? (
-                    <TrendingUp className="h-4 w-4" />
+                    <TrendingUp className="h-3.5 w-3.5" />
                   ) : (
-                    <TrendingDown className="h-4 w-4" />
+                    <TrendingDown className="h-3.5 w-3.5" />
                   )}
-                  {isPositive ? "+" : ""}${Math.abs(mover.changeAmount).toFixed(0)}
-                  <span className="text-xs">
+                  <span>
+                    {isPositive ? "+" : ""}${Math.abs(mover.changeAmount).toFixed(0)}
+                  </span>
+                  <span className="text-xs opacity-80">
                     ({isPositive ? "+" : ""}
                     {mover.changePercent.toFixed(1)}%)
                   </span>
