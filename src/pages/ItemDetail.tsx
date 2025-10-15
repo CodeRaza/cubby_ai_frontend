@@ -7,6 +7,7 @@ import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, DollarSign } from
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
+import { CardDetailsForm } from "@/components/CardDetailsForm";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,6 +81,7 @@ const ItemDetail = () => {
   const [editedQuantity, setEditedQuantity] = useState(1);
   const [editedAcquiredDate, setEditedAcquiredDate] = useState("");
   const [editedCost, setEditedCost] = useState("");
+  const [editedCardDetails, setEditedCardDetails] = useState<any>(null);
 
   useEffect(() => {
     loadItem();
@@ -105,6 +107,24 @@ const ItemDetail = () => {
       setEditedQuantity(data.quantity);
       setEditedAcquiredDate(data.acquired_date || "");
       setEditedCost(data.cost?.toString() || "");
+      
+      // Initialize card details if they exist
+      if (data.card_details) {
+        setEditedCardDetails({
+          player_name: data.card_details.player_name || '',
+          card_year: data.card_details.card_year?.toString() || '',
+          brand: data.card_details.brand || '',
+          set_name: data.card_details.set_name || '',
+          sport: data.card_details.sport || '',
+          card_number: data.card_details.card_number || '',
+          condition: data.card_details.condition || '',
+          is_graded: data.card_details.is_graded || false,
+          grading_company: data.card_details.grading_company || '',
+          grade: data.card_details.grade?.toString() || '',
+          estimated_value: data.card_details.estimated_value?.toString() || '',
+          special_attributes: data.card_details.special_attributes || []
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error loading item",
@@ -131,6 +151,29 @@ const ItemDetail = () => {
         .eq("id", id);
 
       if (error) throw error;
+
+      // Update card details if they exist
+      if (editedCardDetails && item?.card_details) {
+        const { error: cardError } = await supabase
+          .from("card_details")
+          .update({
+            player_name: editedCardDetails.player_name || null,
+            card_year: editedCardDetails.card_year ? parseInt(editedCardDetails.card_year) : null,
+            brand: editedCardDetails.brand || null,
+            set_name: editedCardDetails.set_name || null,
+            sport: editedCardDetails.sport || null,
+            card_number: editedCardDetails.card_number || null,
+            condition: editedCardDetails.condition || null,
+            is_graded: editedCardDetails.is_graded,
+            grading_company: editedCardDetails.is_graded ? editedCardDetails.grading_company : null,
+            grade: editedCardDetails.is_graded && editedCardDetails.grade ? parseFloat(editedCardDetails.grade) : null,
+            estimated_value: editedCardDetails.estimated_value ? parseFloat(editedCardDetails.estimated_value) : null,
+            special_attributes: editedCardDetails.special_attributes,
+          })
+          .eq("item_id", id);
+
+        if (cardError) throw cardError;
+      }
 
       toast({ title: "Item updated!" });
       setEditDialogOpen(false);
@@ -244,6 +287,17 @@ const ItemDetail = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Card Details Edit Section */}
+                  {editedCardDetails && (
+                    <div className="pt-4 border-t">
+                      <CardDetailsForm
+                        details={editedCardDetails}
+                        onChange={setEditedCardDetails}
+                      />
+                    </div>
+                  )}
+
                   <div className="flex gap-2 pt-4">
                     <Button 
                       type="button" 

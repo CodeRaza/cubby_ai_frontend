@@ -367,7 +367,27 @@ const Review = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {imageUrl && (
+        {/* Show front and back images for sports cards */}
+        {source === 'sports-cards' && imageUrls.length >= 2 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-center text-muted-foreground">Front</p>
+              <img
+                src={imageUrls[0]}
+                alt="Card Front"
+                className="w-full rounded-xl shadow-lg"
+              />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-center text-muted-foreground">Back</p>
+              <img
+                src={imageUrls[1]}
+                alt="Card Back"
+                className="w-full rounded-xl shadow-lg"
+              />
+            </div>
+          </div>
+        ) : imageUrl ? (
           <div className="flex justify-center">
             <ImageWithBoundingBoxes 
               imageUrl={imageUrl} 
@@ -375,7 +395,7 @@ const Review = () => {
               className="w-full max-w-2xl"
             />
           </div>
-        )}
+        ) : null}
 
         <Card>
           <CardContent className="pt-6">
