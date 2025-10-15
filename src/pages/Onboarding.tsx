@@ -290,9 +290,14 @@ const Onboarding = () => {
                   <Sparkles className="h-8 w-8 text-primary" />
                 </div>
               </div>
-              <CardTitle className="text-2xl">You're All Set! 🎊</CardTitle>
+              <CardTitle className="text-2xl">
+                {source === 'sports-cards' ? "You're Ready to Catalog! 🏆" : "You're All Set! 🎊"}
+              </CardTitle>
               <CardDescription>
-                Your location has been created. Here's what to do next:
+                {source === 'sports-cards' 
+                  ? 'Your collection has been created. Here\'s how to build your digital card catalog:'
+                  : 'Your location has been created. Here\'s what to do next:'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -302,10 +307,15 @@ const Onboarding = () => {
                     <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
                       1
                     </div>
-                    <h3 className="font-semibold">Scan Your First Items</h3>
+                    <h3 className="font-semibold">
+                      {source === 'sports-cards' ? 'Scan Your Cards' : 'Scan Your First Items'}
+                    </h3>
                   </div>
                   <p className="text-sm text-muted-foreground ml-11">
-                    Use the camera button to take a photo of items you want to catalog. Our AI will detect everything automatically!
+                    {source === 'sports-cards' 
+                      ? 'Take photos of your cards - spread them out for best results. Our AI identifies players, years, brands, and more!'
+                      : 'Use the camera button to take a photo of items you want to catalog. Our AI will detect everything automatically!'
+                    }
                   </p>
                 </div>
 
@@ -314,10 +324,15 @@ const Onboarding = () => {
                     <div className="h-8 w-8 rounded-full bg-muted-foreground/20 text-foreground flex items-center justify-center font-bold">
                       2
                     </div>
-                    <h3 className="font-semibold">Generate QR Codes</h3>
+                    <h3 className="font-semibold">
+                      {source === 'sports-cards' ? 'Add Card Details' : 'Generate QR Codes'}
+                    </h3>
                   </div>
                   <p className="text-sm text-muted-foreground ml-11">
-                    Print QR code labels for your locations for quick mobile access from anywhere
+                    {source === 'sports-cards' 
+                      ? 'Record conditions, grading info, and estimated values for each card'
+                      : 'Print QR code labels for your locations for quick mobile access from anywhere'
+                    }
                   </p>
                 </div>
 
@@ -326,10 +341,15 @@ const Onboarding = () => {
                     <div className="h-8 w-8 rounded-full bg-muted-foreground/20 text-foreground flex items-center justify-center font-bold">
                       3
                     </div>
-                    <h3 className="font-semibold">Search & Organize</h3>
+                    <h3 className="font-semibold">
+                      {source === 'sports-cards' ? 'Track Your Collection' : 'Search & Organize'}
+                    </h3>
                   </div>
                   <p className="text-sm text-muted-foreground ml-11">
-                    Use the search feature to find any item instantly across all your locations
+                    {source === 'sports-cards' 
+                      ? 'Search by player name, year, team, or brand to find any card instantly'
+                      : 'Use the search feature to find any item instantly across all your locations'
+                    }
                   </p>
                 </div>
               </div>
@@ -341,7 +361,7 @@ const Onboarding = () => {
                   size="lg"
                 >
                   <Camera className="h-5 w-5 mr-2" />
-                  Scan Your First Items Now
+                  {source === 'sports-cards' ? 'Scan Your First Cards' : 'Scan Your First Items Now'}
                 </Button>
                 <Button 
                   onClick={handleSkipToApp} 
@@ -354,7 +374,10 @@ const Onboarding = () => {
               </div>
 
               <p className="text-xs text-center text-muted-foreground">
-                Free tier includes 50 items per month • Upgrade anytime for more
+                {source === 'sports-cards' 
+                  ? 'Free tier includes 50 cards per month • Upgrade anytime for unlimited'
+                  : 'Free tier includes 50 items per month • Upgrade anytime for more'
+                }
               </p>
             </CardContent>
           </Card>
