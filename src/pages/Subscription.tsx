@@ -28,7 +28,11 @@ const plans = [
     tier: "free",
     price: "$0",
     scans: 10,
-    features: ["10 scans total", "1 collection", "Basic AI detection"],
+    features: [
+      { text: "10 scans total", available: true },
+      { text: "1 collection", available: true },
+      { text: "Basic AI detection", available: true }
+    ],
     priceId: null,
   },
   {
@@ -36,7 +40,12 @@ const plans = [
     tier: "starter",
     price: "$4.99",
     scans: 100,
-    features: ["100 scans/month", "Multi-collection", "Real-time pricing", "Cloud backup"],
+    features: [
+      { text: "100 scans/month", available: true },
+      { text: "Multi-collection", available: true },
+      { text: "Real-time pricing", available: false },
+      { text: "Cloud backup", available: true }
+    ],
     priceId: "price_1SFQhTIkzp5CYjx0zVwvIUGQ",
   },
   {
@@ -44,7 +53,13 @@ const plans = [
     tier: "pro",
     price: "$14.99",
     scans: 1000,
-    features: ["1,000 scans/month", "Portfolio insights", "Price alerts", "CSV export", "Priority support"],
+    features: [
+      { text: "1,000 scans/month", available: true },
+      { text: "Portfolio insights", available: false },
+      { text: "Price alerts", available: false },
+      { text: "CSV export", available: true },
+      { text: "Priority support", available: true }
+    ],
     priceId: "price_1SFQibIkzp5CYjx0c0qy7nTg",
     recommended: true,
   },
@@ -53,7 +68,13 @@ const plans = [
     tier: "investor",
     price: "$29.99",
     scans: 5000,
-    features: ["5,000 scans/month", "Bulk upload", "Multi-user access", "API access", "Advanced analytics"],
+    features: [
+      { text: "5,000 scans/month", available: true },
+      { text: "Bulk upload", available: false },
+      { text: "Multi-user access", available: false },
+      { text: "API access", available: false },
+      { text: "Advanced analytics", available: false }
+    ],
     priceId: "price_1SFQjPIkzp5CYjx0oJZlH0DL",
   },
 ];
@@ -332,10 +353,15 @@ const Subscription = () => {
                   </CardHeader>
                   <CardContent className="flex-grow">
                     <ul className="space-y-2">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-2 text-sm">
+                      {plan.features.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm">
                           <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span>{feature}</span>
+                          <span className="flex-grow">{feature.text}</span>
+                          {!feature.available && (
+                            <Badge variant="outline" className="text-xs h-5 px-1.5">
+                              Coming Soon
+                            </Badge>
+                          )}
                         </li>
                       ))}
                     </ul>
