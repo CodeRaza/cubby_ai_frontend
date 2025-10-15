@@ -42,15 +42,15 @@ export const ItemCard = ({
 
   return (
     <Card 
-      className="cursor-pointer hover:shadow-md transition-all duration-200 overflow-hidden"
+      className="cursor-pointer card-shadow overflow-hidden"
       onClick={onClick}
     >
-      <div className="aspect-square bg-muted relative overflow-hidden">
+      <div className="aspect-square bg-muted relative overflow-hidden group">
         {imageUrl ? (
           <img 
             src={imageUrl} 
             alt={name} 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -87,11 +87,11 @@ export const ItemCard = ({
           {/* Price and trend for sports cards */}
           {cardDetails?.estimated_value ? (
             <div className="flex items-center justify-between">
-              <span className={`text-lg font-bold transition-colors ${
+              <span className={`text-xl font-bold transition-colors ${
                 cardDetails.price_trend_7d && cardDetails.price_trend_7d > 0 
-                  ? 'text-green-600' 
+                  ? 'text-success' 
                   : cardDetails.price_trend_7d && cardDetails.price_trend_7d < 0 
-                  ? 'text-red-600' 
+                  ? 'text-danger' 
                   : 'text-foreground'
               }`}>
                 ${Number(cardDetails.estimated_value).toFixed(2)}
@@ -101,7 +101,7 @@ export const ItemCard = ({
               )}
             </div>
           ) : cardDetails && (
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground/70">
               Pricing data pending...
             </div>
           )}

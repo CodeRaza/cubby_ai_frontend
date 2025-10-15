@@ -20,7 +20,7 @@ export const PriceTrend = ({ value, showIcon = true, className }: PriceTrendProp
     <div
       className={cn(
         "flex items-center gap-1 text-sm font-medium transition-colors",
-        isNeutral ? "text-muted-foreground" : isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400",
+        isNeutral ? "text-muted-foreground" : isPositive ? "text-success" : "text-danger",
         className
       )}
     >
@@ -35,7 +35,7 @@ export const PriceTrend = ({ value, showIcon = true, className }: PriceTrendProp
           )}
         </>
       )}
-      <span>{formattedValue}</span>
+      <span className="font-semibold">{formattedValue}</span>
     </div>
   );
 };

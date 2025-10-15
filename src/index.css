@@ -53,6 +53,16 @@ All colors MUST be HSL.
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
+    
+    /* Value Movement Colors */
+    --success: 145 63% 49%;
+    --success-foreground: 0 0% 100%;
+    
+    --danger: 4 90% 58%;
+    --danger-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 25 15% 25%;
 
     --border: 30 15% 88%;
     --input: 30 15% 88%;
@@ -64,12 +74,16 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(186 85% 48%), hsl(200 85% 55%));
     --gradient-warm: linear-gradient(135deg, hsl(45 95% 60%), hsl(35 95% 55%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(30 20% 98%));
+    --gradient-premium: linear-gradient(135deg, hsl(186 85% 48%) 0%, hsl(200 85% 55%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(145 63% 49%) 0%, hsl(160 70% 45%) 100%);
     
     /* Shadows */
     --shadow-sm: 0 2px 8px hsl(186 85% 48% / 0.08);
     --shadow-md: 0 4px 16px hsl(186 85% 48% / 0.12);
     --shadow-lg: 0 8px 24px hsl(186 85% 48% / 0.15);
     --shadow-xl: 0 12px 32px hsl(186 85% 48% / 0.18);
+    --shadow-card: 0 2px 12px hsl(220 20% 20% / 0.08);
+    --shadow-card-hover: 0 8px 24px hsl(220 20% 20% / 0.12);
     
     /* Transitions */
     --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -116,6 +130,16 @@ All colors MUST be HSL.
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 220 15% 95%;
+    
+    /* Value Movement Colors - Dark Mode */
+    --success: 145 70% 45%;
+    --success-foreground: 220 15% 95%;
+    
+    --danger: 4 85% 55%;
+    --danger-foreground: 220 15% 95%;
+    
+    --warning: 38 90% 55%;
+    --warning-foreground: 220 20% 10%;
 
     --border: 220 20% 20%;
     --input: 220 20% 20%;
@@ -125,6 +149,8 @@ All colors MUST be HSL.
     --shadow-md: 0 4px 16px hsl(220 20% 8% / 0.5);
     --shadow-lg: 0 8px 24px hsl(220 20% 8% / 0.6);
     --shadow-xl: 0 12px 32px hsl(220 20% 8% / 0.7);
+    --shadow-card: 0 2px 12px hsl(220 20% 8% / 0.5);
+    --shadow-card-hover: 0 8px 24px hsl(220 20% 8% / 0.6);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -158,6 +184,36 @@ All colors MUST be HSL.
   
   .animate-scale-in {
     animation: scale-in 0.4s ease-out;
+  }
+  
+  .card-shadow {
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+  
+  .card-shadow:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+  
+  .text-success {
+    color: hsl(var(--success));
+  }
+  
+  .text-danger {
+    color: hsl(var(--danger));
+  }
+  
+  .bg-success {
+    background-color: hsl(var(--success));
+  }
+  
+  .bg-danger {
+    background-color: hsl(var(--danger));
+  }
+  
+  .gradient-premium {
+    background: var(--gradient-premium);
   }
   
   @keyframes float {

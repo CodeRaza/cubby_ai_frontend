@@ -81,16 +81,16 @@ export const TopValuableCards = ({ cards, isLoading }: TopValuableCardsProps) =>
             <div
               key={card.id}
               onClick={() => navigate(`/item/${card.id}`)}
-              className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group"
+              className="flex items-center gap-3 p-3 rounded-lg border bg-card card-shadow cursor-pointer group"
             >
               <div className="flex-shrink-0 relative">
                 <img
                   src={card.image_url || '/placeholder.svg'}
                   alt={card.name}
-                  className="w-16 h-16 object-cover rounded"
+                  className="w-16 h-16 object-cover rounded shadow-card"
                 />
                 {index === 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-yellow-500">
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-warning">
                     1
                   </Badge>
                 )}
@@ -98,7 +98,7 @@ export const TopValuableCards = ({ cards, isLoading }: TopValuableCardsProps) =>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2 mb-1">
-                  <h4 className="font-medium text-sm truncate flex-1">{card.name}</h4>
+                  <h4 className="font-semibold text-sm truncate flex-1">{card.name}</h4>
                   <div className="flex items-center gap-1">
                     {card.is_graded && (
                       <Badge variant="secondary" className="text-xs h-5">Graded</Badge>
@@ -113,9 +113,16 @@ export const TopValuableCards = ({ cards, isLoading }: TopValuableCardsProps) =>
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-bold">${card.value.toFixed(2)}</span>
                     {trend !== 0 && (
-                      <Badge variant={isPositive ? "default" : "destructive"} className="h-5 gap-1">
+                      <Badge 
+                        variant="outline" 
+                        className={`h-5 gap-1 border-none ${
+                          isPositive 
+                            ? 'bg-success/10 text-success' 
+                            : 'bg-danger/10 text-danger'
+                        }`}
+                      >
                         {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                        <span className="text-xs">{isPositive ? '+' : ''}{trend.toFixed(1)}%</span>
+                        <span className="text-xs font-semibold">{isPositive ? '+' : ''}{trend.toFixed(1)}%</span>
                       </Badge>
                     )}
                   </div>

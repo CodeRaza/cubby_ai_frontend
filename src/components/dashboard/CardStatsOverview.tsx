@@ -93,10 +93,14 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Portfolio this week:</span>
             <Badge 
-              variant={isPositive ? "default" : "destructive"} 
-              className="gap-1 animate-scale-in"
+              variant="outline"
+              className={`gap-1 animate-scale-in border-none ${
+                isPositive 
+                  ? 'bg-success/10 text-success hover:bg-success/20' 
+                  : 'bg-danger/10 text-danger hover:bg-danger/20'
+              }`}
             >
-              {isPositive ? <TrendingUp className="h-3 w-3 animate-pulse" /> : <TrendingDown className="h-3 w-3 animate-pulse" />}
+              {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               <span className="font-semibold">
                 {isPositive ? '📈 ' : '📉 '}
                 {isPositive ? '+' : ''}
@@ -112,8 +116,12 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
             <Flame className="h-4 w-4 text-orange-500 animate-pulse" />
             <span className="font-medium text-sm">{biggestMover.name}</span>
             <Badge 
-              variant={biggestMover.change_percent >= 0 ? "default" : "destructive"}
-              className="text-xs"
+              variant="outline"
+              className={`text-xs border-none ${
+                biggestMover.change_percent >= 0 
+                  ? 'bg-success/10 text-success' 
+                  : 'bg-danger/10 text-danger'
+              }`}
             >
               {biggestMover.change_percent >= 0 ? '+' : ''}
               <AnimatedNumber value={Math.abs(biggestMover.change_percent)} suffix="%" decimals={1} />
@@ -121,34 +129,34 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
           </div>
         </div>
 
-        {/* Main Stats with Animated Numbers */}
+        {/* Main Stats with Animated Numbers and Improved Typography */}
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center animate-fade-in">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Trophy className="h-4 w-4 text-primary" />
-              <span className="text-2xl font-bold tabular-nums">
+              <span className="text-3xl font-bold tabular-nums">
                 <AnimatedNumber value={cardStats.total_cards} />
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">Total Cards</p>
+            <p className="text-xs text-muted-foreground/70 font-medium">Total Cards</p>
           </div>
           <div className="text-center border-x border-border animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <div className="flex items-center justify-center gap-1 mb-1">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <span className="text-2xl font-bold tabular-nums">
+              <span className="text-3xl font-bold tabular-nums">
                 <AnimatedNumber value={cardStats.total_value} prefix="$" />
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">Est. Value</p>
+            <p className="text-xs text-muted-foreground/70 font-medium">Est. Value</p>
           </div>
           <div className="text-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-center gap-1 mb-1">
               <Star className="h-4 w-4 text-primary" />
-              <span className="text-2xl font-bold tabular-nums">
+              <span className="text-3xl font-bold tabular-nums">
                 <AnimatedNumber value={cardStats.graded_count} />
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">Graded</p>
+            <p className="text-xs text-muted-foreground/70 font-medium">Graded</p>
           </div>
         </div>
       </div>

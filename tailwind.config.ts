@@ -47,6 +47,18 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        danger: {
+          DEFAULT: "hsl(var(--danger))",
+          foreground: "hsl(var(--danger-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -62,6 +74,8 @@ export default {
         'gradient-primary': 'var(--gradient-primary)',
         'gradient-warm': 'var(--gradient-warm)',
         'gradient-card': 'var(--gradient-card)',
+        'gradient-premium': 'var(--gradient-premium)',
+        'gradient-success': 'var(--gradient-success)',
       },
       fontFamily: {
         'poppins': ['Poppins', 'sans-serif'],
@@ -71,6 +85,8 @@ export default {
         'md': 'var(--shadow-md)',
         'lg': 'var(--shadow-lg)',
         'xl': 'var(--shadow-xl)',
+        'card': 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
       },
       transitionProperty: {
         'base': 'var(--transition-base)',

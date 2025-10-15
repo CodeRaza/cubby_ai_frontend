@@ -48,9 +48,9 @@ export const SubscriptionBanner = ({ subscription }: SubscriptionBannerProps) =>
             </p>
             <Button 
               size="sm"
-              variant="outline"
+              variant="default"
               onClick={() => navigate('/subscription')}
-              className="h-7 text-xs"
+              className="h-7 text-xs bg-gradient-premium hover:opacity-90 transition-opacity shadow-md"
             >
               Upgrade 🚀
             </Button>
