@@ -12,10 +12,24 @@ interface Location {
   itemCount: number;
 }
 
+interface CollectionStats {
+  location_id: string;
+  total_value: number;
+  card_count: number;
+  weekly_change: number;
+  weekly_change_percent: number;
+  top_mover?: {
+    name: string;
+    change_amount: number;
+  };
+  sparkline_data: number[];
+}
+
 interface LocationsListProps {
   locations: Location[];
   source: string;
   isLoading?: boolean;
+  collectionStats?: CollectionStats[];
   onOpenDialog: () => void;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string, name: string) => void;
@@ -25,11 +39,16 @@ export const LocationsList = memo(({
   locations, 
   source, 
   isLoading,
+  collectionStats = [],
   onOpenDialog,
   onRename,
   onDelete 
 }: LocationsListProps) => {
   const navigate = useNavigate();
+
+  const getCollectionStats = (locationId: string) => {
+    return collectionStats.find(stat => stat.location_id === locationId);
+  };
 
   if (isLoading) {
     return (
@@ -89,27 +108,32 @@ export const LocationsList = memo(({
         </Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {locations.map((location) => (
-          <LocationCard
-            key={location.id}
-            id={location.id}
-            name={location.name}
-            itemCount={location.itemCount}
-            onClick={() => navigate(`/location/${location.id}`)}
-            onQRClick={(e) => {
-              e.stopPropagation();
-              navigate(`/qr-codes/${location.id}`);
-            }}
-            onRenameClick={(e) => {
-              e.stopPropagation();
-              onRename(location.id, location.name);
-            }}
-            onDeleteClick={(e) => {
-              e.stopPropagation();
-              onDelete(location.id, location.name);
-            }}
-          />
-        ))}
+        {locations.map((location) => {
+          const stats = getCollectionStats(location.id);
+          return (
+            <LocationCard
+              key={location.id}
+              id={location.id}
+              name={location.name}
+              itemCount={location.itemCount}
+              collectionStats={stats}
+              isSportsCards={source === 'sports-cards'}
+              onClick={() => navigate(`/location/${location.id}`)}
+              onQRClick={(e) => {
+                e.stopPropagation();
+                navigate(`/qr-codes/${location.id}`);
+              }}
+              onRenameClick={(e) => {
+                e.stopPropagation();
+                onRename(location.id, location.name);
+              }}
+              onDeleteClick={(e) => {
+                e.stopPropagation();
+                onDelete(location.id, location.name);
+              }}
+            />
+          );
+        })}
       </div>
     </>
   );

@@ -35,6 +35,19 @@ interface CardStats {
   }>;
 }
 
+interface CollectionStats {
+  location_id: string;
+  total_value: number;
+  card_count: number;
+  weekly_change: number;
+  weekly_change_percent: number;
+  top_mover?: {
+    name: string;
+    change_amount: number;
+  };
+  sparkline_data: number[];
+}
+
 // Fetch locations with item counts in a single optimized query
 export const useLocations = () => {
   return useQuery({
@@ -151,6 +164,7 @@ export const useCardStats = (enabled: boolean) => {
           id, 
           name,
           image_url,
+          location_id,
           card_details!inner(
             estimated_value, 
             sport, 
@@ -253,3 +267,102 @@ export const useCardStats = (enabled: boolean) => {
     staleTime: 60000, // 1 minute
   });
 };
+
+// Fetch collection-level stats for each location
+export const useCollectionStats = (enabled: boolean) => {
+  return useQuery({
+    queryKey: ['collection-stats'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data: items, error } = await supabase
+        .from("items")
+        .select(`
+          id,
+          name,
+          location_id,
+          card_details!inner(
+            estimated_value,
+            price_trend_7d
+          )
+        `)
+        .eq("user_id", user.id)
+        .eq("source_context", "sports-cards");
+
+      if (error) throw error;
+      if (!items || items.length === 0) return [];
+
+      // Group by location and calculate stats
+      const locationStats: Record<string, CollectionStats> = {};
+
+      items.forEach((item: any) => {
+        const locationId = item.location_id;
+        if (!locationId) return;
+
+        const cardDetail = item.card_details;
+        const value = Number(cardDetail?.estimated_value) || 0;
+        const trend_7d = Number(cardDetail?.price_trend_7d) || 0;
+
+        if (!locationStats[locationId]) {
+          locationStats[locationId] = {
+            location_id: locationId,
+            total_value: 0,
+            card_count: 0,
+            weekly_change: 0,
+            weekly_change_percent: 0,
+            sparkline_data: [],
+            top_mover: undefined
+          };
+        }
+
+        locationStats[locationId].total_value += value;
+        locationStats[locationId].card_count += 1;
+
+        if (trend_7d !== 0 && value > 0) {
+          const change_amount = (value * trend_7d) / (100 + trend_7d);
+          locationStats[locationId].weekly_change += change_amount;
+
+          // Track top mover
+          if (!locationStats[locationId].top_mover || 
+              Math.abs(change_amount) > Math.abs(locationStats[locationId].top_mover!.change_amount)) {
+            locationStats[locationId].top_mover = {
+              name: item.name,
+              change_amount: change_amount
+            };
+          }
+        }
+      });
+
+      // Calculate percentages and generate sparkline data
+      Object.values(locationStats).forEach(stats => {
+        if (stats.total_value > 0) {
+          stats.weekly_change_percent = (stats.weekly_change / stats.total_value) * 100;
+        }
+        // Generate sample sparkline data (30 days) - in real app, fetch from price_history
+        stats.sparkline_data = generateSparklineData(stats.total_value, stats.weekly_change_percent);
+      });
+
+      return Object.values(locationStats);
+    },
+    enabled,
+    staleTime: 60000,
+  });
+};
+
+// Helper function to generate sparkline data
+function generateSparklineData(currentValue: number, weeklyChangePercent: number): number[] {
+  const points = 30;
+  const data: number[] = [];
+  const weeklyChange = weeklyChangePercent / 100;
+  
+  // Generate a smooth curve representing the 30-day trend
+  for (let i = 0; i < points; i++) {
+    const progress = i / (points - 1);
+    const value = currentValue * (1 - (weeklyChange * progress * 4.3)); // Approximate 30-day from 7-day
+    const noise = (Math.random() - 0.5) * currentValue * 0.02; // Add small variance
+    data.push(Math.max(0, value + noise));
+  }
+  
+  return data;
+}

@@ -33,7 +33,7 @@ import { CardStatsOverview } from "@/components/dashboard/CardStatsOverview";
 import { LocationsList } from "@/components/dashboard/LocationsList";
 import { TopValuableCards } from "@/components/dashboard/TopValuableCards";
 import { CollectionBreakdown } from "@/components/dashboard/CollectionBreakdown";
-import { useLocations, useSubscription, useAdminStatus, useCardStats } from "@/hooks/useDashboardData";
+import { useLocations, useSubscription, useAdminStatus, useCardStats, useCollectionStats } from "@/hooks/useDashboardData";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
@@ -55,6 +55,7 @@ const Dashboard = () => {
   const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
   const { data: isAdmin, isLoading: adminLoading } = useAdminStatus();
   const { data: cardStats, isLoading: cardStatsLoading } = useCardStats(source === 'sports-cards');
+  const { data: collectionStats, isLoading: collectionStatsLoading } = useCollectionStats(source === 'sports-cards');
 
   const locations = locationsData?.locations || [];
   const totalItemsScanned = locationsData?.totalItems || 0;
@@ -450,6 +451,7 @@ const Dashboard = () => {
           locations={locations}
           source={source}
           isLoading={locationsLoading}
+          collectionStats={collectionStats || []}
           onOpenDialog={() => setDialogOpen(true)}
           onRename={(id, name) => {
             setRenameLocationId(id);
