@@ -55,14 +55,14 @@ export const LocationCard = ({
     >
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-secondary flex items-center justify-center flex-shrink-0">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-secondary flex items-center justify-center flex-shrink-0">
             {emoji ? (
-              <span className="text-2xl sm:text-3xl">{emoji}</span>
+              <span className="text-xl sm:text-2xl">{emoji}</span>
             ) : (
-              <LocationIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <LocationIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             )}
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 overflow-visible">
             <h3 className="font-semibold text-base sm:text-lg mb-2">{name}</h3>
             {isSportsCards && collectionStats ? (
               <div className="space-y-2">
@@ -82,19 +82,19 @@ export const LocationCard = ({
                         {isPositive ? '+' : ''}{collectionStats.weekly_change_percent.toFixed(1)}%
                       </Badge>
                     )}
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {collectionStats.card_count} cards • {isPositive ? '+' : ''}{collectionStats.weekly_change >= 0 ? '$' : '-$'}{Math.abs(collectionStats.weekly_change).toLocaleString('en-US', { maximumFractionDigits: 0 })} this week
-                  </span>
-                </div>
-                {collectionStats.top_mover && (
-                  <p className="text-sm text-muted-foreground">
-                    Top: <span className="font-medium text-foreground">{collectionStats.top_mover.name}</span>
-                    <span className={isPositive ? 'text-success font-medium' : 'text-danger font-medium'}>
-                      {' '}{isPositive ? '↑' : '↓'} ${Math.abs(collectionStats.top_mover.change_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                    </span>
-                  </p>
-                )}
+                   </div>
+                   <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                     {collectionStats.card_count} cards • {isPositive ? '+' : ''}{collectionStats.weekly_change >= 0 ? '$' : '-$'}{Math.abs(collectionStats.weekly_change).toLocaleString('en-US', { maximumFractionDigits: 0 })} this week
+                   </span>
+                 </div>
+                 {collectionStats.top_mover && (
+                   <p className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
+                     Top: <span className="font-medium text-foreground">{collectionStats.top_mover.name}</span>
+                     <span className={isPositive ? 'text-success font-medium' : 'text-danger font-medium'}>
+                       {' '}{isPositive ? '↑' : '↓'} ${Math.abs(collectionStats.top_mover.change_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                     </span>
+                   </p>
+                 )}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
@@ -102,11 +102,11 @@ export const LocationCard = ({
               </p>
             )}
           </div>
-          <div className="flex gap-0.5 shrink-0 self-start ml-2">
+          <div className="flex gap-0 shrink-0 self-start ml-1">
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 sm:h-9 sm:w-9"
+              className="h-7 w-7 sm:h-8 sm:w-8"
               onClick={onQRClick}
             >
               <QrCode className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -114,7 +114,7 @@ export const LocationCard = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 sm:h-9 sm:w-9"
+              className="h-7 w-7 sm:h-8 sm:w-8"
               onClick={onRenameClick}
             >
               <Pencil className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
@@ -122,7 +122,7 @@ export const LocationCard = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 sm:h-9 sm:w-9 text-destructive hover:text-destructive"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive"
               onClick={onDeleteClick}
             >
               <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
