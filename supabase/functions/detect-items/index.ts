@@ -28,7 +28,52 @@ serve(async (req) => {
 
     // Build system prompt based on context
     const systemPrompt = isSportsCards 
-      ? `You are a sports memorabilia expert specialized in trading card identification. Analyze the image and extract detailed information about each card visible.`
+      ? `You are an expert sports card grader and authenticator. Your task is to identify cards with MAXIMUM ACCURACY by carefully reading all visible text and logos on the card.
+
+CRITICAL YEAR IDENTIFICATION:
+- Look for copyright symbols (©) followed by the year - this is the TRUE card year
+- Check the bottom of the card for year information
+- Panini cards often have "© 2025 Panini..." or similar at the bottom
+- The rookie year may differ from the card production year
+- ALWAYS use the card production year (copyright year), NOT the player's rookie year
+- Example: A "2025 Panini Elite" card of a 2022 rookie should have year = 2025
+
+CRITICAL BRAND/SET IDENTIFICATION:
+- Read ALL text visible on the card face
+- Brand names appear prominently: Panini, Topps, Upper Deck, Bowman, Prizm, Select, Optic, Donruss, etc.
+- Set names follow the brand: "Panini Elite", "Topps Chrome", "Prizm Draft Picks", etc.
+- Look for logos in corners and edges
+- Extract the FULL set name including parallel types if visible (e.g., "Panini Elite Green")
+
+CONDITION ASSESSMENT (Visual Grading):
+Based on the image quality and card appearance, assess condition:
+- Mint: Perfect corners, sharp edges, vibrant colors, no visible flaws, appears freshly pulled
+- Near Mint: Very slight edge wear only visible on close inspection, colors still vibrant
+- Excellent: Minor corner wear, slight edge whitening, still displays well
+- Very Good: Noticeable corner rounding, edge wear visible
+- Good: Obvious wear on corners and edges, surface scratches possible
+- Fair: Heavy wear, creases possible
+- Poor: Severe damage, creases, stains
+
+For modern cards in protective sleeves/holders that appear pristine: Default to "Mint" or "Near Mint"
+For cards with visible parallels (refractors, colors, numbered): Usually indicate good condition since valuable
+
+SPECIAL ATTRIBUTES DETECTION:
+- "Rookie Card": Look for "RC", "ROOKIE", or rookie shield logos
+- "Autographed": Look for visible signatures on card
+- "Jersey Card": Look for fabric swatches
+- "Numbered": Look for "#/XXX" notation
+- "Refractor": Shiny/rainbow reflective surface
+- "Insert": Special card designs, often with unique backgrounds
+
+PLAYER NAME EXTRACTION:
+- Read the player name exactly as printed on the card
+- Usually at the bottom in large text
+- May include team name below
+
+CARD NUMBER:
+- Usually printed on card back or front corner
+- Format: "#123" or "No. 123" or just "123"`
       : `You are a highly accurate object detection expert specializing in home inventory management. Your goal is to identify items with MAXIMUM PRECISION and ACCURACY.
 
 
@@ -116,7 +161,7 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
           type: "function",
           function: {
             name: "detect_sports_cards",
-            description: "Detect and extract detailed information about sports cards in the image",
+            description: "Detect and extract detailed information about sports cards by carefully reading all visible text, logos, and assessing visual condition",
             parameters: {
               type: "object",
               properties: {
@@ -125,7 +170,7 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
                   items: {
                     type: "object",
                     properties: {
-                      label: { type: "string", description: "Descriptive name with player, year, brand" },
+                      label: { type: "string", description: "Full descriptive name: 'YYYY Brand Set Player Name' (e.g., '2025 Panini Elite Jaxson Dart Rookie Card')" },
                       confidence: { type: "number", description: "Confidence score 0-1" },
                       bbox: {
                         type: "object",
@@ -137,22 +182,22 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
                         },
                         required: ["x", "y", "width", "height"]
                       },
-                      player_name: { type: "string", description: "Player's full name" },
-                      card_year: { type: "string", description: "Year of the card (e.g., '1989')" },
-                      set_brand: { type: "string", description: "Card brand/set (e.g., 'Topps', 'Panini')" },
+                      player_name: { type: "string", description: "Player's full name as printed on card" },
+                      card_year: { type: "string", description: "Card production year from copyright (©) symbol, NOT player rookie year - look at bottom of card for '© YYYY'" },
+                      set_brand: { type: "string", description: "Full brand and set name (e.g., 'Panini Elite', 'Topps Chrome', 'Prizm Draft Picks')" },
                       sport: { type: "string", description: "Sport type (Baseball, Basketball, Football, Hockey, Soccer, Other)" },
-                      card_number: { type: "string", description: "Card number if visible" },
-                      condition: { type: "string", description: "Condition (Mint, Near Mint, Excellent, Very Good, Good, Fair, Poor)" },
-                      is_graded: { type: "boolean", description: "Whether card is professionally graded" },
-                      grading_company: { type: "string", description: "Grading company if graded (PSA, BGS, CGC, SGC)" },
-                      grade: { type: "string", description: "Grade number if graded (e.g., '9.5')" },
+                      card_number: { type: "string", description: "Card number if visible on card" },
+                      condition: { type: "string", description: "Visual grade: Mint (pristine, sharp), Near Mint (minimal wear), Excellent (slight wear), Very Good (noticeable wear), Good (obvious wear), Fair (heavy wear), Poor (damaged)" },
+                      is_graded: { type: "boolean", description: "Whether card is in a professional grading slab (PSA, BGS, CGC, SGC holder)" },
+                      grading_company: { type: "string", description: "Grading company if in slab (PSA, BGS, CGC, SGC)" },
+                      grade: { type: "string", description: "Numeric grade if in slab (e.g., '9.5', '10')" },
                       special_attributes: { 
                         type: "array", 
                         items: { type: "string" },
-                        description: "Special features: Rookie Card, Autographed, Jersey Card, Numbered, Refractor, Insert" 
+                        description: "Array of attributes visible on card: 'Rookie Card' (RC logo or text), 'Autographed' (signature visible), 'Jersey Card' (fabric swatch), 'Numbered' (#/XXX), 'Refractor' (shiny surface), 'Insert' (special design)" 
                       }
                     },
-                    required: ["label", "confidence", "bbox"]
+                    required: ["label", "confidence", "bbox", "card_year", "set_brand", "condition"]
                   }
                 }
               },
