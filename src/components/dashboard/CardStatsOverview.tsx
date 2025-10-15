@@ -2,6 +2,7 @@ import { Trophy, TrendingUp, TrendingDown, Star, Flame, DollarSign } from "lucid
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
+import { TimeRangeSelector, TimeRange } from "./TimeRangeSelector";
 
 interface CardStatsOverviewProps {
   cardStats: {
@@ -56,6 +57,8 @@ const AnimatedNumber = ({ value, prefix = '', suffix = '', decimals = 0 }: {
 };
 
 export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewProps) => {
+  const [timeRange, setTimeRange] = useState<TimeRange>('1W');
+
   if (isLoading) {
     return (
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
@@ -96,13 +99,30 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
     change_percent: 12.0
   };
 
+  // Get display text based on time range
+  const getTimeRangeLabel = () => {
+    switch (timeRange) {
+      case '1D': return 'today';
+      case '1W': return 'this week';
+      case '1M': return 'this month';
+      case '3M': return 'last 3 months';
+      case 'YTD': return 'this year';
+      case 'All': return 'all time';
+    }
+  };
+
   return (
     <div className="bg-card border-b">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Time Range Selector */}
+        <div className="flex justify-center">
+          <TimeRangeSelector selected={timeRange} onChange={setTimeRange} />
+        </div>
+
         {/* Weekly Portfolio Change - Hero Section */}
         <div className="space-y-2 sm:space-y-3 flex flex-col items-center bg-primary/5 -mx-3 sm:-mx-4 px-3 sm:px-4 py-3 sm:py-4 rounded-lg">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
-            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Portfolio this week</span>
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Portfolio {getTimeRangeLabel()}</span>
             <Badge 
               variant="outline"
               className={`gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 animate-scale-in border-none text-sm sm:text-base ${

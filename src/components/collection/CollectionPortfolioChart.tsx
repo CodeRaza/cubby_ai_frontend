@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
+import { TimeRangeSelector, TimeRange } from "@/components/dashboard/TimeRangeSelector";
+import { useState } from "react";
 
 interface ChartDataPoint {
   date: string;
@@ -12,6 +14,8 @@ interface CollectionPortfolioChartProps {
 }
 
 export const CollectionPortfolioChart = ({ data }: CollectionPortfolioChartProps) => {
+  const [timeRange, setTimeRange] = useState<TimeRange>('1M');
+
   if (!data || data.length === 0) {
     return null;
   }
@@ -24,10 +28,25 @@ export const CollectionPortfolioChart = ({ data }: CollectionPortfolioChartProps
   const isNegativeTrend = changePercent < -0.5;
   const isNeutral = !isPositiveTrend && !isNegativeTrend;
 
+  // Get display label based on time range
+  const getChartTitle = () => {
+    switch (timeRange) {
+      case '1D': return '1-Day Performance';
+      case '1W': return '7-Day Performance';
+      case '1M': return '30-Day Performance';
+      case '3M': return '3-Month Performance';
+      case 'YTD': return 'Year-to-Date Performance';
+      case 'All': return 'All-Time Performance';
+    }
+  };
+
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">30-Day Performance</CardTitle>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <CardTitle className="text-base font-semibold">{getChartTitle()}</CardTitle>
+          <TimeRangeSelector selected={timeRange} onChange={setTimeRange} />
+        </div>
       </CardHeader>
       <CardContent className="pb-4">
         <div className="relative">
