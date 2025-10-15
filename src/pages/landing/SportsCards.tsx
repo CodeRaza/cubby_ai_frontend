@@ -121,11 +121,11 @@ export default function SportsCards() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-            <div className="text-center space-y-4 group relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
+            <div className="text-center space-y-4 group relative pt-6">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
                 1
               </div>
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110 mt-4">
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110">
                 <Camera className="h-8 w-8 text-primary-foreground" />
               </div>
               <h3 className="text-xl font-bold">Scan</h3>
@@ -134,11 +134,11 @@ export default function SportsCards() {
               </p>
             </div>
 
-            <div className="text-center space-y-4 group relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
+            <div className="text-center space-y-4 group relative pt-6">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
                 2
               </div>
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110 mt-4">
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110">
                 <Box className="h-8 w-8 text-primary-foreground" />
               </div>
               <h3 className="text-xl font-bold">Organize</h3>
@@ -147,11 +147,11 @@ export default function SportsCards() {
               </p>
             </div>
 
-            <div className="text-center space-y-4 group relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
+            <div className="text-center space-y-4 group relative pt-6">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-lg">
                 3
               </div>
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110 mt-4">
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 mx-auto flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all group-hover:scale-110">
                 <BarChart3 className="h-8 w-8 text-primary-foreground" />
               </div>
               <h3 className="text-xl font-bold">Track</h3>
