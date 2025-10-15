@@ -299,9 +299,6 @@ const Market = () => {
           </Button>
         </div>
 
-        {/* Filters */}
-        <MarketFilters filters={filters} onFilterChange={setFilters} />
-
         {/* Market Overview Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4 relative overflow-hidden">
@@ -351,6 +348,9 @@ const Market = () => {
             </div>
           </Card>
         </div>
+
+        {/* Filters */}
+        <MarketFilters filters={filters} onFilterChange={setFilters} />
 
         {/* Trending Cards Feed */}
         <TrendingCardsFeed
