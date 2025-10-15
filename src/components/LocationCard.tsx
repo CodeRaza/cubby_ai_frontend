@@ -68,7 +68,7 @@ export const LocationCard = ({
               <div className="space-y-2">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold">${collectionStats.total_value.toFixed(0)}</span>
+                    <span className="text-3xl font-bold">${collectionStats.total_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
                     {!isNeutral && (
                       <TooltipProvider>
                         <Tooltip>
@@ -93,16 +93,16 @@ export const LocationCard = ({
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {collectionStats.card_count} cards • {isPositive ? '+' : ''}{collectionStats.weekly_change >= 0 ? '$' : '-$'}{Math.abs(collectionStats.weekly_change).toFixed(0)} this week
+                    {collectionStats.card_count} cards • {isPositive ? '+' : ''}{collectionStats.weekly_change >= 0 ? '$' : '-$'}{Math.abs(collectionStats.weekly_change).toLocaleString('en-US', { maximumFractionDigits: 0 })} this week
                   </span>
                 </div>
                 {collectionStats.top_mover && (
-                  <p className="text-xs text-muted-foreground">
-                    Top: <span className="font-medium text-foreground">{collectionStats.top_mover.name}</span>
-                    <span className={isPositive ? 'text-success' : 'text-danger'}>
-                      {' '}{isPositive ? '↑' : '↓'} ${Math.abs(collectionStats.top_mover.change_amount).toFixed(0)}
-                    </span>
-                  </p>
+                   <p className="text-xs text-muted-foreground">
+                     Top: <span className="font-medium text-foreground">{collectionStats.top_mover.name}</span>
+                     <span className={isPositive ? 'text-success' : 'text-danger'}>
+                       {' '}{isPositive ? '↑' : '↓'} ${Math.abs(collectionStats.top_mover.change_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                     </span>
+                   </p>
                 )}
               </div>
             ) : (

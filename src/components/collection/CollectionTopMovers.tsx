@@ -42,7 +42,7 @@ export const CollectionTopMovers = ({ movers }: CollectionTopMoversProps) => {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate text-sm">{mover.name}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    ${mover.currentValue.toFixed(0)}
+                    ${mover.currentValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                   </p>
                 </div>
                 <div
@@ -56,7 +56,7 @@ export const CollectionTopMovers = ({ movers }: CollectionTopMoversProps) => {
                     <TrendingDown className="h-3.5 w-3.5" />
                   )}
                   <span>
-                    {isPositive ? "+" : ""}${Math.abs(mover.changeAmount).toFixed(0)}
+                    {isPositive ? "+" : ""}${Math.abs(mover.changeAmount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                   </span>
                   <span className="text-xs opacity-80">
                     ({isPositive ? "+" : ""}

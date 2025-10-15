@@ -49,7 +49,7 @@ export const CollectionPortfolioChart = ({ data }: CollectionPortfolioChartProps
                 tickLine={false}
               />
               <Tooltip
-                formatter={(value: number) => [`$${value.toFixed(0)}`, "Value"]}
+                formatter={(value: number) => [`$${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, "Value"]}
                 labelFormatter={(label) => format(new Date(label), "MMM dd, yyyy")}
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",

@@ -41,7 +41,7 @@ export const CollectionDistribution = ({
               <p className="text-xs text-muted-foreground mt-0.5">{item.count} cards</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-success">${item.value.toFixed(0)}</p>
+              <p className="font-semibold text-success">${item.value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
             </div>
           </div>
         ))}

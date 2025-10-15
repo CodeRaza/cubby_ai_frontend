@@ -35,7 +35,7 @@ export const CollectionHeader = ({
 
       <div className="space-y-3">
         <div className="flex items-baseline gap-3 flex-wrap">
-          <span className="text-5xl font-bold">${totalValue.toFixed(0)}</span>
+          <span className="text-5xl font-bold">${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
 
         <div className="flex gap-4 flex-wrap">
@@ -59,7 +59,7 @@ export const CollectionHeader = ({
                       ) : (
                         <TrendingDown className="h-3 w-3" />
                       )}
-                      {isWeeklyPositive ? "+" : ""}${Math.abs(weeklyChange).toFixed(0)}{" "}
+                      {isWeeklyPositive ? "+" : ""}${Math.abs(weeklyChange).toLocaleString('en-US', { maximumFractionDigits: 0 })}{" "}
                       ({isWeeklyPositive ? "+" : ""}
                       {weeklyChangePercent.toFixed(1)}%)
                     </Badge>
@@ -98,7 +98,7 @@ export const CollectionHeader = ({
                       ) : (
                         <TrendingDown className="h-3 w-3" />
                       )}
-                      {isMonthlyPositive ? "+" : ""}${Math.abs(monthlyChange).toFixed(0)}{" "}
+                      {isMonthlyPositive ? "+" : ""}${Math.abs(monthlyChange).toLocaleString('en-US', { maximumFractionDigits: 0 })}{" "}
                       ({isMonthlyPositive ? "+" : ""}
                       {monthlyChangePercent.toFixed(1)}%)
                     </Badge>
