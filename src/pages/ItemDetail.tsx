@@ -88,6 +88,8 @@ interface ItemDetails {
   };
 }
 
+import { usePricingQueueStatus } from "@/hooks/usePricingQueueStatus";
+
 const ItemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -95,6 +97,9 @@ const ItemDetail = () => {
   const queryClient = useQueryClient();
   const [item, setItem] = useState<ItemDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Check pricing queue status
+  const { data: queueStatus } = usePricingQueueStatus(item?.card_details?.id);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editedName, setEditedName] = useState("");
   const [editedCategory, setEditedCategory] = useState("");
@@ -651,6 +656,11 @@ const ItemDetail = () => {
                       Market Value
                     </h3>
                     <div className="flex items-center gap-2">
+                      {queueStatus && (
+                        <Badge variant="outline" className="animate-pulse">
+                          {queueStatus.status === 'processing' ? '🔄 Processing' : '⏳ Queued'}
+                        </Badge>
+                      )}
                       {item.card_details.estimated_value && (
                         <Button
                           variant="ghost"
@@ -658,23 +668,37 @@ const ItemDetail = () => {
                           onClick={async () => {
                             try {
                               toast({
-                                title: "Fetching live market data...",
-                                description: "This may take a few seconds"
+                                title: "Checking for updates...",
+                                description: "Fetching latest market data"
                               });
                               
-                              const { error } = await supabase.functions.invoke('fetch-card-pricing', {
+                              const { data, error } = await supabase.functions.invoke('fetch-card-pricing', {
                                 body: { 
                                   cardId: item.card_details?.id,
                                   cardDetails: item.card_details,
                                   force_refresh: true
                                 }
                               });
-                              if (error) throw error;
                               
-                              toast({
-                                title: "Market data updated",
-                                description: "Latest pricing and sales data loaded"
-                              });
+                              if (error) throw error;
+
+                              if (data?.queued) {
+                                toast({
+                                  title: "Update queued",
+                                  description: "Pricing update is processing. Refresh in a few minutes for live data from eBay.",
+                                  duration: 5000
+                                });
+                              } else if (data?.cached) {
+                                toast({
+                                  title: "Using cached data",
+                                  description: `Latest pricing from ${data.cacheAge} hours ago`,
+                                });
+                              } else {
+                                toast({
+                                  title: "Data updated",
+                                  description: "Latest pricing loaded"
+                                });
+                              }
                               
                               // Invalidate recent sales query to refresh the component
                               queryClient.invalidateQueries({ queryKey: ['recent-sales', item.card_details?.id] });
@@ -801,23 +825,37 @@ const ItemDetail = () => {
                         onClick={async () => {
                           try {
                             toast({
-                              title: "Fetching market data...",
+                              title: "Queueing pricing update...",
                               description: "Getting latest pricing from eBay"
                             });
                             
-                            const { error } = await supabase.functions.invoke('fetch-card-pricing', {
+                            const { data, error } = await supabase.functions.invoke('fetch-card-pricing', {
                               body: { 
                                 cardId: item.card_details?.id,
                                 cardDetails: item.card_details,
                                 force_refresh: true
                               }
                             });
+                            
                             if (error) throw error;
                             
-                            toast({
-                              title: "Market data loaded",
-                              description: "Latest pricing and sales data available"
-                            });
+                            if (data?.queued) {
+                              toast({
+                                title: "✓ Update queued",
+                                description: "Pricing will update within 5 minutes. Refresh the page to see live eBay sales.",
+                                duration: 8000
+                              });
+                            } else if (data?.cached) {
+                              toast({
+                                title: "Using cached data",
+                                description: `Latest pricing from ${data.cacheAge} hours ago`,
+                              });
+                            } else {
+                              toast({
+                                title: "Data loaded",
+                                description: "Latest pricing available"
+                              });
+                            }
                             
                             // Invalidate recent sales query to refresh the component
                             queryClient.invalidateQueries({ queryKey: ['recent-sales', item.card_details?.id] });

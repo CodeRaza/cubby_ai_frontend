@@ -18,6 +18,9 @@ verify_jwt = false
 [functions.send-quick-reminder]
 verify_jwt = false
 
+[functions.send-first-save-email]
+verify_jwt = false
+
 [functions.test-send-emails]
 verify_jwt = false
 
