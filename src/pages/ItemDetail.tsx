@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, DollarSign, TrendingUp, TrendingDown, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
@@ -17,6 +17,7 @@ import { PriceAlertDialog } from "@/components/PriceAlertDialog";
 import { RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -723,7 +724,7 @@ const ItemDetail = () => {
                     </div>
                   </div>
                   
-                  {item.card_details.estimated_value ? (
+                  {item.card_details.estimated_value > 0 ? (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className={`${
@@ -735,9 +736,37 @@ const ItemDetail = () => {
                           }`}>
                             <CardContent className="p-4">
                               <div className="flex items-center justify-between mb-1">
-                                <p className="text-sm text-muted-foreground">
-                                  {hasSalesData ? 'Market Value' : 'Estimated Value'}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm text-muted-foreground">
+                                    {hasSalesData ? 'Market Value' : 'Estimated Value'}
+                                  </p>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs">
+                                        <p className="font-medium mb-2">How is this calculated?</p>
+                                        {hasSalesData ? (
+                                          <p className="text-xs">
+                                            Average of the 10 most recent eBay sales for this card. Updates are fetched every 7 days or when you click Refresh.
+                                          </p>
+                                        ) : (
+                                          <div className="text-xs space-y-1">
+                                            <p>Estimated based on:</p>
+                                            <ul className="list-disc pl-4 space-y-0.5">
+                                              <li>Card age & brand value</li>
+                                              <li>Player popularity</li>
+                                              <li>Special attributes (RC, Auto, etc.)</li>
+                                              <li>Condition or grading</li>
+                                            </ul>
+                                            <p className="mt-2 font-medium">Click Refresh for live eBay data</p>
+                                          </div>
+                                        )}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
                                 {!hasSalesData && (
                                   <Badge variant="outline" className="text-xs">
                                     Estimate
@@ -814,68 +843,61 @@ const ItemDetail = () => {
                       )}
                     </>
                   ) : (
-                    <div className="text-center p-6 bg-amber-500/5 border border-amber-500/20 rounded-lg">
-                      <p className="text-muted-foreground mb-3">⚠️ Pricing data not available</p>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        This card hasn't been priced yet. Click below to fetch current market data.
-                      </p>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={async () => {
-                          try {
-                            toast({
-                              title: "Queueing pricing update...",
-                              description: "Getting latest pricing from eBay"
-                            });
-                            
-                            const { data, error } = await supabase.functions.invoke('fetch-card-pricing', {
-                              body: { 
-                                cardId: item.card_details?.id,
-                                cardDetails: item.card_details,
-                                force_refresh: true
+                    <Card className="bg-muted/30 border-dashed">
+                      <CardContent className="p-8 text-center">
+                        <Info className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                        <h4 className="font-semibold text-lg mb-2">Not Enough Data</h4>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          No recent sales found for this card.
+                        </p>
+                        <p className="text-xs text-muted-foreground mb-4">
+                          This could mean the card is rare, or sales data is currently limited.
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              toast({
+                                title: "Fetching latest data...",
+                                description: "Searching eBay for recent sales"
+                              });
+                              
+                              const { data, error } = await supabase.functions.invoke('fetch-card-pricing', {
+                                body: { 
+                                  cardId: item.card_details?.id,
+                                  cardDetails: item.card_details,
+                                  force_refresh: true
+                                }
+                              });
+                              
+                              if (error) throw error;
+
+                              if (data?.queued) {
+                                toast({
+                                  title: "Update queued",
+                                  description: "Pricing is processing. Check back in a few minutes.",
+                                  duration: 5000
+                                });
                               }
-                            });
-                            
-                            if (error) throw error;
-                            
-                            if (data?.queued) {
+                              
+                              loadItem();
+                            } catch (error: any) {
                               toast({
-                                title: "✓ Update queued",
-                                description: "Pricing will update within 5 minutes. Refresh the page to see live eBay sales.",
-                                duration: 8000
-                              });
-                            } else if (data?.cached) {
-                              toast({
-                                title: "Using cached data",
-                                description: `Latest pricing from ${data.cacheAge} hours ago`,
-                              });
-                            } else {
-                              toast({
-                                title: "Data loaded",
-                                description: "Latest pricing available"
+                                title: "Error",
+                                description: error.message,
+                                variant: "destructive"
                               });
                             }
-                            
-                            // Invalidate recent sales query to refresh the component
-                            queryClient.invalidateQueries({ queryKey: ['recent-sales', item.card_details?.id] });
-                            
-                            // Refresh to check for sales data
-                            loadItem();
-                          } catch (error: any) {
-                            toast({
-                              title: "Error fetching pricing",
-                              description: error.message,
-                              variant: "destructive"
-                            });
-                          }
-                        }}
-                      >
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Fetch Market Data
-                      </Button>
-                    </div>
-                  )}
+                          }}
+                          className="gap-2 mt-2"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Try Fetching Data Again
+                        </Button>
+                      </CardContent>
+                    </Card>
+                   )}
                 </div>
                 
                 {/* Price History Charts */}

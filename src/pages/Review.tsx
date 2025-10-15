@@ -253,7 +253,7 @@ const Review = () => {
 
         // Save card details if this is a sports card
         if (item.cardDetails && source === 'sports-cards') {
-          await supabase.from("card_details").insert({
+          const { data: cardDetailsData, error: cardError } = await supabase.from("card_details").insert({
             item_id: insertedItem.id,
             player_name: item.cardDetails.player_name || null,
             card_year: item.cardDetails.card_year ? parseInt(item.cardDetails.card_year) : null,
@@ -265,9 +265,34 @@ const Review = () => {
             is_graded: item.cardDetails.is_graded,
             grading_company: item.cardDetails.is_graded ? item.cardDetails.grading_company : null,
             grade: item.cardDetails.is_graded && item.cardDetails.grade ? parseFloat(item.cardDetails.grade) : null,
-            estimated_value: item.cardDetails.estimated_value ? parseFloat(item.cardDetails.estimated_value) : null,
+            estimated_value: 0, // Set to 0 initially, will be updated by pricing
             special_attributes: item.cardDetails.special_attributes,
-          });
+          }).select().single();
+
+          if (cardError) throw cardError;
+
+          // Immediately fetch pricing for the card (async, don't await)
+          if (cardDetailsData?.id) {
+            supabase.functions.invoke('fetch-card-pricing', {
+              body: { 
+                cardId: cardDetailsData.id,
+                cardDetails: {
+                  player_name: item.cardDetails.player_name,
+                  card_year: item.cardDetails.card_year ? parseInt(item.cardDetails.card_year) : null,
+                  brand: item.cardDetails.brand,
+                  set_name: item.cardDetails.set_name,
+                  sport: item.cardDetails.sport,
+                  card_number: item.cardDetails.card_number,
+                  condition: item.cardDetails.condition,
+                  is_graded: item.cardDetails.is_graded,
+                  grading_company: item.cardDetails.grading_company,
+                  grade: item.cardDetails.grade,
+                  special_attributes: item.cardDetails.special_attributes,
+                },
+                force_refresh: false
+              }
+            }).catch(err => console.error('Failed to queue pricing:', err));
+          }
         }
 
         // Save detection data with bounding boxes
