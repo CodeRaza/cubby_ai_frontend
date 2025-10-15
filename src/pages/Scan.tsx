@@ -10,67 +10,97 @@ const Scan = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+    // Check for sports cards context
+    const userSource = sessionStorage.getItem('user_source') || '';
+    const isSportsCards = userSource === 'sports-cards';
+
+    // For sports cards, require exactly 2 images (front and back)
+    if (isSportsCards && files.length !== 2) {
       toast({
-        title: "Invalid file type",
-        description: "Please select an image file",
+        title: "Two images required",
+        description: "Please select both front and back images of your cards",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please select an image smaller than 10MB",
-        variant: "destructive",
-      });
-      return;
+    // Validate file types
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select image files only",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 10MB each)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Each image must be smaller than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
-    // Show preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Show previews
+    const previews: string[] = [];
+    for (const file of files) {
+      const preview = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      previews.push(preview);
+    }
+    setImagePreviews(previews);
+    setSelectedFiles(files);
 
-    await processImage(file);
+    await processImages(files);
   };
 
-  const processImage = async (file: File) => {
+  const processImages = async (files: File[]) => {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Upload image to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('item-images')
-        .upload(fileName, file);
+      // Upload all images to storage
+      const imageUrls: string[] = [];
+      const base64Images: string[] = [];
 
-      if (uploadError) throw uploadError;
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('item-images')
+          .upload(fileName, file);
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('item-images')
-        .getPublicUrl(fileName);
+        if (uploadError) throw uploadError;
 
-      // Convert image to base64 for AI
-      const base64 = await fileToBase64(file);
+        const { data: { publicUrl } } = supabase.storage
+          .from('item-images')
+          .getPublicUrl(fileName);
+
+        imageUrls.push(publicUrl);
+
+        // Convert to base64 for AI
+        const base64 = await fileToBase64(file);
+        base64Images.push(base64);
+      }
 
       // Call AI detection edge function with timeout
-      
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timed out after 60 seconds')), 60000)
       );
@@ -80,7 +110,7 @@ const Scan = () => {
       
       const functionPromise = supabase.functions.invoke('detect-items', {
         body: { 
-          image: base64,
+          images: base64Images, // Send array of images
           context: userSource
         }
       });
@@ -120,17 +150,17 @@ const Scan = () => {
         return;
       }
 
-      // Navigate to review with detection results (usage will be incremented on save)
+      // Navigate to review with detection results (use first image URL for display)
       navigate('/review', { 
         state: { 
           detections: data.detections || [],
-          imageUrl: publicUrl 
+          imageUrl: imageUrls[0] // Primary image for display
         } 
       });
 
     } catch (error: any) {
       toast({
-        title: "Error processing image",
+        title: "Error processing images",
         description: error.message,
         variant: "destructive",
       });
@@ -169,19 +199,26 @@ const Scan = () => {
             <div className="text-center space-y-4 py-8">
               <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
               <div>
-                <p className="font-semibold text-lg">Analyzing image...</p>
+                <p className="font-semibold text-lg">Analyzing images...</p>
                 <p className="text-sm text-muted-foreground">
-                  AI is detecting items in your photo
+                  AI is detecting items and extracting details
                 </p>
               </div>
             </div>
-            {imagePreview && (
-              <div className="max-w-md mx-auto">
-                <img 
-                  src={imagePreview} 
-                  alt="Preview" 
-                  className="w-full max-h-64 md:max-h-96 object-contain rounded-xl shadow-lg"
-                />
+            {imagePreviews.length > 0 && (
+              <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+                {imagePreviews.map((preview, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <p className="text-sm text-center text-muted-foreground font-medium">
+                      {idx === 0 ? 'Front' : 'Back'}
+                    </p>
+                    <img 
+                      src={preview} 
+                      alt={`Preview ${idx + 1}`}
+                      className="w-full max-h-64 object-contain rounded-xl shadow-lg"
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -191,10 +228,18 @@ const Scan = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               capture="environment"
               onChange={handleFileSelect}
               className="hidden"
             />
+            
+            <div className="bg-primary/10 border-2 border-primary/20 rounded-lg p-4 text-center">
+              <p className="font-semibold text-primary mb-1">📸 Sports Cards</p>
+              <p className="text-sm text-muted-foreground">
+                Please select <strong>2 images</strong>: front and back of your cards for accurate year detection
+              </p>
+            </div>
             
             <Button
               size="lg"
@@ -202,7 +247,7 @@ const Scan = () => {
               onClick={() => fileInputRef.current?.click()}
             >
               <Camera className="h-16 w-16" />
-              <span>Take Photo</span>
+              <span>Take Photos (Front & Back)</span>
             </Button>
 
             <div className="relative">
@@ -231,8 +276,8 @@ const Scan = () => {
             </Button>
 
             <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center">
-              <p className="font-medium mb-1">📱 Mobile Tip</p>
-              <p>For best results, take photos in good lighting and include all items you want to catalog.</p>
+              <p className="font-medium mb-1">📱 Tips</p>
+              <p>Take clear photos of both front and back. The back usually has the copyright year needed for accurate identification.</p>
             </div>
           </div>
         )}

@@ -12,10 +12,10 @@ serve(async (req) => {
   }
 
   try {
-    const { image, context } = await req.json();
+    const { images, context } = await req.json();
     
-    if (!image) {
-      throw new Error('No image provided');
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      throw new Error('No images provided');
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -24,56 +24,45 @@ serve(async (req) => {
     }
 
     const isSportsCards = context === 'sports-cards';
-    console.log('Analyzing image with AI...', isSportsCards ? '(Sports Cards mode)' : '');
+    console.log('Analyzing images with AI...', isSportsCards ? '(Sports Cards mode)' : '', `${images.length} image(s)`);
 
     // Build system prompt based on context
     const systemPrompt = isSportsCards 
-      ? `You are an expert sports card grader and authenticator. Your task is to identify cards with MAXIMUM ACCURACY by carefully reading all visible text and logos on the card.
+      ? `You are an expert sports card grader and authenticator analyzing MULTIPLE images of the same cards (front and back views).
 
-CRITICAL YEAR IDENTIFICATION:
-- Look for copyright symbols (©) followed by the year - this is the TRUE card year
-- Check the bottom of the card for year information
-- Panini cards often have "© 2025 Panini..." or similar at the bottom
-- The rookie year may differ from the card production year
-- ALWAYS use the card production year (copyright year), NOT the player's rookie year
-- Example: A "2025 Panini Elite" card of a 2022 rookie should have year = 2025
+CRITICAL INSTRUCTIONS FOR MULTI-IMAGE ANALYSIS:
+- You are viewing ${images.length} images of the SAME set of cards
+- Image 1 is typically the FRONT of cards (player photo, design)
+- Image 2 is typically the BACK of cards (copyright info, stats, card details)
+- EXAMINE ALL IMAGES to extract complete information
+- The BACK image usually contains the COPYRIGHT YEAR at the bottom
+
+CRITICAL YEAR IDENTIFICATION (CHECK BACK IMAGE):
+- Look at the BACK image for copyright symbols (©) followed by year - this is the TRUE production year
+- Common formats: "© 2025 Panini America", "© YYYY Topps Company"
+- This year is usually at the very bottom of the card back
+- IGNORE any years on the front that reference rookie seasons
+- Example: Back says "© 2025 Panini" → card_year = "2025"
 
 CRITICAL BRAND/SET IDENTIFICATION:
-- Read ALL text visible on the card face
-- Brand names appear prominently: Panini, Topps, Upper Deck, Bowman, Prizm, Select, Optic, Donruss, etc.
-- Set names follow the brand: "Panini Elite", "Topps Chrome", "Prizm Draft Picks", etc.
-- Look for logos in corners and edges
-- Extract the FULL set name including parallel types if visible (e.g., "Panini Elite Green")
+- Front image: Brand logos and set names are prominent
+- Back image: Full brand name with copyright
+- Extract COMPLETE set name: "Panini Elite", "Topps Chrome", etc.
+- Include parallel type if visible (Green, Silver, etc.)
 
-CONDITION ASSESSMENT (Visual Grading):
-Based on the image quality and card appearance, assess condition:
-- Mint: Perfect corners, sharp edges, vibrant colors, no visible flaws, appears freshly pulled
-- Near Mint: Very slight edge wear only visible on close inspection, colors still vibrant
-- Excellent: Minor corner wear, slight edge whitening, still displays well
-- Very Good: Noticeable corner rounding, edge wear visible
-- Good: Obvious wear on corners and edges, surface scratches possible
-- Fair: Heavy wear, creases possible
-- Poor: Severe damage, creases, stains
+CONDITION ASSESSMENT:
+- Assess based on all visible angles
+- Modern cards in sleeves with sharp corners, no visible wear: "Mint" or "Near Mint"
+- Cards with reflective/rainbow surfaces (refractors): Usually indicate good condition
+- Default to "Near Mint" for modern cards that appear well-preserved
 
-For modern cards in protective sleeves/holders that appear pristine: Default to "Mint" or "Near Mint"
-For cards with visible parallels (refractors, colors, numbered): Usually indicate good condition since valuable
+PLAYER & CARD DETAILS:
+- Player name: From front image (large text, usually at bottom)
+- Card number: Check back image carefully
+- Sport: Identify from uniform/context
+- Special attributes: Look for RC logos, autographs, jersey pieces, numbered notation
 
-SPECIAL ATTRIBUTES DETECTION:
-- "Rookie Card": Look for "RC", "ROOKIE", or rookie shield logos
-- "Autographed": Look for visible signatures on card
-- "Jersey Card": Look for fabric swatches
-- "Numbered": Look for "#/XXX" notation
-- "Refractor": Shiny/rainbow reflective surface
-- "Insert": Special card designs, often with unique backgrounds
-
-PLAYER NAME EXTRACTION:
-- Read the player name exactly as printed on the card
-- Usually at the bottom in large text
-- May include team name below
-
-CARD NUMBER:
-- Usually printed on card back or front corner
-- Format: "#123" or "No. 123" or just "123"`
+For EACH CARD detected across ALL images, return complete information.`
       : `You are a highly accurate object detection expert specializing in home inventory management. Your goal is to identify items with MAXIMUM PRECISION and ACCURACY.
 
 
@@ -131,6 +120,18 @@ Return ONLY a valid JSON array. Example:
 
 Be thorough but ACCURATE - detect as many items as possible with precise names and TIGHT bounding boxes!`;
 
+    // Build messages with all images
+    const userContent: any[] = [];
+    
+    images.forEach((image: string, idx: number) => {
+      userContent.push({
+        type: 'image_url',
+        image_url: {
+          url: `data:image/jpeg;base64,${image}`
+        }
+      });
+    });
+
     // Build request body with tool calling for sports cards
     const requestBody: any = {
       model: 'google/gemini-2.5-flash',
@@ -141,14 +142,7 @@ Be thorough but ACCURATE - detect as many items as possible with precise names a
         },
         {
           role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:image/jpeg;base64,${image}`
-              }
-            }
-          ]
+          content: userContent
         }
       ],
       max_tokens: 4000,
