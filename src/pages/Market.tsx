@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { MarketFilters } from "@/components/market/MarketFilters";
 import { TrendingCardsFeed } from "@/components/market/TrendingCardsFeed";
 import { CardDetailsModal } from "@/components/market/CardDetailsModal";
@@ -303,31 +304,40 @@ const Market = () => {
 
         {/* Market Overview Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="space-y-1">
+          <Card className="p-4 relative overflow-hidden">
+            <Badge className="absolute top-2 right-2 bg-primary/10 text-primary border-primary/20 animate-pulse">
+              Coming Soon
+            </Badge>
+            <div className="space-y-1 opacity-50">
               <p className="text-sm text-muted-foreground">24h Volume</p>
-              <p className="text-2xl font-bold">$2.4M</p>
-              <div className="flex items-center gap-1 text-sm text-green-600">
+              <p className="text-2xl font-bold blur-sm">$2.4M</p>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground blur-sm">
                 <TrendingUp className="h-3 w-3" />
                 <span>+12.5%</span>
               </div>
             </div>
           </Card>
-          <Card className="p-4">
-            <div className="space-y-1">
+          <Card className="p-4 relative overflow-hidden">
+            <Badge className="absolute top-2 right-2 bg-primary/10 text-primary border-primary/20 animate-pulse">
+              Coming Soon
+            </Badge>
+            <div className="space-y-1 opacity-50">
               <p className="text-sm text-muted-foreground">Avg Sale Price</p>
-              <p className="text-2xl font-bold">$187</p>
-              <div className="flex items-center gap-1 text-sm text-green-600">
+              <p className="text-2xl font-bold blur-sm">$187</p>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground blur-sm">
                 <TrendingUp className="h-3 w-3" />
                 <span>+3.2%</span>
               </div>
             </div>
           </Card>
-          <Card className="p-4">
-            <div className="space-y-1">
+          <Card className="p-4 relative overflow-hidden">
+            <Badge className="absolute top-2 right-2 bg-primary/10 text-primary border-primary/20 animate-pulse">
+              Coming Soon
+            </Badge>
+            <div className="space-y-1 opacity-50">
               <p className="text-sm text-muted-foreground">Sales Today</p>
-              <p className="text-2xl font-bold">1,247</p>
-              <div className="flex items-center gap-1 text-sm text-red-600">
+              <p className="text-2xl font-bold blur-sm">1,247</p>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground blur-sm">
                 <TrendingDown className="h-3 w-3" />
                 <span>-5.8%</span>
               </div>
