@@ -23,9 +23,10 @@ interface CardDetails {
 interface CardDetailsFormProps {
   details: CardDetails;
   onChange: (details: CardDetails) => void;
+  isQueued?: boolean;
 }
 
-export const CardDetailsForm = ({ details, onChange }: CardDetailsFormProps) => {
+export const CardDetailsForm = ({ details, onChange, isQueued }: CardDetailsFormProps) => {
   const updateField = (field: keyof CardDetails, value: any) => {
     onChange({ ...details, [field]: value });
   };
@@ -217,18 +218,40 @@ export const CardDetailsForm = ({ details, onChange }: CardDetailsFormProps) => 
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p className="text-sm">
-                  Value calculated from recent eBay sales. Based on average of last 10 sold listings for similar cards. Updates within 5 minutes after saving.
+                  Value calculated from recent eBay sales. Based on average of last 10 sold listings for similar cards. Updates automatically or click Refresh on the detail page.
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div className="text-lg font-semibold text-primary">
-          Calculating...
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Value will be estimated after saving based on recent market sales
-        </p>
+        {isQueued ? (
+          <>
+            <div className="text-lg font-semibold text-primary animate-pulse">
+              Calculating...
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Fetching latest market data from eBay
+            </p>
+          </>
+        ) : details.estimated_value && parseFloat(details.estimated_value) > 0 ? (
+          <>
+            <div className="text-2xl font-bold text-foreground">
+              ${parseFloat(details.estimated_value).toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Based on recent market sales • Read-only field
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="text-lg font-medium text-muted-foreground">
+              Not yet calculated
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Value will be estimated after saving based on recent market sales
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

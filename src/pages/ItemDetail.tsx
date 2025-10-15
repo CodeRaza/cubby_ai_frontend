@@ -382,6 +382,7 @@ const ItemDetail = () => {
                       <CardDetailsForm
                         details={editedCardDetails}
                         onChange={setEditedCardDetails}
+                        isQueued={!!queueStatus}
                       />
                     </div>
                   )}
