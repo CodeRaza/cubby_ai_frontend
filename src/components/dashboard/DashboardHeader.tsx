@@ -18,39 +18,45 @@ export const DashboardHeader = ({ source, isAdmin, planName }: DashboardHeaderPr
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-lg border-b">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">{source === 'sports-cards' ? 'Card Collection' : 'Cubby'}</h1>
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-lg border-b">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
+        <h1 className="text-lg sm:text-xl font-bold">{source === 'sports-cards' ? 'Card Collection' : 'Cubby'}</h1>
+        <div className="flex items-center gap-1 sm:gap-2">
           {isAdmin && (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => navigate('/admin')}
-              className="gap-2"
+              className="gap-1.5 h-8 sm:h-9 px-2 sm:px-3"
             >
-              <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">Admin</span>
+              <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline text-xs sm:text-sm">Admin</span>
             </Button>
           )}
           <Button 
             variant="outline" 
             size="sm" 
             onClick={() => navigate('/subscription')}
-            className="gap-2"
+            className="gap-1.5 h-8 sm:h-9 px-2 sm:px-3"
           >
-            <Crown className="h-4 w-4" />
-            <span className="hidden sm:inline">{planName}</span>
+            <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline text-xs sm:text-sm">{planName}</span>
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
+            className="h-8 w-8 sm:h-10 sm:w-10"
             onClick={() => navigate('/settings')}
           >
-            <SettingsIcon className="h-5 w-5" />
+            <SettingsIcon className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleLogout}>
-            <LogOut className="h-5 w-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 sm:h-10 sm:w-10"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
       </div>

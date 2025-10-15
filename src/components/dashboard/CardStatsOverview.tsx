@@ -86,37 +86,37 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
   };
 
   return (
-    <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
-      <div className="container mx-auto px-4 py-6 space-y-6">
+    <div className="bg-gradient-success border-b">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Weekly Portfolio Change - Hero Section */}
-        <div className="space-y-3 flex flex-col items-center">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-muted-foreground">Portfolio this week</span>
+        <div className="space-y-2 sm:space-y-3 flex flex-col items-center">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Portfolio this week</span>
             <Badge 
               variant="outline"
-              className={`gap-1.5 px-3 py-1 animate-scale-in border-none text-base ${
+              className={`gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 animate-scale-in border-none text-sm sm:text-base ${
                 isPositive 
                   ? 'bg-success/15 text-success hover:bg-success/25' 
                   : 'bg-danger/15 text-danger hover:bg-danger/25'
               }`}
             >
-              {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+              {isPositive ? <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" /> : <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />}
               <span className="font-bold">
                 {isPositive ? '+' : ''}
                 <AnimatedNumber value={Math.abs(weeklyChange)} prefix="$" decimals={2} />
               </span>
-              <span className="text-sm opacity-90">
+              <span className="text-xs sm:text-sm opacity-90">
                 ({isPositive ? '+' : ''}<AnimatedNumber value={changePercent} suffix="%" decimals={1} />)
               </span>
             </Badge>
           </div>
           
-          <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <Flame className="h-5 w-5 text-orange-500" />
-            <span className="font-semibold text-base">{biggestMover.name}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 animate-fade-in flex-wrap justify-center" style={{ animationDelay: '0.1s' }}>
+            <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+            <span className="font-semibold text-sm sm:text-base">{biggestMover.name}</span>
             <Badge 
               variant="outline"
-              className={`text-sm px-2.5 py-0.5 border-none font-semibold ${
+              className={`text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 border-none font-semibold ${
                 biggestMover.change_percent >= 0 
                   ? 'bg-success/15 text-success' 
                   : 'bg-danger/15 text-danger'
@@ -129,35 +129,35 @@ export const CardStatsOverview = ({ cardStats, isLoading }: CardStatsOverviewPro
         </div>
 
         {/* Main Stats Grid - Balanced and Prominent */}
-        <div className="grid grid-cols-3 gap-6 pt-2">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-1 sm:pt-2">
           <div className="flex flex-col items-center animate-fade-in">
-            <div className="flex items-center gap-2 mb-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              <span className="text-4xl font-bold tabular-nums">
+            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+              <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <span className="text-2xl sm:text-4xl font-bold tabular-nums">
                 <AnimatedNumber value={cardStats.total_cards} />
               </span>
             </div>
-            <p className="text-sm text-muted-foreground/80 font-medium">Total Cards</p>
+            <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">Total Cards</p>
           </div>
           
           <div className="flex flex-col items-center border-x border-border animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <span className="text-4xl font-bold tabular-nums">
+            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <span className="text-2xl sm:text-4xl font-bold tabular-nums">
                 <AnimatedNumber value={cardStats.total_value} prefix="$" />
               </span>
             </div>
-            <p className="text-sm text-muted-foreground/80 font-medium">Est. Value</p>
+            <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">Est. Value</p>
           </div>
           
           <div className="flex flex-col items-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="h-5 w-5 text-primary" />
-              <span className="text-4xl font-bold tabular-nums">
+            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+              <Star className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <span className="text-2xl sm:text-4xl font-bold tabular-nums">
                 <AnimatedNumber value={cardStats.graded_count} />
               </span>
             </div>
-            <p className="text-sm text-muted-foreground/80 font-medium">Graded</p>
+            <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">Graded</p>
           </div>
         </div>
       </div>

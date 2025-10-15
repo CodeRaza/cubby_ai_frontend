@@ -364,19 +364,20 @@ const Dashboard = () => {
         </DialogContent>
       </Dialog>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">{source === 'sports-cards' ? 'Collections' : 'Locations'}</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold">{source === 'sports-cards' ? 'Collections' : 'Locations'}</h2>
+            <p className="text-sm text-muted-foreground">
               {source === 'sports-cards' ? 'Organize your cards by collection' : 'Organize items by location'}
             </p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                {source === 'sports-cards' ? 'Add Collection' : 'Add Location'}
+              <Button size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
+                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                <span className="hidden xs:inline">{source === 'sports-cards' ? 'Add Collection' : 'Add Location'}</span>
+                <span className="xs:hidden">Add</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">

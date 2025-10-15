@@ -97,17 +97,19 @@ export const LocationsList = memo(({
 
   return (
     <>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-3 sm:mb-4">
         <Button
           variant="outline"
           size="sm"
+          className="h-8 sm:h-9 text-xs sm:text-sm"
           onClick={() => navigate("/qr-codes/bulk")}
         >
-          <Camera className="h-4 w-4 mr-2" />
-          Print All QR Codes
+          <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+          <span className="hidden xs:inline">Print All QR Codes</span>
+          <span className="xs:hidden">QR Codes</span>
         </Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {locations.map((location) => {
           const stats = getCollectionStats(location.id);
           return (
