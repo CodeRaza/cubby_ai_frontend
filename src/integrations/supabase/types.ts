@@ -27,7 +27,12 @@ export type Database = {
           id: string
           is_graded: boolean | null
           item_id: string
+          last_price_update: string | null
+          last_sale_date: string | null
+          last_sale_price: number | null
           player_name: string | null
+          price_trend_30d: number | null
+          price_trend_7d: number | null
           set_name: string | null
           special_attributes: string[] | null
           sport: string | null
@@ -45,7 +50,12 @@ export type Database = {
           id?: string
           is_graded?: boolean | null
           item_id: string
+          last_price_update?: string | null
+          last_sale_date?: string | null
+          last_sale_price?: number | null
           player_name?: string | null
+          price_trend_30d?: number | null
+          price_trend_7d?: number | null
           set_name?: string | null
           special_attributes?: string[] | null
           sport?: string | null
@@ -63,7 +73,12 @@ export type Database = {
           id?: string
           is_graded?: boolean | null
           item_id?: string
+          last_price_update?: string | null
+          last_sale_date?: string | null
+          last_sale_price?: number | null
           player_name?: string | null
+          price_trend_30d?: number | null
+          price_trend_7d?: number | null
           set_name?: string | null
           special_attributes?: string[] | null
           sport?: string | null
@@ -232,6 +247,91 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      price_alerts: {
+        Row: {
+          alert_type: string
+          card_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          threshold_amount: number | null
+          threshold_percentage: number | null
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          card_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          threshold_amount?: number | null
+          threshold_percentage?: number | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          card_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          threshold_amount?: number | null
+          threshold_percentage?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_alerts_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "card_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_history: {
+        Row: {
+          card_id: string
+          condition: string | null
+          created_at: string | null
+          date_of_sale: string | null
+          id: string
+          price: number | null
+          sale_url: string | null
+          source: string
+        }
+        Insert: {
+          card_id: string
+          condition?: string | null
+          created_at?: string | null
+          date_of_sale?: string | null
+          id?: string
+          price?: number | null
+          sale_url?: string | null
+          source: string
+        }
+        Update: {
+          card_id?: string
+          condition?: string | null
+          created_at?: string | null
+          date_of_sale?: string | null
+          id?: string
+          price?: number | null
+          sale_url?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_history_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "card_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scan_usage: {
         Row: {
