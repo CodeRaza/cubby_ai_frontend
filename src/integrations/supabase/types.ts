@@ -723,6 +723,42 @@ export type Database = {
           },
         ]
       }
+      ebay_api_usage: {
+        Row: {
+          card_key: string | null
+          created_at: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          operation: string
+          response_time_ms: number | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          card_key?: string | null
+          created_at?: string
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          operation: string
+          response_time_ms?: number | null
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          card_key?: string | null
+          created_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          operation?: string
+          response_time_ms?: number | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       email_settings: {
         Row: {
           emails_enabled: boolean
@@ -1182,7 +1218,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ebay_api_daily_stats: {
+        Row: {
+          avg_response_time: number | null
+          call_count: number | null
+          date: string | null
+          endpoint: string | null
+          error_count: number | null
+          max_response_time: number | null
+          min_response_time: number | null
+          operation: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_next_reminder_date: {
