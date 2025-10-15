@@ -5,7 +5,7 @@ export const LandingNav = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div 
           className="flex items-center gap-2 cursor-pointer"
@@ -21,10 +21,10 @@ export const LandingNav = () => {
         
         <Button 
           size="lg" 
-          className="bg-gradient-primary hover:opacity-90 transition-opacity"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover-scale h-12 px-6"
           onClick={() => navigate('/auth?mode=signup')}
         >
-          Start Scanning Free
+          Start Free
         </Button>
       </div>
     </nav>
