@@ -898,10 +898,22 @@ const Dashboard = () => {
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
-                          data={Object.entries(cardStats.sports_breakdown).map(([sport, count]) => ({
-                            name: sport,
-                            value: count
-                          }))}
+                          data={Object.entries(cardStats.sports_breakdown).map(([sport, count]) => {
+                            // Sport icons mapping
+                            const sportIcons: Record<string, string> = {
+                              'Baseball': '⚾',
+                              'Basketball': '🏀',
+                              'Football': '🏈',
+                              'Hockey': '🏒',
+                              'Soccer': '⚽',
+                              'Golf': '⛳',
+                            };
+                            return {
+                              name: `${sportIcons[sport] || '🎯'} ${sport}`,
+                              value: count,
+                              sport
+                            };
+                          })}
                           cx="50%"
                           cy="50%"
                           labelLine={false}
