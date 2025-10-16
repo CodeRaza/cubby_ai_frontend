@@ -311,11 +311,25 @@ async function searchEbayListings(cardDetails: any, userId?: string, cardKey?: s
     if (!response.ok) {
       status = 'error';
       const errorText = await response.text();
-      errorMessage = `eBay API error: ${response.statusText}`;
+      
+      // Try to parse eBay's error response
+      let detailedError = `eBay API error: ${response.statusText}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        const ebayError = errorData?.errorMessage?.[0]?.error?.[0];
+        if (ebayError?.message?.[0]) {
+          detailedError = `eBay Error ${ebayError.errorId?.[0] || ''}: ${ebayError.message[0]}`;
+        }
+      } catch (parseError) {
+        // If parsing fails, use the raw error text
+        detailedError = errorText.substring(0, 200); // Limit length
+      }
+      
+      errorMessage = detailedError;
       console.error('[PROCESS-QUEUE] eBay API error:', errorText);
       
       // Check if it's a rate limit error
-      if (errorText.includes('rate') || errorText.includes('limit') || errorText.includes('exceeded')) {
+      if (errorText.includes('rate') || errorText.includes('limit') || errorText.includes('exceeded') || errorText.includes('10001')) {
         console.error('[PROCESS-QUEUE] Rate limit detected, retry count:', retryCount);
         
         // Exponential backoff: 5s, 10s, 20s
