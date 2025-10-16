@@ -542,6 +542,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cache_refresh_tracker: {
+        Row: {
+          created_at: string
+          id: string
+          last_batch_start: number
+          last_run_at: string
+          total_cards_refreshed: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_batch_start?: number
+          last_run_at?: string
+          total_cards_refreshed?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_batch_start?: number
+          last_run_at?: string
+          total_cards_refreshed?: number
+        }
+        Relationships: []
+      }
       card_details: {
         Row: {
           brand: string | null

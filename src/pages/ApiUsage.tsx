@@ -376,7 +376,7 @@ export default function ApiUsage() {
                         <TrendingUp className="h-5 w-5 text-primary" />
                         <CardTitle className="text-lg">Global Cache Seeding (Top 20k)</CardTitle>
                       </div>
-                      <Badge variant="default">Direct API</Badge>
+                      <Badge variant="default">Automated Daily</Badge>
                     </div>
                     <CardDescription className="font-mono text-xs">refresh-top-cards</CardDescription>
                   </CardHeader>
@@ -387,19 +387,19 @@ export default function ApiUsage() {
                         Maintains a global cache of the top 20,000 most valuable and popular cards. Provides instant pricing for 80%+ of user scans.
                       </p>
                     </div>
-                    <div className="grid gap-2 p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                    <div className="grid gap-2 p-3 bg-green-500/5 rounded-lg border border-green-500/20">
                       <div className="flex items-start gap-2">
-                        <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <Shield className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                         <div className="space-y-1">
-                          <p className="text-sm font-medium text-blue-700">Initial Seed (4-Day Process)</p>
+                          <p className="text-sm font-medium text-green-700">✅ Fully Automated System</p>
                           <p className="text-xs text-muted-foreground">
-                            Run manually 4 times to seed initial 20k cards while staying within 5k/day limit:
+                            Runs daily at 2 AM UTC. Automatically rotates through all 20k cards:
                           </p>
                           <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
-                            <li>Day 1: POST with startIndex=0, limit=4900</li>
-                            <li>Day 2: POST with startIndex=4900, limit=4900</li>
-                            <li>Day 3: POST with startIndex=9800, limit=4900</li>
-                            <li>Day 4: POST with startIndex=14700, limit=4900</li>
+                            <li>Processes 100 cards per day (200 API calls)</li>
+                            <li>Full rotation every 200 days</li>
+                            <li>Leaves 4,800 API calls/day for user requests</li>
+                            <li>Progress tracked in database</li>
                           </ul>
                         </div>
                       </div>

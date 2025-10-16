@@ -21,46 +21,76 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('[REFRESH-TOP-CARDS] Function invoked');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Parse request body for batch parameters
-    const { startIndex = 0, limit = 4900 } = req.method === 'POST' 
-      ? await req.json().catch(() => ({}))
-      : {};
+    // Get tracker to determine which batch to process
+    const { data: tracker } = await supabase
+      .from('cache_refresh_tracker')
+      .select('*')
+      .single();
 
-    console.log(`[REFRESH-TOP-CARDS] Starting batch: startIndex=${startIndex}, limit=${limit}`);
+    if (!tracker) {
+      console.error('[REFRESH-TOP-CARDS] No tracker found, creating one');
+      await supabase
+        .from('cache_refresh_tracker')
+        .insert({ last_batch_start: 0, total_cards_refreshed: 0 });
+    }
 
-    // Get all top 20k cards, then slice to requested batch
+    const currentStart = tracker?.last_batch_start || 0;
+    const batchSize = 100; // Process 100 cards per day (200 API calls with 2s delays)
+    
+    console.log(`[REFRESH-TOP-CARDS] Current batch start: ${currentStart}`);
+
+    // Get all top 20k cards
     const allTopCards = await identifyTopCards(supabase);
-    const topCards = allTopCards.slice(startIndex, startIndex + limit);
-    console.log(`[REFRESH-TOP-CARDS] Processing ${topCards.length} cards (${allTopCards.length} total top cards)`);
+    console.log(`[REFRESH-TOP-CARDS] Total top cards identified: ${allTopCards.length}`);
+    
+    // Calculate next batch (wrap around after 20k)
+    const nextStart = (currentStart + batchSize) % allTopCards.length;
+    const topCards = allTopCards.slice(currentStart, currentStart + batchSize);
+    
+    console.log(`[REFRESH-TOP-CARDS] Processing batch: ${currentStart} to ${currentStart + topCards.length} (next: ${nextStart})`);
 
     let refreshed = 0;
     let failed = 0;
 
-    // Process cards with 2-second delay between each call (consistent with other functions)
-    // This ensures we stay within the 5k/day rate limit
+    // Process cards with 2-second delay between each call
     for (let i = 0; i < topCards.length; i++) {
       const card = topCards[i];
       
       try {
         await refreshCardPricing(supabase, card);
         refreshed++;
-        console.log(`[REFRESH-TOP-CARDS] Refreshed ${refreshed}/${topCards.length}: ${card.card_key}`);
+        
+        if (i % 10 === 0) {
+          console.log(`[REFRESH-TOP-CARDS] Progress: ${refreshed}/${topCards.length} cards`);
+        }
       } catch (error) {
         failed++;
-        console.error(`[REFRESH-TOP-CARDS] Failed to refresh ${card.card_key}:`, error);
+        console.error(`[REFRESH-TOP-CARDS] Failed ${card.card_key}:`, error);
       }
       
-      // Rate limit: 2 seconds between cards (stay within 5k/day limit)
+      // Rate limit: 2 seconds between cards
       if (i < topCards.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
-    console.log(`[REFRESH-TOP-CARDS] Complete: ${refreshed} refreshed, ${failed} failed`);
+    // Update tracker
+    await supabase
+      .from('cache_refresh_tracker')
+      .update({
+        last_batch_start: nextStart,
+        last_run_at: new Date().toISOString(),
+        total_cards_refreshed: (tracker?.total_cards_refreshed || 0) + refreshed
+      })
+      .eq('id', tracker?.id);
+
+    console.log(`[REFRESH-TOP-CARDS] Complete: ${refreshed} refreshed, ${failed} failed. Next batch starts at ${nextStart}`);
 
     return new Response(
       JSON.stringify({ 
@@ -68,16 +98,18 @@ Deno.serve(async (req) => {
         refreshed,
         failed,
         batchInfo: {
-          startIndex,
-          limit,
-          processed: topCards.length
+          currentStart,
+          nextStart,
+          processed: topCards.length,
+          totalCardsInCache: allTopCards.length,
+          totalRefreshed: (tracker?.total_cards_refreshed || 0) + refreshed
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('[REFRESH-TOP-CARDS] Error:', error);
+    console.error('[REFRESH-TOP-CARDS] Fatal error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
