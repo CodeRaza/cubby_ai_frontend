@@ -139,14 +139,15 @@ serve(async (req) => {
           ? totalPrice / recentSales.length 
           : null;
 
-        // Delete old sales data for this card to ensure fresh data
+        // Always delete old sales data for this card, even if we don't have new data yet
+        // This prevents stale/fake data from persisting
+        await supabase
+          .from('price_history')
+          .delete()
+          .eq('card_id', job.card_details_id);
+
+        // Insert new sales data if we have any
         if (recentSales.length > 0) {
-          await supabase
-            .from('price_history')
-            .delete()
-            .eq('card_id', job.card_details_id);
-          
-          // Insert new sales data
           await supabase.from('price_history').insert(recentSales);
         }
 
