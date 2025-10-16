@@ -14,6 +14,7 @@ import { PriceTrend } from "@/components/PriceTrend";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { RecentSales } from "@/components/RecentSales";
 import { PriceAlertDialog } from "@/components/PriceAlertDialog";
+import { PricingDataSource } from "@/components/PricingDataSource";
 import { RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -687,13 +688,20 @@ const ItemDetail = () => {
                               if (data?.queued) {
                                 toast({
                                   title: "Update queued",
-                                  description: "Pricing update is processing. Refresh in a few minutes for live data from eBay.",
+                                  description: "Your card has been prioritized for live eBay pricing. Check back in a few minutes.",
                                   duration: 5000
                                 });
                               } else if (data?.cached) {
                                 toast({
                                   title: "Using cached data",
                                   description: `Latest pricing from ${data.cacheAge} hours ago`,
+                                });
+                              } else if (data?.error || data?.status === 'failed') {
+                                toast({
+                                  title: "eBay data unavailable",
+                                  description: "Using estimated pricing based on card attributes. Try again later for live market data.",
+                                  variant: "destructive",
+                                  duration: 7000
                                 });
                               } else {
                                 toast({
@@ -724,6 +732,14 @@ const ItemDetail = () => {
                       <PriceAlertDialog cardId={item.card_details.id!} />
                     </div>
                   </div>
+                  
+                  {/* Data Source Indicator */}
+                  <PricingDataSource
+                    hasSalesData={hasSalesData}
+                    lastPriceUpdate={item.card_details.last_price_update}
+                    isQueued={!!queueStatus}
+                    queueStatus={queueStatus}
+                  />
                   
                   {item.card_details.estimated_value > 0 ? (
                     <>
