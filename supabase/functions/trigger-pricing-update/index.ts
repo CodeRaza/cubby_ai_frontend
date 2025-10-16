@@ -55,6 +55,13 @@ Deno.serve(async (req) => {
 
     console.log(`[TRIGGER-PRICING] Card key: ${cardKey}`);
 
+    // Delete any existing pending jobs for this card to avoid duplicates
+    await supabaseClient
+      .from('pricing_queue')
+      .delete()
+      .eq('card_details_id', cardDetailsId)
+      .eq('status', 'pending');
+
     // Add to pricing queue with high priority
     const { data: queueData, error: queueError } = await supabaseClient
       .from('pricing_queue')
