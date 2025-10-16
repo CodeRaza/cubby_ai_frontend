@@ -139,8 +139,14 @@ serve(async (req) => {
           ? totalPrice / recentSales.length 
           : null;
 
-        // Insert sales data
+        // Delete old sales data for this card to ensure fresh data
         if (recentSales.length > 0) {
+          await supabase
+            .from('price_history')
+            .delete()
+            .eq('card_id', job.card_details_id);
+          
+          // Insert new sales data
           await supabase.from('price_history').insert(recentSales);
         }
 
