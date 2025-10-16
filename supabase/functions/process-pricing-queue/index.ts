@@ -9,8 +9,8 @@ const corsHeaders = {
 const EBAY_APP_ID = Deno.env.get('EBAY_APP_ID');
 const EBAY_SANDBOX = false;
 const BATCH_SIZE = 100; // Process up to 100 cards per daily run
-const DAILY_CALL_LIMIT = 400; // Sandbox limit (~500, we use 400 to be safe)
-const DAILY_CALL_THRESHOLD = 0.9; // Stop at 90% of daily limit (360 calls)
+const DAILY_CALL_LIMIT = 5000; // Production API limit
+const DAILY_CALL_THRESHOLD = 0.9; // Stop at 90% of daily limit (4,500 calls)
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
