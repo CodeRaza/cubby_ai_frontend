@@ -79,27 +79,24 @@ Deno.serve(async (req) => {
 
     console.log(`[TRIGGER-PRICING] Added to queue: ${queueData.id}`);
 
-    // Immediately invoke the pricing processor
-    console.log(`[TRIGGER-PRICING] Invoking pricing processor...`);
-    
-    const { data: processorData, error: processorError } = await supabaseClient.functions.invoke(
-      'process-pricing-queue',
-      { body: { force: true } }
-    );
+    // Start the processor in the background (don't wait for it)
+    console.log(`[TRIGGER-PRICING] Starting pricing processor in background...`);
+    supabaseClient.functions.invoke('process-pricing-queue', { body: { force: true } })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error(`[TRIGGER-PRICING] Processor error:`, error);
+        } else {
+          console.log(`[TRIGGER-PRICING] Processor completed:`, data);
+        }
+      });
 
-    if (processorError) {
-      console.error(`[TRIGGER-PRICING] Processor error:`, processorError);
-    } else {
-      console.log(`[TRIGGER-PRICING] Processor result:`, processorData);
-    }
-
+    // Return immediately
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Pricing update triggered',
+        message: 'Pricing update queued - processor running in background',
         queueId: queueData.id,
-        cardKey: cardKey,
-        processorResult: processorData
+        cardKey: cardKey
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

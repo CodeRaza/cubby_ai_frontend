@@ -72,23 +72,25 @@ export default function ApiUsage() {
   };
 
   const triggerTestPricing = async () => {
+    const toastId = toast.loading("Triggering pricing update...");
+    
     try {
-      toast.loading("Triggering pricing update...");
-      
       const { data, error } = await supabase.functions.invoke('trigger-pricing-update', {
         body: { cardDetailsId: '51da81bc-9ac7-4d72-8bd5-e681098d0a4a' } // Junior Caminero card
       });
 
       if (error) throw error;
 
-      toast.success("Pricing update triggered! Refreshing data in 5 seconds...");
+      toast.dismiss(toastId);
+      toast.success("Pricing update queued! Check back in ~30 seconds for results.");
       
-      // Wait and refresh
+      // Refresh data after a delay to show the new API call
       setTimeout(() => {
         fetchData(true);
-      }, 5000);
+      }, 30000); // 30 seconds to allow processing
     } catch (error) {
       console.error("Error triggering pricing:", error);
+      toast.dismiss(toastId);
       toast.error("Failed to trigger pricing update");
     }
   };
