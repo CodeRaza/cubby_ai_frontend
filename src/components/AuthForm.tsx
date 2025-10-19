@@ -68,21 +68,21 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
   };
 
   return (
-    <Card className="w-full max-w-md shadow-lg">
-      <CardHeader className="space-y-2">
-        <CardTitle className="text-2xl font-bold">
+    <Card className="w-full max-w-md card-shadow border-border/50 backdrop-blur-sm bg-card/95">
+      <CardHeader className="space-y-3 pb-6">
+        <CardTitle className="text-3xl font-bold text-center bg-gradient-primary bg-clip-text text-transparent">
           {isLogin ? "Welcome back" : "Create account"}
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-center text-base">
           {isLogin
             ? "Sign in to access your inventory"
             : "Sign up to start cataloging your items"}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleAuth} className="space-y-4">
+        <form onSubmit={handleAuth} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium">Email</Label>
             <Input
               id="email"
               type="email"
@@ -91,10 +91,11 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              className="h-11 transition-all focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
             <Input
               id="password"
               type="password"
@@ -104,26 +105,41 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
               required
               disabled={loading}
               minLength={6}
+              className="h-11 transition-all focus:ring-2 focus:ring-primary/20"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button 
+            type="submit" 
+            className="w-full h-11 font-semibold shadow-lg hover:shadow-xl transition-all" 
+            disabled={loading}
+          >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isLogin ? "Sign in" : "Create account"}
           </Button>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or</span>
+            </div>
+          </div>
+          
           <Button
             type="button"
-            variant="ghost"
-            className="w-full"
+            variant="outline"
+            className="w-full h-11 transition-all hover:bg-muted/50"
             onClick={() => setIsLogin(!isLogin)}
             disabled={loading}
           >
             {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
           </Button>
           {isLogin && (
-            <div className="text-center">
+            <div className="text-center pt-2">
               <Link 
                 to="/reset-password" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
               >
                 Forgot password?
               </Link>

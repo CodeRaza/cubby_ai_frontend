@@ -72,27 +72,42 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
-      <div className="text-center mb-8 space-y-4">
-        <div className="inline-flex items-center justify-center w-32 h-32 rounded-3xl">
-          <img src={cubbyLogo} alt="Cubby" className="w-full h-full object-contain drop-shadow-lg" />
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden p-4">
+      {/* Animated background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/20 to-background" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,hsl(var(--primary)/0.05),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,hsl(var(--accent)/0.05),transparent_50%)]" />
+      
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md animate-fade-in-up">
+        <div className="text-center mb-8 space-y-6">
+          <div className="inline-flex items-center justify-center w-40 h-40 animate-float">
+            <img 
+              src={cubbyLogo} 
+              alt="Cubby" 
+              className="w-full h-full object-contain drop-shadow-2xl" 
+            />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              {source === 'sports-cards' ? 'Cubby for Collectors' : 'Cubby'}
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              {source === 'sports-cards' 
+                ? 'Catalog and track your card collection with AI'
+                : 'Your smart home inventory'
+              }
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            {source === 'sports-cards' ? 'Cubby for Collectors' : 'Cubby'}
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            {source === 'sports-cards' 
-              ? 'Catalog and track your card collection with AI'
-              : 'Your smart home inventory'
-            }
-          </p>
+        
+        <div className="animate-scale-in">
+          <AuthForm 
+            onSuccess={handleSuccess} 
+            defaultMode={searchParams.get('mode') === 'signup' ? 'signup' : 'login'}
+          />
         </div>
       </div>
-      <AuthForm 
-        onSuccess={handleSuccess} 
-        defaultMode={searchParams.get('mode') === 'signup' ? 'signup' : 'login'}
-      />
     </div>
   );
 };
