@@ -12,11 +12,14 @@ interface CardDetails {
   set_name: string;
   sport: string;
   card_number: string;
+  parallel_name: string;
   condition: string;
   is_graded: boolean;
   grading_company: string;
   grade: string;
+  cert_number?: string;
   estimated_value: string;
+  price_source?: string;
   special_attributes: string[];
 }
 
@@ -123,6 +126,26 @@ export const CardDetailsForm = ({ details, onChange, isQueued }: CardDetailsForm
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="parallel_name">Parallel/Insert Name</Label>
+          <Input
+            id="parallel_name"
+            value={details.parallel_name || ''}
+            onChange={(e) => updateField('parallel_name', e.target.value)}
+            placeholder="e.g., Lazer Prizm, Refractor, Stained Glass"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="cert_number">Certification Number</Label>
+          <Input
+            id="cert_number"
+            value={details.cert_number || ''}
+            onChange={(e) => updateField('cert_number', e.target.value)}
+            placeholder="e.g., 12345678"
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="condition">Condition</Label>
           <Select value={details.condition} onValueChange={(value) => updateField('condition', value)}>
             <SelectTrigger>
@@ -210,7 +233,7 @@ export const CardDetailsForm = ({ details, onChange, isQueued }: CardDetailsForm
       {/* Estimated Value */}
       <div className="space-y-2 pt-2 border-t">
         <div className="flex items-center gap-2">
-          <Label htmlFor="estimated_value">Estimated Value ($)</Label>
+          <Label htmlFor="estimated_value">Market Price ($)</Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -218,7 +241,7 @@ export const CardDetailsForm = ({ details, onChange, isQueued }: CardDetailsForm
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p className="text-sm">
-                  Auto-calculated from recent eBay sales or enter your own value. Based on average of last 10 sold listings for similar cards.
+                  Current market price from recent sales on eBay, 130point, PSA.com, or other sources. Enter manually if needed.
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -234,14 +257,19 @@ export const CardDetailsForm = ({ details, onChange, isQueued }: CardDetailsForm
           step="0.01"
           disabled={isQueued}
         />
-        {isQueued && (
-          <p className="text-xs text-muted-foreground animate-pulse">
-            Fetching latest market data from eBay...
+        {details.price_source && (
+          <p className="text-xs text-muted-foreground">
+            Source: {details.price_source}
           </p>
         )}
-        {!isQueued && (
+        {isQueued && !details.price_source && (
+          <p className="text-xs text-muted-foreground animate-pulse">
+            Searching for latest market price...
+          </p>
+        )}
+        {!isQueued && !details.price_source && (
           <p className="text-xs text-muted-foreground">
-            Auto-calculated from market sales or enter manually
+            Auto-calculated from market sales (eBay, 130point, PSA.com) or enter manually
           </p>
         )}
       </div>

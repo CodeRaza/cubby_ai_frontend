@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Crown, Shield, Settings as SettingsIcon, LogOut, TrendingUp, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { PWAInstallButton } from "@/components/PWAInstallButton";
+import { useAuth } from "@/lib/auth";
+import api from "@/lib/axios";
 
 interface DashboardHeaderProps {
   source: string;
@@ -13,6 +14,7 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ source, isAdmin, planName }: DashboardHeaderProps) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [watchlistCount, setWatchlistCount] = useState(0);
 
   useEffect(() => {
@@ -22,19 +24,20 @@ export const DashboardHeader = ({ source, isAdmin, planName }: DashboardHeaderPr
   }, [source]);
 
   const loadWatchlistCount = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { count } = await supabase
-      .from('watchlist')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
-
-    setWatchlistCount(count || 0);
+    try {
+      // TODO: Replace with Django watchlist API endpoint when available
+      // For now, set to 0 or fetch from a future endpoint like:
+      // const response = await api.get('/api/market/watchlist/count/');
+      // setWatchlistCount(response.data.count || 0);
+      setWatchlistCount(0);
+    } catch (error) {
+      console.error('Error loading watchlist count:', error);
+      setWatchlistCount(0);
+    }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    logout();
     navigate("/auth");
   };
 

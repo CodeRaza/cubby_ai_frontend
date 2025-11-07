@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ const passwordSchema = z.string().min(6, "Password must be at least 6 characters
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user: authUser, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState("");
@@ -41,32 +43,32 @@ const Settings = () => {
   const [supportType, setSupportType] = useState<"feature" | "support">("feature");
 
   useEffect(() => {
-    checkUser();
-    loadSubscription();
-  }, []);
-
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    if (!authUser) {
       navigate("/auth");
       return;
     }
-    setUser(user);
-    setEmail(user.email || "");
+    checkUser();
+    loadSubscription();
+  }, [authUser, navigate]);
+
+  const checkUser = async () => {
+    try {
+      const response = await api.get('/api/auth/profile/');
+      setUser(response.data);
+      setEmail(response.data.email || "");
+    } catch (error: any) {
+      console.error('Error loading user:', error);
+      if (error.response?.status === 401) {
+        navigate("/auth");
+      }
+    }
   };
 
   const loadSubscription = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: subData } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      setSubscription(subData);
+      // TODO: Replace with Django subscription endpoint when available
+      // For now, subscription features are disabled
+      setSubscription(null);
     } catch (error: any) {
       console.error('Error loading subscription:', error);
     }
@@ -75,13 +77,11 @@ const Settings = () => {
   const handleManageSubscription = async () => {
     setLoadingPortal(true);
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
+      // TODO: Replace with Django subscription management endpoint
+      toast({
+        title: "Coming soon",
+        description: "Subscription management will be available soon.",
+      });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -100,15 +100,14 @@ const Settings = () => {
     try {
       emailSchema.parse(email);
 
-      const { error } = await supabase.auth.updateUser({
-        email: email,
+      const response = await api.patch('/api/auth/profile/', {
+        email: email
       });
-
-      if (error) throw error;
-
+      
+      setUser(response.data);
       toast({
-        title: "Email update requested",
-        description: "Check your new email for a confirmation link.",
+        title: "Email updated",
+        description: "Your email address has been updated successfully.",
       });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -118,9 +117,10 @@ const Settings = () => {
           variant: "destructive",
         });
       } else {
+        const errorMessage = error?.response?.data?.error || error?.response?.data?.detail || error?.message || "Failed to update email";
         toast({
           title: "Error",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -140,15 +140,14 @@ const Settings = () => {
         throw new Error("Passwords do not match");
       }
 
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
+      await api.post('/api/auth/profile/password/change/', {
+        new_password: newPassword,
+        confirm_password: confirmPassword
       });
-
-      if (error) throw error;
 
       toast({
         title: "Password updated",
-        description: "Your password has been successfully changed.",
+        description: "Your password has been updated successfully.",
       });
 
       setCurrentPassword("");
@@ -162,9 +161,10 @@ const Settings = () => {
           variant: "destructive",
         });
       } else {
+        const errorMessage = error?.response?.data?.error || error?.response?.data?.detail || error?.message || "Failed to update password";
         toast({
           title: "Error",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -175,24 +175,28 @@ const Settings = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      // Note: Supabase doesn't have a direct API to delete users from client side
-      // This would typically require an edge function with admin privileges
+      await api.post('/api/auth/profile/delete/');
+      
       toast({
-        title: "Account deletion",
-        description: "Please contact support to delete your account.",
-        variant: "destructive",
+        title: "Account deleted",
+        description: "Your account has been permanently deleted.",
       });
+      
+      // Logout and redirect
+      logout();
+      navigate("/auth");
     } catch (error: any) {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.detail || error?.message || "Failed to delete account";
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     }
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    logout();
     navigate("/auth");
   };
 
@@ -205,17 +209,14 @@ const Settings = () => {
         throw new Error("Please enter a message");
       }
 
-      // Save to database
-      const { error } = await supabase
-        .from('support_requests')
-        .insert({
-          user_id: user.id,
-          type: supportType,
-          message: supportMessage.trim(),
-          user_email: user.email,
-        });
+      if (supportMessage.length > 1000) {
+        throw new Error("Message must be 1000 characters or less");
+      }
 
-      if (error) throw error;
+      await api.post('/api/auth/support/request/', {
+        type: supportType,
+        message: supportMessage.trim()
+      });
 
       toast({
         title: "Request submitted",
@@ -224,9 +225,10 @@ const Settings = () => {
 
       setSupportMessage("");
     } catch (error: any) {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.detail || error?.message || "Failed to submit request";
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -252,7 +254,7 @@ const Settings = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-2xl space-y-6">
         {/* Subscription Management */}
-        {subscription && subscription.plan_tier !== 'free' && (
+        {subscription && subscription.plan_tier && subscription.plan_tier !== 'free' && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -273,8 +275,8 @@ const Settings = () => {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {subscription.status === 'active' ? 'Active' : subscription.status}
-                    {subscription.current_period_end && ` until ${new Date(subscription.current_period_end).toLocaleDateString()}`}
+                    {subscription.subscribed ? 'Active' : 'Inactive'}
+                    {subscription.subscription_end && ` until ${new Date(subscription.subscription_end).toLocaleDateString()}`}
                   </p>
                 </div>
               </div>

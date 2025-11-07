@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/axios";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
@@ -16,6 +16,7 @@ const passwordSchema = z
 
 const UpdatePassword = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,10 +24,12 @@ const UpdatePassword = () => {
   const [validSession, setValidSession] = useState(false);
 
   useEffect(() => {
-    // Check if user has a valid recovery session
+    // Check if user has a valid token or reset token
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      const token = localStorage.getItem('access_token');
+      const resetToken = searchParams.get('token');
+      
+      if (token || resetToken) {
         setValidSession(true);
       } else {
         toast({
@@ -38,7 +41,7 @@ const UpdatePassword = () => {
       }
     };
     checkSession();
-  }, [navigate, toast]);
+  }, [navigate, toast, searchParams]);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,18 +55,38 @@ const UpdatePassword = () => {
         throw new Error("Passwords do not match");
       }
 
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Password updated!",
-        description: "Your password has been successfully updated.",
-      });
-
-      navigate("/auth");
+      const resetToken = searchParams.get('token');
+      const uid = searchParams.get('uid');
+      
+      if (resetToken && uid) {
+        // Password reset flow
+        await api.post('/api/auth/password/reset/confirm/', {
+          uid: uid,
+          token: resetToken,
+          new_password: password,
+          confirm_password: confirmPassword
+        });
+        
+        toast({
+          title: "Password reset",
+          description: "Your password has been reset successfully. Please log in with your new password.",
+        });
+        
+        setTimeout(() => navigate("/auth"), 2000);
+      } else {
+        // Regular password change (requires authentication)
+        await api.post('/api/auth/profile/password/change/', {
+          new_password: password,
+          confirm_password: confirmPassword
+        });
+        
+        toast({
+          title: "Password updated",
+          description: "Your password has been updated successfully.",
+        });
+        
+        setTimeout(() => navigate("/dashboard"), 2000);
+      }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({

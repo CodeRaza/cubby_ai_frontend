@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Calendar, Package, Trash2, Pencil, DollarSign, TrendingUp, TrendingDown, Info } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/axios";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import { CardDetailsForm } from "@/components/CardDetailsForm";
@@ -76,11 +76,14 @@ interface ItemDetails {
     set_name: string;
     sport: string;
     card_number: string;
+    parallel_name: string;
     condition: string;
     is_graded: boolean;
     grading_company: string;
     grade: number;
+    cert_number: string;
     estimated_value: number;
+    price_source?: string;
     special_attributes: string[];
     price_trend_7d?: number;
     price_trend_30d?: number;
@@ -120,22 +123,59 @@ const ItemDetail = () => {
 
   const loadItem = async () => {
     try {
-      const { data, error } = await supabase
-        .from("items")
-        .select(`
-          *,
-          location:locations(name),
-          detections(label, confidence, bbox_x, bbox_y, bbox_width, bbox_height),
-          card_details(id, player_name, card_year, brand, set_name, sport, card_number, condition, is_graded, grading_company, grade, estimated_value, special_attributes, price_trend_7d, price_trend_30d, last_sale_price, last_sale_date, last_price_update)
-        `)
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-      setItem(data);
+      const response = await api.get(`/api/cards/cards/${id}/`);
+      const data = response.data;
+      
+      // Debug: Log the API response to see if card_details is included
+      console.log('ItemDetail: API Response:', data);
+      console.log('ItemDetail: card_details:', data.card_details);
+      
+      // Transform Django API response to match expected format
+      const transformedData: ItemDetails = {
+        id: data.id,
+        name: data.name,
+        category: null, // Card model doesn't have category
+        quantity: 1, // Cards are always quantity 1
+        acquired_date: data.acquired_date || null,
+        cost: data.cost ? parseFloat(data.cost) : null,
+        sold: data.sold || false,
+        sold_price: data.sold_price ? parseFloat(data.sold_price) : null,
+        sold_date: data.sold_date || null,
+        image_url: data.image_url || null,
+        back_image_url: data.back_image_url || null,
+        created_at: data.created_at || new Date().toISOString(),
+        source_context: 'sports-cards', // Assume sports cards for now
+        location: data.collection_name ? { name: data.collection_name } : null,
+        detections: [], // Detections not stored separately in Django
+        card_details: data.card_details ? {
+          id: data.card_details.id?.toString(),
+          player_name: data.card_details.player_name || '',
+          card_year: data.card_details.card_year || null,
+          brand: data.card_details.brand || '',
+          set_name: data.card_details.set_name || '',
+          sport: data.card_details.sport || '',
+          card_number: data.card_details.card_number || '',
+          parallel_name: data.card_details.parallel_name || '',
+          condition: data.card_details.condition || '',
+          is_graded: data.card_details.is_graded || false,
+          grading_company: data.card_details.grading_company || '',
+          grade: data.card_details.grade ? parseFloat(data.card_details.grade) : null,
+          cert_number: data.card_details.cert_number || '',
+          estimated_value: data.card_details.estimated_value ? parseFloat(data.card_details.estimated_value) : 0,
+          price_source: data.card_details.price_source || '',
+          special_attributes: data.card_details.special_attributes || [],
+          price_trend_7d: data.card_details.price_trend_7d || null,
+          price_trend_30d: data.card_details.price_trend_30d || null,
+          last_sale_price: data.card_details.last_sale_price ? parseFloat(data.card_details.last_sale_price) : null,
+          last_sale_date: data.card_details.last_sale_date || null,
+          last_price_update: data.card_details.last_price_update || null,
+        } : undefined
+      };
+      
+      setItem(transformedData);
       setEditedName(data.name);
-      setEditedCategory(data.category || "");
-      setEditedQuantity(data.quantity);
+      setEditedCategory(""); // No category field
+      setEditedQuantity(1);
       setEditedAcquiredDate(data.acquired_date || "");
       setEditedCost(data.cost?.toString() || "");
       setSold(data.sold || false);
@@ -151,29 +191,31 @@ const ItemDetail = () => {
           set_name: data.card_details.set_name || '',
           sport: data.card_details.sport || '',
           card_number: data.card_details.card_number || '',
+          parallel_name: data.card_details.parallel_name || '',
           condition: data.card_details.condition || '',
           is_graded: data.card_details.is_graded || false,
           grading_company: data.card_details.grading_company || '',
-          grade: data.card_details.grade?.toString() || '',
-          estimated_value: data.card_details.estimated_value?.toString() || '',
+          grade: data.card_details.grade ? String(data.card_details.grade) : '',
+          cert_number: data.card_details.cert_number || '',
+          estimated_value: data.card_details.estimated_value ? String(data.card_details.estimated_value) : '',
+          price_source: data.card_details.price_source || '',
           special_attributes: data.card_details.special_attributes || []
         });
         
-        // Check if we have actual sales data
+        // Check if we have price history data
         if (data.card_details.id) {
-          const { data: salesData } = await supabase
-            .from('price_history')
-            .select('id')
-            .eq('card_id', data.card_details.id)
-            .limit(1);
-          
-          setHasSalesData(salesData && salesData.length > 0);
+          try {
+            const historyResponse = await api.get(`/api/cards/cards/${id}/price/history/`);
+            setHasSalesData(historyResponse.data && historyResponse.data.length > 0);
+          } catch {
+            setHasSalesData(false);
+          }
         }
       }
     } catch (error: any) {
       toast({
         title: "Error loading item",
-        description: error.message,
+        description: error?.response?.data?.detail || error?.message || "Failed to load card",
         variant: "destructive",
       });
       navigate("/dashboard");
@@ -184,52 +226,57 @@ const ItemDetail = () => {
 
   const handleUpdate = async () => {
     try {
-      const { error } = await supabase
-        .from("items")
-        .update({
-          name: editedName,
-          category: editedCategory || null,
-          quantity: editedQuantity,
-          acquired_date: editedAcquiredDate || null,
-          cost: editedCost ? parseFloat(editedCost) : null,
-          sold: sold,
-          sold_price: soldPrice ? parseFloat(soldPrice) : null,
-          sold_date: soldDate || null,
-        })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      // Update card details if they exist
+      // Prepare update data
+      const updateData: any = {
+        name: editedName,
+        acquired_date: editedAcquiredDate || null,
+        cost: editedCost ? parseFloat(editedCost) : 0,
+        sold: sold,
+        sold_price: soldPrice ? parseFloat(soldPrice) : null,
+        sold_date: soldDate || null,
+      };
+      
+      // Include card_details_data if card details exist
       if (editedCardDetails && item?.card_details) {
-        const { error: cardError } = await supabase
-          .from("card_details")
-          .update({
-            player_name: editedCardDetails.player_name || null,
-            card_year: editedCardDetails.card_year ? parseInt(editedCardDetails.card_year) : null,
-            brand: editedCardDetails.brand || null,
-            set_name: editedCardDetails.set_name || null,
-            sport: editedCardDetails.sport || null,
-            card_number: editedCardDetails.card_number || null,
-            condition: editedCardDetails.condition || null,
-            is_graded: editedCardDetails.is_graded,
-            grading_company: editedCardDetails.is_graded ? editedCardDetails.grading_company : null,
-            grade: editedCardDetails.is_graded && editedCardDetails.grade ? parseFloat(editedCardDetails.grade) : null,
-            estimated_value: editedCardDetails.estimated_value ? parseFloat(editedCardDetails.estimated_value) : null,
-            special_attributes: editedCardDetails.special_attributes,
-          })
-          .eq("item_id", id);
-
-        if (cardError) throw cardError;
+        updateData.card_details_data = {
+          player_name: editedCardDetails.player_name || '',
+          card_year: editedCardDetails.card_year ? parseInt(editedCardDetails.card_year) : null,
+          brand: editedCardDetails.brand || '',
+          set_name: editedCardDetails.set_name || '',
+          sport: editedCardDetails.sport || '',
+          card_number: editedCardDetails.card_number || '',
+          parallel_name: editedCardDetails.parallel_name || '',
+          condition: editedCardDetails.condition || '',
+          is_graded: editedCardDetails.is_graded || false,
+          grading_company: editedCardDetails.grading_company || '',
+          grade: editedCardDetails.grade || '',
+          cert_number: editedCardDetails.cert_number || '',
+          estimated_value: editedCardDetails.estimated_value ? parseFloat(editedCardDetails.estimated_value) : 0,
+          price_source: editedCardDetails.price_source || '',
+          special_attributes: editedCardDetails.special_attributes || [],
+        };
       }
-
+      
+      await api.patch(`/api/cards/cards/${id}/`, updateData);
+      
+      // Invalidate dashboard and subscription queries for real-time update
+      queryClient.invalidateQueries({ queryKey: ['dashboard-locations'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-card-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['collection-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-status'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-usage'] });
+      
+      toast({
+        title: "Success",
+        description: "Card updated successfully",
+      });
       
       setEditDialogOpen(false);
       loadItem();
     } catch (error: any) {
       toast({
-        title: "Error updating item",
-        description: error.message,
+        title: "Error updating card",
+        description: error?.response?.data?.detail || error?.message || "Failed to update card",
         variant: "destructive",
       });
     }
@@ -237,15 +284,25 @@ const ItemDetail = () => {
 
   const handleDelete = async () => {
     try {
-      const { error } = await supabase.from("items").delete().eq("id", id);
-      if (error) throw error;
-
+      await api.delete(`/api/cards/cards/${id}/`);
+      
+      // Invalidate dashboard and subscription queries for real-time update
+      queryClient.invalidateQueries({ queryKey: ['dashboard-locations'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-card-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['collection-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-status'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-usage'] });
+      
+      toast({
+        title: "Success",
+        description: "Card deleted successfully",
+      });
       
       navigate("/dashboard");
     } catch (error: any) {
       toast({
-        title: "Error deleting item",
-        description: error.message,
+        title: "Error deleting card",
+        description: error?.response?.data?.detail || error?.message || "Failed to delete card",
         variant: "destructive",
       });
     }
@@ -530,10 +587,10 @@ const ItemDetail = () => {
                 </div>
               )}
 
-              {item.cost && (
+              {item.cost !== null && item.cost !== undefined && (
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <DollarSign className="h-5 w-5" />
-                  <span>Cost: ${item.cost.toFixed(2)}</span>
+                  <span>Cost: ${item.cost ? item.cost.toFixed(2) : 'Unknown'}</span>
                 </div>
               )}
 
@@ -675,51 +732,39 @@ const ItemDetail = () => {
                                 description: "Fetching latest market data"
                               });
                               
-                              const { data, error } = await supabase.functions.invoke('fetch-card-pricing', {
-                                body: { 
-                                  cardId: item.card_details?.id,
-                                  cardDetails: item.card_details,
-                                  force_refresh: true
+                              // Trigger pricing refresh via Django API
+                              try {
+                                const response = await api.post(`/api/cards/cards/${id}/price/refresh/`);
+                                
+                                if (response.data.status === 'queued' || response.data.status === 'processing') {
+                                  toast({
+                                    title: "Update queued",
+                                    description: "Your card has been prioritized for live eBay pricing. Check back in a few minutes.",
+                                    duration: 5000
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Update started",
+                                    description: "Pricing update initiated",
+                                  });
                                 }
-                              });
-                              
-                              if (error) throw error;
-
-                              if (data?.queued) {
+                                // Reload item to get updated pricing
+                                loadItem();
+                              } catch (error: any) {
                                 toast({
-                                  title: "Update queued",
-                                  description: "Your card has been prioritized for live eBay pricing. Check back in a few minutes.",
-                                  duration: 5000
-                                });
-                              } else if (data?.cached) {
-                                toast({
-                                  title: "Using cached data",
-                                  description: `Latest pricing from ${data.cacheAge} hours ago`,
-                                });
-                              } else if (data?.error || data?.status === 'failed') {
-                                toast({
-                                  title: "eBay data unavailable",
-                                  description: "Using estimated pricing based on card attributes. Try again later for live market data.",
+                                  title: "Error",
+                                  description: error?.response?.data?.detail || "Failed to trigger pricing update",
                                   variant: "destructive",
-                                  duration: 7000
-                                });
-                              } else {
-                                toast({
-                                  title: "Data updated",
-                                  description: "Latest pricing loaded"
                                 });
                               }
                               
                               // Invalidate recent sales query to refresh the component
                               queryClient.invalidateQueries({ queryKey: ['recent-sales', item.card_details?.id] });
-                              
-                              // Refresh to check for sales data
-                              loadItem();
                             } catch (error: any) {
                               toast({
-                                title: "Error refreshing pricing",
-                                description: error.message,
-                                variant: "destructive"
+                                title: "Error",
+                                description: error?.response?.data?.detail || error?.message || "Failed to refresh pricing",
+                                variant: "destructive",
                               });
                             }
                           }}
@@ -741,7 +786,9 @@ const ItemDetail = () => {
                     queueStatus={queueStatus}
                   />
                   
-                  {item.card_details.estimated_value > 0 ? (
+                  {item.card_details && (
+                    <>
+                      {item.card_details.estimated_value > 0 ? (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className={`${
@@ -880,29 +927,35 @@ const ItemDetail = () => {
                                 description: "Searching eBay for recent sales"
                               });
                               
-                              const { data, error } = await supabase.functions.invoke('fetch-card-pricing', {
-                                body: { 
-                                  cardId: item.card_details?.id,
-                                  cardDetails: item.card_details,
-                                  force_refresh: true
+                              // Trigger pricing refresh via Django API
+                              try {
+                                const response = await api.post(`/api/cards/cards/${id}/price/refresh/`);
+                                
+                                if (response.data.status === 'queued' || response.data.status === 'processing') {
+                                  toast({
+                                    title: "Update queued",
+                                    description: "Pricing is processing. Check back in a few minutes.",
+                                    duration: 5000
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Update started",
+                                    description: "Pricing update initiated",
+                                  });
                                 }
-                              });
-                              
-                              if (error) throw error;
-
-                              if (data?.queued) {
+                                // Reload item to get updated pricing
+                                loadItem();
+                              } catch (error: any) {
                                 toast({
-                                  title: "Update queued",
-                                  description: "Pricing is processing. Check back in a few minutes.",
-                                  duration: 5000
+                                  title: "Error",
+                                  description: error?.response?.data?.detail || "Failed to trigger pricing update",
+                                  variant: "destructive",
                                 });
                               }
-                              
-                              loadItem();
                             } catch (error: any) {
                               toast({
                                 title: "Error",
-                                description: error.message,
+                                description: error?.response?.data?.detail || error?.message || "Failed to refresh pricing",
                                 variant: "destructive"
                               });
                             }
@@ -914,7 +967,9 @@ const ItemDetail = () => {
                         </Button>
                       </CardContent>
                     </Card>
-                   )}
+                  )}
+                </>
+                  )}
                 </div>
                 
                 {/* Price History Charts */}
@@ -943,68 +998,70 @@ const ItemDetail = () => {
                   <h3 className="font-semibold text-lg">Card Details</h3>
                   <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
                     <div className="grid grid-cols-2 gap-4">
-                      {item.card_details.player_name && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Player</p>
+                        <p className="font-medium">{item.card_details.player_name || <span className="text-muted-foreground italic">Not available</span>}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Year</p>
+                        <p className="font-medium">{item.card_details.card_year || <span className="text-muted-foreground italic">Not available</span>}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Brand</p>
+                        <p className="font-medium">{item.card_details.brand || <span className="text-muted-foreground italic">Not available</span>}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Set</p>
+                        <p className="font-medium">{item.card_details.set_name || <span className="text-muted-foreground italic">Not available</span>}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Sport</p>
+                        <p className="font-medium">{item.card_details.sport || <span className="text-muted-foreground italic">Not available</span>}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Card #</p>
+                        <p className="font-medium">{item.card_details.card_number || <span className="text-muted-foreground italic">Not available</span>}</p>
+                      </div>
+                      {item.card_details.parallel_name && (
                         <div>
-                          <p className="text-sm text-muted-foreground">Player</p>
-                          <p className="font-medium">{item.card_details.player_name}</p>
+                          <p className="text-sm text-muted-foreground">Parallel/Insert</p>
+                          <p className="font-medium">{item.card_details.parallel_name}</p>
                         </div>
                       )}
-                      {item.card_details.card_year && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Year</p>
-                          <p className="font-medium">{item.card_details.card_year}</p>
-                        </div>
-                      )}
-                      {item.card_details.brand && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Brand</p>
-                          <p className="font-medium">{item.card_details.brand}</p>
-                        </div>
-                      )}
-                      {item.card_details.set_name && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Set</p>
-                          <p className="font-medium">{item.card_details.set_name}</p>
-                        </div>
-                      )}
-                      {item.card_details.sport && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Sport</p>
-                          <p className="font-medium">{item.card_details.sport}</p>
-                        </div>
-                      )}
-                      {item.card_details.card_number && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Card #</p>
-                          <p className="font-medium">{item.card_details.card_number}</p>
-                        </div>
-                      )}
-                      {item.card_details.condition && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Condition</p>
-                          <p className="font-medium">{item.card_details.condition}</p>
-                        </div>
-                      )}
+                      <div>
+                        <p className="text-sm text-muted-foreground">Condition</p>
+                        <p className="font-medium">
+                          {item.card_details.condition || 
+                           (item.card_details.is_graded ? "Graded" : "Not available")}
+                        </p>
+                      </div>
                       {item.card_details.is_graded && (
                         <>
-                          {item.card_details.grading_company && (
+                          <div>
+                            <p className="text-sm text-muted-foreground">Grading Company</p>
+                            <p className="font-medium">{item.card_details.grading_company || "Not available"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Grade</p>
+                            <p className="font-medium">{item.card_details.grade || "Not available"}</p>
+                          </div>
+                          {item.card_details.cert_number && (
                             <div>
-                              <p className="text-sm text-muted-foreground">Graded By</p>
-                              <p className="font-medium">{item.card_details.grading_company}</p>
-                            </div>
-                          )}
-                          {item.card_details.grade && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Grade</p>
-                              <p className="font-medium">{item.card_details.grade}</p>
+                              <p className="text-sm text-muted-foreground">Cert #</p>
+                              <p className="font-medium">{item.card_details.cert_number}</p>
                             </div>
                           )}
                         </>
                       )}
-                      {item.card_details.estimated_value && (
+                      {item.card_details.estimated_value > 0 && (
                         <div>
                           <p className="text-sm text-muted-foreground">Est. Value</p>
-                          <p className="font-medium">${item.card_details.estimated_value.toFixed(2)}</p>
+                          <p className="font-medium">
+                            ${Number(item.card_details.estimated_value).toFixed(2)}
+                          </p>
+                          {item.card_details.price_source && (
+                            <p className="text-xs text-muted-foreground mt-1">Source: {item.card_details.price_source}</p>
+                          )}
                         </div>
                       )}
                     </div>

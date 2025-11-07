@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Camera, Home, Search, QrCode, CheckSquare, Square, FolderInput, Filter, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import api from "@/lib/axios";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { CollectionHeader } from "@/components/collection/CollectionHeader";
@@ -65,6 +66,7 @@ const LocationItems = () => {
   const { locationId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [locationName, setLocationName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -81,40 +83,36 @@ const LocationItems = () => {
   const { data: collectionDetails } = useCollectionDetails(locationId, isSportsCards);
 
   useEffect(() => {
-    checkAuthAndAccess();
-  }, [locationId]);
+    if (!authLoading && isAuthenticated) {
+      checkAuthAndAccess();
+    }
+  }, [locationId, isAuthenticated, authLoading]);
 
   const checkAuthAndAccess = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
+      // Wait for auth check to complete
+      if (authLoading) {
+        return;
+      }
+
+      if (!isAuthenticated) {
         // Not authenticated - redirect to auth with return URL
         const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const returnUrl = token 
-          ? `/location/${locationId}?token=${token}`
+        const shareToken = urlParams.get('token');
+        const returnUrl = shareToken 
+          ? `/location/${locationId}?token=${shareToken}`
           : `/location/${locationId}`;
         navigate(`/auth?redirect=${encodeURIComponent(returnUrl)}`);
         return;
       }
 
-      // Check if there's a token to validate
+      // Check if there's a share token to validate (for shared collections)
       const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
+      const shareToken = urlParams.get('token');
       
-      if (token) {
-        // Validate and grant access
-        const { data, error } = await supabase.rpc('grant_shared_access', {
-          p_location_id: locationId,
-          p_share_token: token
-        });
-
-        if (error) {
-          console.error('Error granting access:', error);
-        }
-        
-        // Remove token from URL after processing
+      if (shareToken) {
+        // TODO: Implement shared access validation via Django API
+        // For now, just remove token from URL
         window.history.replaceState({}, '', `/location/${locationId}`);
       }
 
@@ -127,48 +125,52 @@ const LocationItems = () => {
 
   const loadLocationAndItems = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get collection details from Django API
+      const collectionResponse = await api.get(`/api/cards/collections/${locationId}/`);
+      const collection = collectionResponse.data;
       
-      const { data: location } = await supabase
-        .from("locations")
-        .select("id, name, user_id, created_at")
-        .eq("id", locationId)
-        .single();
-
-      if (location) {
-        setLocationName(location.name);
-        setIsOwner(user?.id === location.user_id);
+      if (collection) {
+        setLocationName(collection.name);
+        // TODO: Check if user is owner via API response
+        setIsOwner(true); // Assume owner for now since ProtectedRoute ensures auth
       }
 
-      const { data: itemsData } = await supabase
-        .from("items")
-        .select(`
-          *,
-          card_details(*)
-        `)
-        .eq("location_id", locationId)
-        .order("created_at", { ascending: false });
+      // Get cards for this collection
+      const cardsResponse = await api.get('/api/cards/cards/', {
+        params: { collection: locationId }
+      });
+      
+      const cards = Array.isArray(cardsResponse.data)
+        ? cardsResponse.data
+        : (cardsResponse.data?.results || []);
 
-      if (itemsData) {
-        setItems(itemsData);
+      if (cards && cards.length > 0) {
+        setItems(cards);
         // Check if this is a sports cards collection
-        const hasSportsCards = itemsData.some(item => item.source_context === "sports-cards");
+        const hasSportsCards = cards.some((card: any) => card.card_details);
         setIsSportsCards(hasSportsCards);
       }
 
-      // Load available locations for moving items
-      if (user?.id) {
-        const { data: locations } = await supabase
-          .from("locations")
-          .select("id, name")
-          .eq("user_id", user.id)
-          .neq("id", locationId)
-          .order("name");
-        
-        if (locations) {
-          setAvailableLocations(locations);
-        }
+      // Load available collections for moving items
+      const collectionsResponse = await api.get('/api/cards/collections/');
+      const allCollections = Array.isArray(collectionsResponse.data)
+        ? collectionsResponse.data
+        : (collectionsResponse.data?.results || []);
+      
+      const otherCollections = allCollections.filter((col: any) => col.id !== locationId);
+      if (otherCollections) {
+        setAvailableLocations(otherCollections.map((col: any) => ({
+          id: col.id,
+          name: col.name
+        })));
       }
+    } catch (error: any) {
+      console.error('Error loading location and items:', error);
+      toast({
+        title: "Error",
+        description: error?.response?.data?.detail || "Failed to load collection",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

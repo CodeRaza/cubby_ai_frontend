@@ -25,17 +25,17 @@ export const SubscriptionBanner = ({ subscription }: SubscriptionBannerProps) =>
     <div className="bg-card border-b">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium"># of Cards Added</span>
-            {subscription.bonus_credits > 0 && (
+          {/* <div className="flex items-center gap-2"> */}
+            {/* <span className="text-sm font-medium"># of Cards Added</span> */}
+            {/* {subscription.bonus_credits > 0 && (
               <Badge variant="secondary" className="text-xs">
                 <Sparkles className="h-3 w-3 mr-1" />
                 +{subscription.bonus_credits} bonus
-              </Badge>
-            )}
-          </div>
+              </Badge> */}
+            {/* )} */}
+          {/* </div> */}
           <span className="text-sm text-muted-foreground">
-            {scansRemaining} of {totalScans} remaining
+            {scansRemaining} of {totalScans} Remaining Cards
           </span>
         </div>
         <Progress value={usagePercent} className="h-2" />

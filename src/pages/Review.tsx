@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Check, Loader2, X, Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/axios";
+import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import { CardDetailsForm } from "@/components/CardDetailsForm";
@@ -51,11 +52,14 @@ interface ReviewItem extends Detection {
     set_name: string;
     sport: string;
     card_number: string;
+    parallel_name: string;
     condition: string;
     is_graded: boolean;
     grading_company: string;
     grade: string;
+    cert_number?: string;
     estimated_value: string;
+    price_source?: string;
     special_attributes: string[];
   };
 }
@@ -64,6 +68,7 @@ const Review = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { 
     detections = [], 
@@ -71,7 +76,9 @@ const Review = () => {
     imageUrls = [],
     originalImageUrls = [],
     croppedFrontUrls = [],
-    croppedBackUrls = []
+    croppedBackUrls = [],
+    backImageUrl = null, // Back image URL for single card mode
+    backImageFile = null // Back image file for single card mode
   } = location.state || {};
   
   const [items, setItems] = useState<ReviewItem[]>([]);
@@ -87,49 +94,83 @@ const Review = () => {
     setSource(userSource);
 
     if (detections.length > 0) {
-      setItems(
-        detections.map((d: any) => ({
-          ...d,
-          name: d.label,
-          category: "",
-          quantity: 1,
-          acquired_date: "",
-          cost: "",
-          // Use AI-extracted card details if available, otherwise create empty structure
-          ...(userSource === 'sports-cards' && {
-            cardDetails: d.cardDetails || {
+      const mappedItems = detections.map((d: any) => {
+        // For sports cards, merge extracted cardDetails with defaults
+        let cardDetails = {};
+        if (userSource === 'sports-cards') {
+          if (d.cardDetails) {
+            // Use extracted cardDetails, ensuring all fields have defaults
+            cardDetails = {
+              player_name: d.cardDetails.player_name || '',
+              card_year: d.cardDetails.card_year ? String(d.cardDetails.card_year) : '',
+              brand: d.cardDetails.brand || '',
+              set_name: d.cardDetails.set_name || '',
+              sport: d.cardDetails.sport || '',
+              card_number: d.cardDetails.card_number || '',
+              parallel_name: d.cardDetails.parallel_name || '',
+              condition: d.cardDetails.condition || '',
+              is_graded: d.cardDetails.is_graded || false,
+              grading_company: d.cardDetails.grading_company || '',
+              grade: d.cardDetails.grade ? String(d.cardDetails.grade) : '',
+              cert_number: d.cardDetails.cert_number || '',
+              estimated_value: d.cardDetails.estimated_value ? String(d.cardDetails.estimated_value) : '',
+              price_source: d.cardDetails.price_source || '',
+              special_attributes: Array.isArray(d.cardDetails.special_attributes) ? d.cardDetails.special_attributes : [],
+            };
+            // Debug log to verify values are being set
+            console.log('Review: Initializing cardDetails for', d.label, cardDetails);
+          } else {
+            // Fallback to empty structure if no cardDetails
+            cardDetails = {
               player_name: '',
               card_year: '',
               brand: '',
               set_name: '',
               sport: '',
               card_number: '',
+              parallel_name: '',
               condition: '',
               is_graded: false,
               grading_company: '',
               grade: '',
+              cert_number: '',
               estimated_value: '',
+              price_source: '',
               special_attributes: [],
-            }
-          })
-        }))
-      );
+            };
+          }
+        }
+        
+        return {
+          ...d,
+          name: d.label,
+          category: "",
+          quantity: 1,
+          acquired_date: "",
+          cost: "",
+          ...(userSource === 'sports-cards' && { cardDetails })
+        };
+      });
+      
+      console.log('Review: Setting items with cardDetails', mappedItems);
+      setItems(mappedItems);
     }
 
     loadLocations();
   }, [detections]);
 
   const loadLocations = async () => {
-    const { data } = await supabase
-      .from("locations")
-      .select("id, name, user_id, created_at")
-      .order("created_at", { ascending: false });
-    
+    try {
+      const response = await api.get("/api/cards/collections/");
+      const data = Array.isArray(response.data) ? response.data : (response.data.results || []);
     if (data) {
       setLocations(data);
       if (data.length > 0) {
         setSelectedLocation(data[0].id);
       }
+      }
+    } catch (error) {
+      console.error("Error loading collections:", error);
     }
   };
 
@@ -149,66 +190,54 @@ const Review = () => {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { data: newLocation, error } = await supabase
-        .from("locations")
-        .insert({
-          user_id: user.id,
+      const response = await api.post("/api/cards/collections/", {
           name: newLocationName,
-        })
-        .select()
-        .single();
+      });
 
-      if (error) throw error;
-
+      const newLocation = response.data;
       setLocations(prev => [newLocation, ...prev]);
       setSelectedLocation(newLocation.id);
       setNewLocationName("");
       setShowNewLocationDialog(false);
     } catch (error: any) {
       console.error("Error creating collection:", error);
+      toast({
+        title: "Error creating collection",
+        description: error?.response?.data?.detail || error?.message || "Failed to create collection",
+        variant: "destructive",
+      });
     }
   };
 
   const handleSave = async () => {
     if (!selectedLocation) {
+      toast({
+        title: "Collection required",
+        description: "Please select a collection to save items",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Not authenticated",
+        description: "Please log in to save items",
+        variant: "destructive",
+      });
       return;
     }
 
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      // Check user limit before saving
+      const limitResponse = await api.post('/api/cards/scans/check-limit/', {
+        item_count: items.length
+      });
 
-      // Check if this is the user's first save
-      const { count: existingItemCount } = await supabase
-        .from('items')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
-
-      const isFirstSave = existingItemCount === 0;
-
-      // Increment item usage
-      const { data: incremented, error: incrementError } = await supabase.rpc(
-        'increment_item_usage',
-        { 
-          p_user_id: user.id,
-          p_item_count: items.length
-        }
-      );
-
-      if (incrementError || !incremented) {
-        // Check if user has a subscription to provide better error message
-        const { data: subData } = await supabase
-          .from('user_subscriptions')
-          .select('plan_tier')
-          .eq('user_id', user.id)
-          .single();
-        
-        const planName = subData?.plan_tier 
-          ? subData.plan_tier.charAt(0).toUpperCase() + subData.plan_tier.slice(1)
+      if (!limitResponse.data.can_add) {
+        const planName = limitResponse.data.plan_tier 
+          ? limitResponse.data.plan_tier.charAt(0).toUpperCase() + limitResponse.data.plan_tier.slice(1)
           : 'Free';
         
         toast({
@@ -221,117 +250,204 @@ const Review = () => {
         return;
       }
 
+      // Get existing card count to determine if this is first save
+      const existingCardsResponse = await api.get('/api/cards/cards/');
+      const existingCards = Array.isArray(existingCardsResponse.data) 
+        ? existingCardsResponse.data 
+        : (existingCardsResponse.data.results || []);
+      const isFirstSave = existingCards.length === 0;
+
+      // Save all cards
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         
         // Use pre-cropped images from scan if available
+        // For single card mode, use the back image passed from Scan page
         let frontImageUrl = croppedFrontUrls[i] || imageUrl;
-        let backImageUrl = null;
+        let backImageUrlToUse: string | null = null;
         
-        if (source === 'sports-cards' && croppedBackUrls.length > i) {
-          backImageUrl = croppedBackUrls[i];
+        // Priority: 1) Single card back image, 2) Cropped back URLs, 3) None
+        if (backImageUrl && i === 0) {
+          // Single card mode: use the back image passed from Scan page (only for first item)
+          backImageUrlToUse = backImageUrl;
+        } else if (source === 'sports-cards' && croppedBackUrls.length > i) {
+          // Bulk mode: use cropped back URLs
+          backImageUrlToUse = croppedBackUrls[i];
         }
         
-        const { data: insertedItem, error: itemError } = await supabase
-          .from("items")
-          .insert({
-            user_id: user.id,
-            location_id: selectedLocation,
-            name: item.name,
-            category: item.category || null,
-            quantity: item.quantity,
-            acquired_date: item.acquired_date || null,
-            cost: item.cost ? parseFloat(item.cost) : null,
-            image_url: frontImageUrl,
-            back_image_url: backImageUrl,
-            source_context: source || null,
-          })
-          .select()
-          .single();
-
-        if (itemError) throw itemError;
-
-        // Save card details if this is a sports card
-        if (item.cardDetails && source === 'sports-cards') {
-          const { data: cardDetailsData, error: cardError } = await supabase.from("card_details").insert({
-            item_id: insertedItem.id,
-            player_name: item.cardDetails.player_name || null,
-            card_year: item.cardDetails.card_year ? parseInt(item.cardDetails.card_year) : null,
-            brand: item.cardDetails.brand || null,
-            set_name: item.cardDetails.set_name || null,
-            sport: item.cardDetails.sport || null,
-            card_number: item.cardDetails.card_number || null,
-            condition: item.cardDetails.condition || null,
-            is_graded: item.cardDetails.is_graded,
-            grading_company: item.cardDetails.is_graded ? item.cardDetails.grading_company : null,
-            grade: item.cardDetails.is_graded && item.cardDetails.grade ? parseFloat(item.cardDetails.grade) : null,
-            estimated_value: 0, // Set to 0 initially, will be updated by pricing
-            special_attributes: item.cardDetails.special_attributes,
-          }).select().single();
-
-          if (cardError) throw cardError;
-
-          // Immediately fetch pricing for the card (async, don't await)
-          if (cardDetailsData?.id) {
-            supabase.functions.invoke('fetch-card-pricing', {
-              body: { 
-                cardId: cardDetailsData.id,
-                cardDetails: {
-                  player_name: item.cardDetails.player_name,
-                  card_year: item.cardDetails.card_year ? parseInt(item.cardDetails.card_year) : null,
-                  brand: item.cardDetails.brand,
-                  set_name: item.cardDetails.set_name,
-                  sport: item.cardDetails.sport,
-                  card_number: item.cardDetails.card_number,
-                  condition: item.cardDetails.condition,
-                  is_graded: item.cardDetails.is_graded,
-                  grading_company: item.cardDetails.grading_company,
-                  grade: item.cardDetails.grade,
-                  special_attributes: item.cardDetails.special_attributes,
-                },
-                force_refresh: false
-              }
-            }).catch(err => console.error('Failed to queue pricing:', err));
+        // Upload blob URLs to get proper URLs
+        const uploadBlobUrl = async (blobUrl: string): Promise<string | null> => {
+          if (!blobUrl || blobUrl.startsWith('http://') || blobUrl.startsWith('https://')) {
+            // Already a valid URL
+            return blobUrl;
+          }
+          
+          if (blobUrl.startsWith('blob:')) {
+            try {
+              // Fetch blob as blob
+              const response = await fetch(blobUrl);
+              const blob = await response.blob();
+              
+              // Convert to base64
+              const reader = new FileReader();
+              const base64Promise = new Promise<string>((resolve, reject) => {
+                reader.onloadend = () => {
+                  if (reader.result && typeof reader.result === 'string') {
+                    resolve(reader.result);
+                  } else {
+                    reject(new Error('Failed to convert blob to base64'));
+                  }
+                };
+                reader.onerror = reject;
+              });
+              reader.readAsDataURL(blob);
+              
+              const base64Data = await base64Promise;
+              
+              // Upload to backend
+              const uploadResponse = await api.post('/api/cards/images/upload/', {
+                image_data: base64Data
+              });
+              
+              return uploadResponse.data.image_url;
+            } catch (error) {
+              console.error('Error uploading blob URL:', error);
+              return null;
+            }
+          }
+          
+          return null;
+        };
+        
+        // Upload images if they're blob URLs
+        const uploadedFrontUrl = await uploadBlobUrl(frontImageUrl);
+        const uploadedBackUrl = backImageUrlToUse ? await uploadBlobUrl(backImageUrlToUse) : null;
+        
+        // If we have a back image file from single card mode, upload it directly
+        let finalBackImageUrl = uploadedBackUrl;
+        if (!finalBackImageUrl && backImageFile && i === 0) {
+          // Upload back image file directly for single card mode
+          try {
+            const backImageFormData = new FormData();
+            backImageFormData.append('image', backImageFile);
+            const backImageResponse = await api.post('/api/cards/images/upload/', backImageFormData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            finalBackImageUrl = backImageResponse.data.image_url;
+          } catch (backUploadError) {
+            console.error('Error uploading back image:', backUploadError);
+            // Continue without back image if upload fails
           }
         }
-
-        // Save detection data with bounding boxes
-        const detectionForBbox = detections.find(d => d.label === item.label);
-        await supabase.from("detections").insert({
-          item_id: insertedItem.id,
-          label: item.label,
-          confidence: item.confidence,
-          bbox_x: detectionForBbox?.bbox?.x || null,
-          bbox_y: detectionForBbox?.bbox?.y || null,
-          bbox_width: detectionForBbox?.bbox?.width || null,
-          bbox_height: detectionForBbox?.bbox?.height || null,
-        });
-      }
-
-      // Send first save congratulations email
-      if (isFirstSave) {
-        try {
-          await supabase.functions.invoke('send-first-save-email', {
-            body: { 
-              email: user.email,
-              name: user.email?.split('@')[0],
-              userId: user.id,
-              itemCount: items.length
-            }
+        
+        if (!uploadedFrontUrl) {
+          toast({
+            title: "Image upload failed",
+            description: "Could not upload front image. Please try again.",
+            variant: "destructive",
           });
-        } catch (emailError) {
-          console.error('Failed to send first save email:', emailError);
-          // Don't fail the save if email fails
+          continue;
+        }
+        
+        // Prepare card data
+        // Sync Card model fields from CardDetails
+        const estimatedValue = item.cardDetails?.estimated_value 
+          ? parseFloat(item.cardDetails.estimated_value) 
+          : 0;
+        
+        const cardData: any = {
+          name: item.name,
+          player: item.cardDetails?.player_name || item.name || '',
+          year: item.cardDetails?.card_year ? parseInt(item.cardDetails.card_year) : null,
+          // Sync value from estimated_value (Card.value should match CardDetails.estimated_value)
+          value: estimatedValue,
+          // Sync grading from grade (Card.grading for display, CardDetails.grade for detailed info)
+          grading: item.cardDetails?.is_graded && item.cardDetails?.grade
+            ? `${item.cardDetails.grading_company || 'PSA'} ${item.cardDetails.grade}`
+            : null,
+          collection: selectedLocation,
+          image_url: uploadedFrontUrl,
+          back_image_url: finalBackImageUrl || uploadedBackUrl,
+          cost: item.cost ? parseFloat(item.cost) : 0,
+          acquired_date: item.acquired_date || null,
+          special_attributes: item.cardDetails?.special_attributes || [],
+          is_graded: item.cardDetails?.is_graded || false,
+        };
+
+        // Include card_details_data if this is a sports card
+        // ALWAYS include card_details_data for sports cards, even if empty, to ensure CardDetails is created
+        if (true) {
+          cardData.card_details_data = {
+            player_name: item.cardDetails?.player_name || '',
+            card_year: item.cardDetails?.card_year ? parseInt(item.cardDetails.card_year) : null,
+            brand: item.cardDetails?.brand || '',
+            set_name: item.cardDetails?.set_name || '',
+            sport: item.cardDetails?.sport || '',
+            card_number: item.cardDetails?.card_number || '',
+            parallel_name: item.cardDetails?.parallel_name || '',
+            condition: item.cardDetails?.condition || '',
+            is_graded: item.cardDetails?.is_graded || false,
+            grading_company: item.cardDetails?.grading_company || '',
+            grade: item.cardDetails?.grade ? String(item.cardDetails.grade) : '',
+            cert_number: item.cardDetails?.cert_number || '',
+            estimated_value: item.cardDetails?.estimated_value ? parseFloat(item.cardDetails.estimated_value) : 0,
+            price_source: item.cardDetails?.price_source || '',
+            special_attributes: item.cardDetails?.special_attributes || [],
+          };
+          console.log('Review: Sending card_details_data:', cardData.card_details_data);
+        }
+
+        // Create card (with nested card_details if provided)
+        try {
+          const cardResponse = await api.post('/api/cards/cards/', cardData);
+          const createdCard = cardResponse.data;
+
+          // Queue pricing update if card has details
+          if (createdCard.id && item.cardDetails && source === 'sports-cards') {
+            // Queue pricing fetch (non-blocking)
+            api.post(`/api/cards/cards/${createdCard.id}/price/refresh/`).catch(err => 
+              console.warn('Failed to queue pricing update:', err)
+            );
+          }
+        } catch (saveError: any) {
+          if (saveError?.response?.status === 409 && saveError?.response?.data?.duplicate) {
+            // Duplicate cert_number
+            const certNum = saveError.response.data.cert_number || 'this certification number';
+            toast({
+              title: "Card already exists",
+              description: saveError.response.data.detail || `A card with certification number ${certNum} already exists in your collection`,
+              variant: "default",
+            });
+            continue; // Skip this card
+          } else {
+            throw saveError; // Re-throw other errors
+          }
         }
       }
 
-      // Invalidate subscription query to refresh usage counter immediately
+      // Invalidate queries to refresh dashboard and subscription page in real-time
       queryClient.invalidateQueries({ queryKey: ['dashboard-subscription'] });
-
+      queryClient.invalidateQueries({ queryKey: ['subscription-status'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-usage'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-locations'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-card-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['collection-stats'] });
+      
+      toast({
+        title: "Success!",
+        description: isFirstSave 
+          ? `🎉 Congratulations! You've saved your first ${items.length} card${items.length > 1 ? 's' : ''}!`
+          : `Successfully saved ${items.length} card${items.length > 1 ? 's' : ''}`,
+      });
       
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error saving items:", error);
+      toast({
+        title: "Error saving items",
+        description: error?.response?.data?.detail || error?.message || "Failed to save items. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }

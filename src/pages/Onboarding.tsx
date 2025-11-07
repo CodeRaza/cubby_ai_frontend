@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import api from "@/lib/axios";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, MapPin, QrCode, Search, Sparkles } from "lucide-react";
 import { PREDEFINED_LOCATIONS, SPORTS_COLLECTIONS } from "@/lib/locationTypes";
@@ -13,6 +14,7 @@ import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 const Onboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAuthenticated, loading: authLoading, checkAuth } = useAuth();
   const [step, setStep] = useState(1);
   const [locationName, setLocationName] = useState("");
   const [creating, setCreating] = useState(false);
@@ -21,20 +23,32 @@ const Onboarding = () => {
 
   useEffect(() => {
     // Verify user is authenticated before showing onboarding
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
+    const verifyAuth = async () => {
+      if (!authLoading) {
+        if (!isAuthenticated) {
+          // Try to check auth one more time
+          const token = localStorage.getItem('access_token');
+          if (token) {
+            const authed = await checkAuth();
+            if (authed) {
+              setChecking(false);
+              return;
+            }
+          }
+          // No token or auth failed - redirect to login
+          navigate("/auth", { replace: true });
+          return;
+        }
+        // Authenticated - show onboarding
+        setChecking(false);
       }
-      setChecking(false);
     };
-    checkAuth();
+    verifyAuth();
 
     // Get source from sessionStorage
     const userSource = sessionStorage.getItem('user_source') || '';
     setSource(userSource);
-  }, [navigate]);
+  }, [navigate, isAuthenticated, authLoading, checkAuth]);
 
   const handleCreateLocation = async () => {
     if (!locationName.trim()) {
@@ -43,29 +57,19 @@ const Onboarding = () => {
 
     setCreating(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Check if user can create a location (free tier = 1 collection limit)
-      const { data: canCreate, error: checkError } = await supabase.rpc(
-        'can_user_create_location',
-        { p_user_id: user.id }
-      );
-
-      if (checkError) throw checkError;
-
-      if (!canCreate) {
-        setCreating(false);
-        navigate('/subscription');
-        return;
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error("Not authenticated");
       }
 
-      const { error } = await supabase.from("locations").insert({
+      // Create a collection using Django API
+      const response = await api.post("/api/cards/collections/", {
         name: locationName,
-        user_id: user.id,
       });
 
-      if (error) throw error;
+      if (response.status !== 201 && response.status !== 200) {
+        throw new Error("Failed to create collection");
+      }
 
       // Track onboarding completion as a lead
       trackMetaPixelEvent(MetaPixelEvents.Lead, {
@@ -79,6 +83,11 @@ const Onboarding = () => {
       setStep(3);
     } catch (error: any) {
       console.error("Error creating collection:", error);
+      toast({
+        title: "Error",
+        description: error?.response?.data?.detail || error?.message || "Failed to create collection",
+        variant: "destructive",
+      });
     } finally {
       setCreating(false);
     }
@@ -89,10 +98,10 @@ const Onboarding = () => {
     sessionStorage.setItem('onboarding_completed', 'true');
     // Give a moment for any pending operations to complete
     await new Promise(resolve => setTimeout(resolve, 300));
-    navigate("/dashboard?from_onboarding=true", { replace: true });
+    navigate("/dashboard", { replace: true });
   };
 
-  if (checking) {
+  if (checking || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
