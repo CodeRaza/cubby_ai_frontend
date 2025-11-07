@@ -12,7 +12,7 @@ const Index = () => {
       navigate("/dashboard", { replace: true });
     } else {
       // Unauthenticated users go to sports-cards landing page
-      navigate('/for/sports-cards', { replace: true });
+      navigate('/auth', { replace: true });
     }
   }, [navigate, isAuthenticated]);
   

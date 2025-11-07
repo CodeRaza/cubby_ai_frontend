@@ -95,15 +95,6 @@ const AppRouter = () => {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-
-      {/* Landing Pages */}
-      <Route path="/for/homeowners" element={<Homeowners />} />
-      <Route path="/for/garage" element={<Garage />} />
-      <Route path="/for/movers" element={<Movers />} />
-      <Route path="/for/business" element={<Business />} />
-      <Route path="/for/property" element={<Property />} />
-      <Route path="/for/sports-cards" element={<SportsCards />} />
-
       {/* Root route - redirects based on auth */}
       <Route path="/" element={<Index />} />
       
