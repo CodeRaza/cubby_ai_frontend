@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { isAuthenticated, loading: authLoading, checkAuth } = useAuth();
   const [step, setStep] = useState(1);
@@ -45,10 +46,25 @@ const Onboarding = () => {
     };
     verifyAuth();
 
-    // Get source from sessionStorage
-    const userSource = sessionStorage.getItem('user_source') || '';
-    setSource(userSource);
-  }, [navigate, isAuthenticated, authLoading, checkAuth]);
+    // Get source from URL parameter, sessionStorage, or default to sports-cards
+    const urlSource = searchParams.get('source');
+    const storedSource = sessionStorage.getItem('user_source') || '';
+    
+    // Priority: URL param > sessionStorage > default to sports-cards
+    const finalSource = urlSource || storedSource || 'sports-cards';
+    
+    // Save to sessionStorage if we got it from URL
+    if (urlSource && urlSource !== storedSource) {
+      sessionStorage.setItem('user_source', urlSource);
+    }
+    
+    // If no source is set anywhere, default to sports-cards and save it
+    if (!urlSource && !storedSource) {
+      sessionStorage.setItem('user_source', 'sports-cards');
+    }
+    
+    setSource(finalSource);
+  }, [navigate, isAuthenticated, authLoading, checkAuth, searchParams]);
 
   const handleCreateLocation = async () => {
     if (!locationName.trim()) {
