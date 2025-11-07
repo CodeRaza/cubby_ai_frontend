@@ -11,7 +11,7 @@ const Index = () => {
       // Authenticated users go to dashboard
       navigate("/dashboard", { replace: true });
     } else {
-      // Unauthenticated users go to sports-cards landing page
+      
       navigate('/auth', { replace: true });
     }
   }, [navigate, isAuthenticated]);
