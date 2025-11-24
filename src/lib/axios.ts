@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with custom config
 const api = axios.create({
-  baseURL: 'http://localhost:8000',  // Django backend URL
+  baseURL: 'https://backend.getcubby.ai',  // Django backend URL
   headers: {
     'Content-Type': 'application/json',
   },
