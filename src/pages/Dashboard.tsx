@@ -5,6 +5,7 @@ import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Camera, Plus, Search, Trophy, Star, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 import {
   Dialog,
   DialogContent,
@@ -99,6 +100,11 @@ const Dashboard = () => {
         if (source === "sports-cards") {
           refetchCardStats();
           refetchCollectionStats();
+          // Track RefreshStats event
+          trackMetaPixelEvent(MetaPixelEvents.RefreshStats, {
+            content_name: 'Dashboard Stats Refresh',
+            content_category: 'User Action'
+          });
         }
       }
     };

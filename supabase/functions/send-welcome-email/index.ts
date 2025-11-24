@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+// Use provided API key or environment variable
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "re_Pep1n8JG_F4WXche9zZTb9xVCLo5qiah4";
+const resend = new Resend(RESEND_API_KEY);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -141,25 +140,6 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     console.log("Received welcome email request");
-    
-    // Check if emails are enabled
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { data: emailSettings } = await supabase
-      .from('email_settings')
-      .select('emails_enabled')
-      .limit(1)
-      .single();
-    
-    if (emailSettings && !emailSettings.emails_enabled) {
-      console.log("Emails are disabled, skipping welcome email");
-      return new Response(
-        JSON.stringify({ message: "Emails are currently disabled" }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
 
     const { email, name, userId } = await req.json();
 
@@ -184,24 +164,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log("Welcome email sent successfully to:", email);
-
-    // Track the email in the database if userId is provided
-    if (userId) {
-      const { error: trackingError } = await supabase
-        .from('email_tracking')
-        .insert({
-          user_id: userId,
-          email_type: 'welcome',
-          sent_at: new Date().toISOString()
-        });
-      
-      if (trackingError) {
-        console.error("Error tracking email:", trackingError);
-        // Don't throw - email was sent successfully
-      } else {
-        console.log("Email tracked in database");
-      }
-    }
 
     return new Response(
       JSON.stringify({ success: true }),

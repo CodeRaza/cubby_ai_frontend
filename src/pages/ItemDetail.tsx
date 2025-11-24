@@ -284,7 +284,10 @@ const ItemDetail = () => {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/api/cards/cards/${id}/`);
+      console.log('Deleting card via Django backend:', id);
+      // Delete card via Django backend API
+      const response = await api.delete(`/api/cards/cards/${id}/`);
+      console.log('Delete response:', response);
       
       // Invalidate dashboard and subscription queries for real-time update
       queryClient.invalidateQueries({ queryKey: ['dashboard-locations'] });
@@ -300,6 +303,7 @@ const ItemDetail = () => {
       
       navigate("/dashboard");
     } catch (error: any) {
+      console.error('Error deleting card:', error);
       toast({
         title: "Error deleting card",
         description: error?.response?.data?.detail || error?.message || "Failed to delete card",

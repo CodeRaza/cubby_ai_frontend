@@ -13,21 +13,32 @@ export const trackMetaPixelEvent = (eventName: string, params?: Record<string, a
   }
 };
 
+// Track page view (for route changes)
+export const trackPageView = () => {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', 'PageView');
+  }
+};
+
 // Standard conversion events
 export const MetaPixelEvents = {
-  // User registration/signup
+  // Standard Meta Pixel events
+  PageView: 'PageView',
   CompleteRegistration: 'CompleteRegistration',
-  
-  // Subscription/purchase events
+  InitiateCheckout: 'InitiateCheckout',
   Subscribe: 'Subscribe',
   Purchase: 'Purchase',
   
-  // Onboarding milestone
+  // Custom events
+  FirstScan: 'FirstScan',
+  AddToCollection: 'AddToCollection',
+  UpgradePlan: 'UpgradePlan',
+  AddScanPack: 'AddScanPack',
+  ActiveUserD7: 'ActiveUserD7',
+  RefreshStats: 'RefreshStats',
+  
+  // Legacy events (keeping for backward compatibility)
   Lead: 'Lead',
-  
-  // Search functionality
   Search: 'Search',
-  
-  // Content views
   ViewContent: 'ViewContent',
 } as const;

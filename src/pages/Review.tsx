@@ -12,6 +12,7 @@ import { ImageWithBoundingBoxes } from "@/components/ImageWithBoundingBoxes";
 import { CardDetailsForm } from "@/components/CardDetailsForm";
 import { cropImageFromBoundingBox } from "@/lib/imageCropping";
 import { useQueryClient } from "@tanstack/react-query";
+import { trackMetaPixelEvent, MetaPixelEvents } from "@/lib/metaPixel";
 import {
   Select,
   SelectContent,
@@ -432,6 +433,23 @@ const Review = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-locations'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-card-stats'] });
       queryClient.invalidateQueries({ queryKey: ['collection-stats'] });
+      
+      // Track Pixel events
+      if (isFirstSave) {
+        trackMetaPixelEvent(MetaPixelEvents.FirstScan, {
+          content_name: 'First Card Scan',
+          content_category: 'User Milestone',
+          num_items: items.length
+        });
+      }
+      
+      // Track AddToCollection event
+      trackMetaPixelEvent(MetaPixelEvents.AddToCollection, {
+        content_name: 'Add Cards to Collection',
+        content_category: 'Card Management',
+        num_items: items.length,
+        collection_id: selectedLocation
+      });
       
       toast({
         title: "Success!",

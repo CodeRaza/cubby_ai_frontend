@@ -3,9 +3,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { trackPageView } from "@/lib/metaPixel";
 
 const publicPaths = [
   "/auth",
@@ -56,7 +57,13 @@ const queryClient = new QueryClient();
 
 const AppRouter = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, loading: checkingAuth } = useAuth();
+
+  // Track page views on route changes
+  useEffect(() => {
+    trackPageView();
+  }, [location.pathname]);
 
   useEffect(() => {
     // Handle redirects based on auth state

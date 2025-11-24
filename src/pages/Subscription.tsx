@@ -215,6 +215,16 @@ const Subscription = () => {
       // User successfully completed checkout - sync subscription from Stripe
       const syncSubscription = async () => {
         try {
+          // Track Purchase/Subscribe event
+          trackMetaPixelEvent(MetaPixelEvents.Subscribe, {
+            content_name: 'Subscription Complete',
+            content_category: 'Subscription'
+          });
+          // Also track as Purchase for conversion tracking
+          trackMetaPixelEvent(MetaPixelEvents.Purchase, {
+            content_name: 'Subscription Purchase',
+            content_category: 'Subscription'
+          });
           // First, try to sync subscription from Stripe using the session ID
           // This ensures the subscription is updated even if webhook hasn't fired yet
           const syncResponse = await api.post('/api/auth/subscription/sync/', {
@@ -376,13 +386,30 @@ const Subscription = () => {
       
       if (response.data?.url) {
         console.log('Opening checkout URL:', response.data.url);
-        // Track subscription intent
+        // Track subscription checkout initiation
         const selectedPlan = plansToDisplay.find(p => p.priceId === priceId) || plans.find(p => p.priceId === priceId);
-        trackMetaPixelEvent(MetaPixelEvents.Subscribe, {
-          value: parseFloat(selectedPlan?.price.replace('$', '') || '0'),
+        const planPrice = parseFloat(selectedPlan?.price.replace('$', '') || '0');
+        const currentTier = subscription?.plan_tier || 'free';
+        const newTier = selectedPlan?.tier || '';
+        
+        // Track InitiateCheckout event
+        trackMetaPixelEvent(MetaPixelEvents.InitiateCheckout, {
+          value: planPrice,
           currency: 'USD',
-          predicted_ltv: parseFloat(selectedPlan?.price.replace('$', '') || '0') * 12
+          content_name: selectedPlan?.name || 'Subscription Plan',
+          content_category: 'Subscription'
         });
+        
+        // Track UpgradePlan if upgrading from existing plan
+        if (currentTier !== 'free' && currentTier !== newTier) {
+          trackMetaPixelEvent(MetaPixelEvents.UpgradePlan, {
+            value: planPrice,
+            currency: 'USD',
+            content_name: selectedPlan?.name || 'Subscription Plan',
+            from_tier: currentTier,
+            to_tier: newTier
+          });
+        }
         
         // Open checkout in same window (Stripe will redirect back to /subscription)
         window.location.href = response.data.url;
@@ -503,10 +530,19 @@ const Subscription = () => {
       setProcessingPlan(null);
     }
   };
-  const handleBuyScanPack = async () => {
+  const handleBuyScanPack = async (scanPack: typeof scanPacks[0]) => {
     try {
       setProcessingPlan('scan-pack');
       // TODO: Implement scan pack purchase endpoint
+      // Track AddScanPack event
+      trackMetaPixelEvent(MetaPixelEvents.AddScanPack, {
+        value: parseFloat(scanPack.price.replace('$', '') || '0'),
+        currency: 'USD',
+        content_name: scanPack.name,
+        content_category: 'Scan Pack',
+        num_scans: scanPack.scans
+      });
+      
       toast({
         title: "Coming Soon",
         description: "Scan pack purchases will be available soon",
