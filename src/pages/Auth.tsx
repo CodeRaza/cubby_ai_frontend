@@ -155,7 +155,13 @@ const Auth = () => {
         <div className="animate-scale-in">
           <AuthForm 
             onSuccess={handleSuccess} 
-            defaultMode={searchParams.get('mode') === 'signup' ? 'signup' : 'login'}
+            defaultMode={
+              searchParams.get('mode') === 'signup' || 
+              searchParams.get('new') === '1' || 
+              searchParams.get('marketing') === '1'
+                ? 'signup' 
+                : 'login'
+            }
           />
         </div>
       </div>
