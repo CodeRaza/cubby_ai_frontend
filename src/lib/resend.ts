@@ -2,8 +2,14 @@
  * Resend email service - sends emails directly from frontend
  */
 
-const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY || '';
-const RESEND_API_URL = 'https://api.resend.com/emails';
+import { Resend } from "https://esm.sh/resend@2.0.0";
+/**
+ * Resend email service - SERVER SIDE ONLY
+ * This file runs on the backend (Node / Edge)
+ * Never imported into React components
+ */
+
+const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
 interface SendEmailParams {
   to: string;
@@ -12,39 +18,34 @@ interface SendEmailParams {
   from?: string;
 }
 
-export async function sendResendEmail({ to, subject, html, from = 'Cubby Sports Cards <cards@getcubby.ai>' }: SendEmailParams): Promise<boolean> {
-  if (!RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY not configured, skipping email');
-    return false;
-  }
-
+export async function POST(req: Request) {
   try {
-    const response = await fetch(RESEND_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject,
-        html,
-      }),
-    });
+    const { to, subject, html, from }: SendEmailParams = await req.json();
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('Resend API error:', error);
-      return false;
+    if (!to || !subject || !html) {
+      return Response.json(
+        { success: false, error: 'Missing email fields' },
+        { status: 400 }
+      );
     }
 
-    return true;
+    await resend.emails.send({
+      from: from ?? 'Cubby Sports Cards <cards@getcubby.ai>',
+      to: [to],
+      subject,
+      html,
+    });
+
+    return Response.json({ success: true });
   } catch (error) {
-    console.error('Error sending email via Resend:', error);
-    return false;
+    console.error('Resend error:', error);
+    return Response.json(
+      { success: false, error: 'Failed to send email' },
+      { status: 500 }
+    );
   }
 }
+
 
 // Welcome email HTML template
 export function getWelcomeEmailHtml(name?: string): string {
@@ -207,7 +208,7 @@ export function getFirstSaveEmailHtml(userName: string, itemCount: number): stri
 
 // Send welcome email
 export async function sendWelcomeEmail(email: string, name?: string): Promise<void> {
-  await sendResendEmail({
+  await resend.emails.send({
     to: email,
     subject: '⚾ Welcome to Your Sports Card Portfolio!',
     html: getWelcomeEmailHtml(name),
@@ -216,7 +217,7 @@ export async function sendWelcomeEmail(email: string, name?: string): Promise<vo
 
 // Send first save email
 export async function sendFirstSaveEmail(email: string, name: string, itemCount: number): Promise<void> {
-  await sendResendEmail({
+  await resend.emails.send({
     to: email,
     subject: `🎉 You added your first ${itemCount} card${itemCount > 1 ? 's' : ''}!`,
     html: getFirstSaveEmailHtml(name, itemCount),
