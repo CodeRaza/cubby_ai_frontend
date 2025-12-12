@@ -1,24 +1,22 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// @ts-ignore - Deno is available in Supabase Edge Functions runtime
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+if (!RESEND_API_KEY) {
+  throw new Error("RESEND_API_KEY environment variable is required");
+}
+const resend = new Resend(RESEND_API_KEY);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface UserReminder {
-  user_id: string;
+interface ReminderEmailRequest {
   email: string;
-  days_since_signup: number;
-  has_location: boolean;
-  has_items: boolean;
-  last_email_type: string | null;
-  item_count: number;
+  name?: string;
+  emailType: 'day1_reminder' | 'day3_reminder' | 'day5_tips' | 'day7_insights' | 'day10_sharing' | 'day14_advanced';
 }
 
 const getDay1EmailHtml = () => `
@@ -314,124 +312,70 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log("Starting reminder email job...");
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Check if emails are enabled
-    const { data: emailSettings } = await supabase
-      .from('email_settings')
-      .select('emails_enabled')
-      .limit(1)
-      .single();
-    
-    if (emailSettings && !emailSettings.emails_enabled) {
-      console.log("Emails are disabled, skipping reminder job");
-      return new Response(
-        JSON.stringify({ message: "Emails are currently disabled" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    console.log("Received reminder email request");
+
+    const { email, name, emailType }: ReminderEmailRequest = await req.json();
+
+    if (!email) {
+      throw new Error("Email is required");
     }
-    
-    // Get users needing reminders
-    const { data: users, error: usersError } = await supabase
-      .rpc('get_users_needing_reminders') as { data: UserReminder[] | null, error: any };
-    
-    if (usersError) {
-      console.error("Error fetching users:", usersError);
-      throw usersError;
+
+    if (!emailType) {
+      throw new Error("Email type is required");
     }
-    
-    if (!users || users.length === 0) {
-      console.log("No users need reminders");
-      return new Response(
-        JSON.stringify({ message: "No reminders to send" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+
+    let subject: string;
+    let html: string;
+
+    // Determine which email to send based on emailType
+    switch (emailType) {
+      case 'day1_reminder':
+        subject = '⚾ Create Your First Sports Card Collection';
+        html = getDay1EmailHtml();
+        break;
+      case 'day3_reminder':
+        subject = '📸 Start Tracking Your Card Values';
+        html = getDay3EmailHtml();
+        break;
+      case 'day5_tips':
+        subject = '💰 5 Tips for Accurate Card Pricing';
+        html = getDay5EmailHtml();
+        break;
+      case 'day7_insights':
+        subject = '📊 Your Sports Card Portfolio Insights';
+        html = getDay7EmailHtml();
+        break;
+      case 'day10_sharing':
+        subject = '🤝 Share Your Card Collection';
+        html = getDay10EmailHtml();
+        break;
+      case 'day14_advanced':
+        subject = '🚀 Master Your Card Portfolio';
+        html = getDay14EmailHtml();
+        break;
+      default:
+        throw new Error(`Unknown email type: ${emailType}`);
     }
-    
-    console.log(`Found ${users.length} users needing reminders`);
-    
-    const results = {
-      day1: 0,
-      day3: 0,
-      day5: 0,
-      day7: 0,
-      day10: 0,
-      day14: 0,
-      errors: 0
-    };
-    
-    for (const user of users) {
-      try {
-        let emailType: string;
-        let subject: string;
-        let html: string;
-        
-        // Determine which email to send based on user state
-        if (user.days_since_signup >= 1 && user.days_since_signup < 2 && !user.has_location) {
-          emailType = 'day1_reminder';
-          subject = '⚾ Create Your First Sports Card Collection';
-          html = getDay1EmailHtml();
-          results.day1++;
-        } else if (user.days_since_signup >= 3 && user.days_since_signup < 4 && !user.has_items) {
-          emailType = 'day3_reminder';
-          subject = '📸 Start Tracking Your Card Values';
-          html = getDay3EmailHtml();
-          results.day3++;
-        } else if (user.days_since_signup >= 5 && user.days_since_signup < 6 && user.has_items) {
-          emailType = 'day5_tips';
-          subject = '💰 5 Tips for Accurate Card Pricing';
-          html = getDay5EmailHtml();
-          results.day5++;
-        } else if (user.days_since_signup >= 7 && user.days_since_signup < 8 && user.item_count >= 5) {
-          emailType = 'day7_insights';
-          subject = '📊 Your Sports Card Portfolio Insights';
-          html = getDay7EmailHtml();
-          results.day7++;
-        } else if (user.days_since_signup >= 10 && user.days_since_signup < 11 && user.has_items) {
-          emailType = 'day10_sharing';
-          subject = '🤝 Share Your Card Collection';
-          html = getDay10EmailHtml();
-          results.day10++;
-        } else if (user.days_since_signup >= 14 && user.days_since_signup < 15 && user.has_items) {
-          emailType = 'day14_advanced';
-          subject = '🚀 Master Your Card Portfolio';
-          html = getDay14EmailHtml();
-          results.day14++;
-        } else {
-          continue;
-        }
-        
-        // Send email
-        await resend.emails.send({
-          from: "Cubby Sports Cards <cards@getcubby.ai>",
-          to: [user.email],
-          subject: subject,
-          html: html,
-        });
-        
-        console.log(`Sent ${emailType} to ${user.email}`);
-        
-        // Track the email
-        await supabase
-          .from('email_tracking')
-          .insert({
-            user_id: user.user_id,
-            email_type: emailType,
-            sent_at: new Date().toISOString()
-          });
-        
-      } catch (error) {
-        console.error(`Error sending email to ${user.email}:`, error);
-        results.errors++;
-      }
+
+    console.log(`Sending ${emailType} email to: ${email}`);
+
+    // Send email
+    const { error: emailError } = await resend.emails.send({
+      from: "Cubby Sports Cards <cards@getcubby.ai>",
+      to: [email],
+      subject: subject,
+      html: html,
+    });
+
+    if (emailError) {
+      console.error(`Error sending ${emailType} to ${email}:`, emailError);
+      throw emailError;
     }
-    
-    console.log("Reminder job complete:", results);
-    
+
+    console.log(`Reminder email sent successfully to ${email}`);
+
     return new Response(
-      JSON.stringify({ message: "Reminders processed", results }),
+      JSON.stringify({ success: true }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },

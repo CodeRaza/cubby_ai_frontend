@@ -1,10 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// @ts-ignore - Deno is available in Supabase Edge Functions runtime
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+if (!RESEND_API_KEY) {
+  throw new Error("RESEND_API_KEY environment variable is required");
+}
+const resend = new Resend(RESEND_API_KEY);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -63,106 +65,33 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log("Starting 2-hour quick reminder job...");
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Check if emails are enabled
-    const { data: emailSettings } = await supabase
-      .from('email_settings')
-      .select('emails_enabled')
-      .limit(1)
-      .single();
-    
-    if (emailSettings && !emailSettings.emails_enabled) {
-      console.log("Emails are disabled, skipping quick reminder");
-      return new Response(
-        JSON.stringify({ message: "Emails are currently disabled" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    console.log("Received quick reminder email request");
+
+    const { email, name } = await req.json();
+
+    if (!email) {
+      throw new Error("Email is required");
     }
-    
-    // Get users who created location within last 2-3 hours but have no items yet
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
-    
-    const { data: locations, error: locError } = await supabase
-      .from('locations')
-      .select('user_id, created_at')
-      .gte('created_at', threeHoursAgo)
-      .lte('created_at', twoHoursAgo);
-    
-    if (locError) throw locError;
-    
-    if (!locations || locations.length === 0) {
-      console.log("No users need quick reminder");
-      return new Response(
-        JSON.stringify({ message: "No quick reminders to send" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+
+    console.log(`Sending quick reminder email to: ${email}`);
+
+    // Send email
+    const { error: emailError } = await resend.emails.send({
+      from: "Cubby Sports Cards <cards@getcubby.ai>",
+      to: [email],
+      subject: "⚡ Collection ready - scan your first card!",
+      html: get2HourReminderHtml(),
+    });
+
+    if (emailError) {
+      console.error(`Error sending quick reminder to ${email}:`, emailError);
+      throw emailError;
     }
-    
-    const results = { sent: 0, errors: 0 };
-    const processedUsers = new Set();
-    
-    for (const location of locations) {
-      if (processedUsers.has(location.user_id)) continue;
-      processedUsers.add(location.user_id);
-      
-      try {
-        // Check if user has any items
-        const { count: itemCount } = await supabase
-          .from('items')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', location.user_id);
-        
-        if (itemCount && itemCount > 0) continue;
-        
-        // Check if we already sent this reminder
-        const { data: existingEmail } = await supabase
-          .from('email_tracking')
-          .select('*')
-          .eq('user_id', location.user_id)
-          .eq('email_type', '2hour_reminder')
-          .maybeSingle();
-        
-        if (existingEmail) continue;
-        
-        // Get user email
-        const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(location.user_id);
-        if (userError || !user?.email) continue;
-        
-        // Send email
-        await resend.emails.send({
-          from: "Cubby Sports Cards <cards@getcubby.ai>",
-          to: [user.email],
-          subject: "⚡ Collection ready - scan your first card!",
-          html: get2HourReminderHtml(),
-        });
-        
-        console.log(`Sent 2-hour reminder to ${user.email}`);
-        
-        // Track the email
-        await supabase
-          .from('email_tracking')
-          .insert({
-            user_id: location.user_id,
-            email_type: '2hour_reminder',
-            sent_at: new Date().toISOString()
-          });
-        
-        results.sent++;
-        
-      } catch (error) {
-        console.error(`Error processing user ${location.user_id}:`, error);
-        results.errors++;
-      }
-    }
-    
-    console.log("Quick reminder job complete:", results);
-    
+
+    console.log(`Quick reminder sent successfully to ${email}`);
+
     return new Response(
-      JSON.stringify({ message: "Quick reminders processed", results }),
+      JSON.stringify({ success: true }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },

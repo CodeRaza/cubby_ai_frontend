@@ -1,8 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-// Use provided API key or environment variable
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "re_Pep1n8JG_F4WXche9zZTb9xVCLo5qiah4";
+// @ts-ignore - Deno is available in Supabase Edge Functions runtime
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+if (!RESEND_API_KEY) {
+  throw new Error("RESEND_API_KEY environment variable is required");
+}
 const resend = new Resend(RESEND_API_KEY);
 
 const corsHeaders = {
@@ -98,12 +101,17 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending first save email to: ${email}`);
 
     // Send email via Resend
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: "Cubby Sports Cards <cards@getcubby.ai>",
       to: [email],
       subject: `🎉 You added your first ${itemCount} card${itemCount > 1 ? 's' : ''}!`,
       html: getFirstSaveEmailHtml(name || email.split('@')[0], itemCount),
     });
+
+    if (error) {
+      console.error("Error sending email:", error);
+      throw error;
+    }
 
     console.log("First save email sent successfully");
 
