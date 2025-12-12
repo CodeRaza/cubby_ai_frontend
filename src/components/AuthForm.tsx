@@ -67,6 +67,13 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
           api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
         }
 
+        // Send welcome email (non-blocking)
+        import('@/lib/resend').then(({ sendWelcomeEmail }) => {
+          sendWelcomeEmail(email, username).catch(err => 
+            console.error('Failed to send welcome email:', err)
+          );
+        });
+
         toast({ title: "Account created", description: "Welcome — your account was created." });
         onSuccess();
       }

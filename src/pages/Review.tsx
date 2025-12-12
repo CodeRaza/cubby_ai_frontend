@@ -441,6 +441,17 @@ const Review = () => {
           content_category: 'User Milestone',
           num_items: items.length
         });
+        
+        // Send first save email (non-blocking)
+        import('@/lib/resend').then(({ sendFirstSaveEmail }) => {
+          const userEmail = user?.email || '';
+          const userName = user?.username || userEmail.split('@')[0] || 'there';
+          if (userEmail) {
+            sendFirstSaveEmail(userEmail, userName, items.length).catch(err => 
+              console.error('Failed to send first save email:', err)
+            );
+          }
+        });
       }
       
       // Track AddToCollection event
