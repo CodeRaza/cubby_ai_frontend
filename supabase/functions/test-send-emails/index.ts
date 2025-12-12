@@ -2,8 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
 // Use provided API key or environment variable
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-
+const RESEND_API_KEY = "re_Pep1n8JG_F4WXche9zZTb9xVCLo5qiah4"
 if (!RESEND_API_KEY) {
   throw new Error("RESEND_API_KEY environment variable is required");
 }
