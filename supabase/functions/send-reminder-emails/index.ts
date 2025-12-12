@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
 // @ts-ignore - Deno is available in Supabase Edge Functions runtime
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
 if (!RESEND_API_KEY) {
   throw new Error("RESEND_API_KEY environment variable is required");
 }

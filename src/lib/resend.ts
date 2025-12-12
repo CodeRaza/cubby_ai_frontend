@@ -4,7 +4,7 @@
 
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY")!);
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
 interface SendEmailParams {
   to: string;
