@@ -3,13 +3,8 @@
  */
 
 import { Resend } from "https://esm.sh/resend@2.0.0";
-/**
- * Resend email service - SERVER SIDE ONLY
- * This file runs on the backend (Node / Edge)
- * Never imported into React components
- */
 
-const resend = new Resend(import.meta.env.RESEND_API_KEY);
+const resend = new Resend(Deno.env.get("RESEND_API_KEY")!);
 
 interface SendEmailParams {
   to: string;
