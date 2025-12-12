@@ -26,10 +26,10 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
 
     try {
       if (isLogin) {
-        // Call Django backend login endpoint (accepts email or username)
+        // Call Django backend login endpoint (JWT token pair expected)
         const res = await api.post(
           "/api/auth/login/",
-          { username: email, password } // Can be email or username
+          { username: email, password }
         );
 
         if (res.status !== 200) {
@@ -48,11 +48,9 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
         onSuccess();
       } else {
         // Call Django backend register endpoint
-        // Use email as username if no separate username provided
-        const username = email.split('@')[0] + '_' + Date.now().toString().slice(-6); // Generate unique username
         const res = await api.post(
           "/api/auth/register/",
-          { username, email, password },
+          { username: email, email, password },
           { withCredentials: false }
         );
 
@@ -66,13 +64,6 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
           if (refresh) localStorage.setItem("refresh_token", refresh);
           api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
         }
-
-        // Send welcome email (non-blocking)
-        import('@/lib/resend').then(({ sendWelcomeEmail }) => {
-          sendWelcomeEmail(email, username).catch(err => 
-            console.error('Failed to send welcome email:', err)
-          );
-        });
 
         toast({ title: "Account created", description: "Welcome — your account was created." });
         onSuccess();
@@ -93,32 +84,22 @@ export const AuthForm = ({ onSuccess, defaultMode = 'login' }: AuthFormProps) =>
     <Card className="w-full max-w-md card-shadow border-border/50 backdrop-blur-sm bg-card/95">
       <CardHeader className="space-y-3 pb-6">
         <CardTitle className="text-3xl font-bold text-center bg-gradient-primary bg-clip-text text-transparent">
-          {isLogin ? "Welcome back" : "Start Your Collection"}
+          {isLogin ? "Welcome back" : "Create account"}
         </CardTitle>
-        <CardDescription className="text-center text-base space-y-1">
-          {isLogin ? (
-            <>
-              <p>Sign in to access your card portfolio</p>
-              <p className="text-xs text-muted-foreground/80">Track prices, scan cards, and manage your collection</p>
-            </>
-          ) : (
-            <>
-              <p>Create your free account to start scanning cards</p>
-              <p className="text-xs text-muted-foreground/80">AI-powered identification • Real-time market prices • Portfolio tracking</p>
-            </>
-          )}
+        <CardDescription className="text-center text-base">
+          {isLogin
+            ? "Sign in to access your inventory"
+            : "Sign up to start cataloging your items"}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAuth} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              {isLogin ? "Email or Username" : "Email"}
-            </Label>
+            <Label htmlFor="email" className="text-sm font-medium">Email</Label>
             <Input
               id="email"
-              type={isLogin ? "text" : "email"}
-              placeholder={isLogin ? "you@example.com or username" : "you@example.com"}
+              type="text"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
