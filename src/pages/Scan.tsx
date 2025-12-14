@@ -270,6 +270,28 @@ const Scan = () => {
             formData.append('context', userSource);
           }
 
+          // Pre-check subscription usage before detection for this image
+          try {
+            const subResp = await api.get('/api/auth/subscription/');
+            const scansUsed = subResp.data.scans_used || 0;
+            const scansLimit = subResp.data.scans_limit || 10;
+            const bonus = subResp.data.bonus_credits || 0;
+            const remaining = Math.max(0, scansLimit + bonus - scansUsed);
+
+            if (remaining <= 0) {
+              toast({
+                title: 'Item limit reached',
+                description: 'You have no remaining free scans. Upgrade to add more items.',
+                variant: 'destructive',
+              });
+              setUploading(false);
+              navigate('/subscription');
+              return;
+            }
+          } catch (err) {
+            console.warn('Subscription check failed, continuing to detection', err);
+          }
+
           let response;
           try {
             response = await api.post('/api/cards/scans/detect/', formData, {
@@ -279,6 +301,17 @@ const Scan = () => {
               timeout: 90000, // 90 seconds per image (Gemini can take time)
             });
           } catch (uploadError: any) {
+            // Handle server-side paywall response
+            if (uploadError?.response?.status === 402 || uploadError?.response?.data?.detail?.toLowerCase?.()?.includes('limit')) {
+              toast({
+                title: 'Item limit reached',
+                description: uploadError?.response?.data?.detail || 'Your plan limit prevents detection. Upgrade to add more items.',
+                variant: 'destructive',
+              });
+              setUploading(false);
+              navigate('/subscription');
+              return;
+            }
             console.error(`Error uploading image ${i + 1}:`, uploadError);
             errors.push(`Card ${i + 1}: Upload failed - ${uploadError?.message || 'Unknown error'}`);
             continue; // Continue to next file
@@ -449,6 +482,29 @@ const Scan = () => {
       const frontImage = files[0];
       const backImage = files.length > 1 ? files[1] : null;
 
+      // Before calling detection, check subscription usage server-side
+      try {
+        const subResp = await api.get('/api/auth/subscription/');
+        const scansUsed = subResp.data.scans_used || 0;
+        const scansLimit = subResp.data.scans_limit || 10;
+        const bonus = subResp.data.bonus_credits || 0;
+        const remaining = Math.max(0, scansLimit + bonus - scansUsed);
+
+        if (remaining <= 0) {
+          toast({
+            title: 'Item limit reached',
+            description: 'You have no remaining free scans. Upgrade to add more items.',
+            variant: 'destructive',
+          });
+          setUploading(false);
+          navigate('/subscription');
+          return;
+        }
+      } catch (err) {
+        // If subscription check fails, continue — detection endpoint has its own safeguards
+        console.warn('Subscription check failed, continuing to detection', err);
+      }
+
       // Create FormData for file upload - only send front image for detection
       const formData = new FormData();
       formData.append('images', frontImage); // Only front image for card detection
@@ -457,12 +513,28 @@ const Scan = () => {
       }
 
       // Upload front image to Django backend for detection
-      const response = await api.post('/api/cards/scans/detect/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 60000, // 60 second timeout
-      });
+      let response;
+      try {
+        response = await api.post('/api/cards/scans/detect/', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 60000, // 60 second timeout
+        });
+      } catch (err: any) {
+        // Handle server-side paywall response (402) returned when detection is blocked
+        if (err?.response?.status === 402 || err?.response?.data?.detail?.toLowerCase()?.includes('limit')) {
+          toast({
+            title: 'Item limit reached',
+            description: err?.response?.data?.detail || 'Your plan limit prevents detection. Upgrade to add more items.',
+            variant: 'destructive',
+          });
+          setUploading(false);
+          navigate('/subscription');
+          return;
+        }
+        throw err;
+      }
 
       // If we get detections directly, use them
       if (response.data.detections && response.data.detections.length > 0) {
